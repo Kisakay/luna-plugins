@@ -26,6 +26,7 @@ const JOBMENU_ID = "luna-songdownloader-jobmenu";
 
 // Vrais glyphes façon Segoe MDL2 Assets (Windows 10), en SVG pour un rendu
 // identique partout (la police MDL2 n'existe pas sous Linux).
+const WIN10_LOGO = `<svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.549L10.546 4.484V11.504H3V5.549Zm8.546-1.204L21 3v8.504H11.546V4.345ZM3 12.504h7.546v7.014L3 18.453v-5.949Zm8.546 0H21V21l-9.454-1.343v-7.153Z"/></svg>`;
 const GLYPH_MIN = `<svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5h8" stroke="currentColor" stroke-width="1"/></svg>`;
 const GLYPH_MAX = `<svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor"/></svg>`;
 const GLYPH_RESTORE = `<svg width="10" height="10" viewBox="0 0 10 10"><rect x="4" y="1" width="5" height="5" fill="none" stroke="currentColor"/><rect x="1" y="4" width="5" height="5" fill="none" stroke="currentColor"/></svg>`;
@@ -1089,7 +1090,7 @@ export function mountIsland() {
 	appBtn.type = "button";
 	appBtn.className = "sd-taskbar-app";
 	appBtn.title = "SongDownloaderV2";
-	appBtn.innerHTML = `<span class="sd-taskbar-app-icon">⬇</span>`;
+	appBtn.innerHTML = `<span class="sd-taskbar-app-icon">${WIN10_LOGO}</span>`;
 	appBtn.onclick = () => {
 		if (isWinShown()) {
 			minimized = true;
