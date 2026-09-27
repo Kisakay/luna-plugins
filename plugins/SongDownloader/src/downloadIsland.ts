@@ -243,7 +243,7 @@ function paintTaskbar() {
 		const queued = jobs.filter((j) => j.status === "queued").length;
 		let html: string | null = null;
 		if (active) {
-			const current = [...active.current][0];
+			const current = [...active.current.values()][0]?.label;
 			html = `<span class="sd-taskbar-status-icon">⬇</span><span>${active.done}/${active.total}${current ? ` · ${escapeHtml(current)}` : ""}${queued > 0 ? ` · ${queued} queued` : ""}</span>`;
 		} else if (queued > 0) {
 			html = `<span class="sd-taskbar-status-icon">⬇</span><span>${queued} queued</span>`;
