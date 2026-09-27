@@ -12,6 +12,7 @@ import {
 	removeJob,
 	setJobFolder,
 	setQueueProgressPainter,
+	type ActiveTrack,
 	type QueueJob,
 } from "./downloadQueue";
 import { getDownloadFolder } from "./helpers";
@@ -204,6 +205,27 @@ function paintJob(job: QueueJob) {
 		const count = row.querySelector(".sd-island-count") as HTMLSpanElement | null;
 		if (fill) fill.style.width = job.total > 0 ? `${(job.done / job.total) * 100}%` : "0%";
 		if (count) count.textContent = `${job.done}/${job.total}`;
+		// Synchro de la liste dépliée (ajout / progression / retrait)
+		const wrap = row.closest(".sd-island-jobwrap");
+		const tracks = wrap?.querySelector(".sd-island-tracks");
+		if (wrap && tracks && job.tracksOpen) {
+			tracks.querySelectorAll(".sd-island-track").forEach((el) => {
+				const k = (el as HTMLElement).dataset.trackKey!;
+				const entry = job.current.get(k);
+				if (!entry) el.remove();
+				else setTrackProgress(el, entry);
+			});
+			tracks.querySelector(".sd-island-wait")?.remove();
+			for (const entry of job.current.values()) {
+				if (!tracks.querySelector(`[data-track-key="${CSS.escape(entry.key)}"]`)) tracks.appendChild(buildTrackEl(entry));
+			}
+			if (job.current.size === 0) {
+				const wait = document.createElement("div");
+				wait.className = "sd-island-wait";
+				wait.textContent = job.status === "active" ? "Waiting for next tracks…" : "No track in progress.";
+				tracks.appendChild(wait);
+			}
+		}
 	}
 	paintTaskbar();
 }
@@ -444,7 +466,7 @@ function showJobMenu(job: QueueJob, x: number, y: number) {
 	menu.appendChild(sep());
 
 	if (job.status === "active") {
-		const now = [...job.current];
+		const now = [...job.current.values()];
 		const nowTitle = document.createElement("div");
 		nowTitle.className = "sd-qm-item sd-qm-disabled";
 		nowTitle.innerHTML = `<span>Downloading now (${now.length})</span>`;
@@ -455,11 +477,11 @@ function showJobMenu(job: QueueJob, x: number, y: number) {
 			none.innerHTML = `<span class="sd-qm-sub">starting…</span>`;
 			menu.appendChild(none);
 		}
-		for (const label of now.slice(0, 5)) {
+		for (const track of now.slice(0, 5)) {
 			const t = document.createElement("div");
 			t.className = "sd-qm-item sd-qm-disabled sd-qm-track";
-			t.title = label;
-			t.textContent = `♫ ${label}`;
+			t.title = track.label;
+			t.textContent = `♫ ${track.label}`;
 			menu.appendChild(t);
 		}
 		menu.appendChild(sep());
@@ -546,6 +568,8 @@ function renderList() {
 	if (!winEl) return;
 	const list = winEl.querySelector(".sd-island-list") as HTMLDivElement | null;
 	if (!list) return;
+	// Ne pas reconstruire pendant un drag & drop (casserait le geste)
+	if (dragId !== null) return;
 	const jobs = getJobs();
 	list.innerHTML = "";
 	if (jobs.length === 0) {
@@ -557,9 +581,12 @@ function renderList() {
 	}
 	let qindex = 0;
 	for (const job of jobs) {
+		const wrap = document.createElement("div");
+		wrap.className = "sd-island-jobwrap";
 		const row = document.createElement("div");
 		row.className = `sd-island-row sd-island-${job.status}`;
 		row.dataset.jobId = String(job.id);
+		row.title = "Click to expand tracks";
 		const isQueued = job.status === "queued";
 		if (isQueued) {
 			row.dataset.qindex = String(qindex++);
@@ -575,6 +602,12 @@ function renderList() {
 		const dot = document.createElement("span");
 		dot.className = "sd-island-dot";
 		row.appendChild(dot);
+
+		const exp = document.createElement("span");
+		exp.className = "sd-island-exp";
+		exp.textContent = job.tracksOpen ? "▾" : "▸";
+		exp.title = "Show tracks";
+		row.appendChild(exp);
 
 		const main = document.createElement("div");
 		main.className = "sd-island-main";
@@ -659,12 +692,82 @@ function renderList() {
 			e.preventDefault();
 			if (dragId === null) return;
 			const target = (e.target as HTMLElement).closest("[data-qindex]") as HTMLElement | null;
-			if (target) moveJob(dragId, Number(target.dataset.qindex));
+			const id = dragId;
 			dragId = null;
+			if (target) moveJob(id, Number(target.dataset.qindex));
+			else renderList();
 		});
 
-		list.appendChild(row);
+		// Clic : déplie les tracks en cours de download
+		row.addEventListener("click", (e) => {
+			if ((e.target as HTMLElement).closest("button, .sd-island-handle")) return;
+			job.tracksOpen = !job.tracksOpen;
+			renderList();
+		});
+
+		wrap.appendChild(row);
+		if (job.tracksOpen) {
+			const tracks = document.createElement("div");
+			tracks.className = "sd-island-tracks";
+			if (job.current.size === 0) {
+				const wait = document.createElement("div");
+				wait.className = "sd-island-wait";
+				wait.textContent = job.status === "active" ? "Waiting for next tracks…" : "No track in progress.";
+				tracks.appendChild(wait);
+			}
+			for (const entry of job.current.values()) tracks.appendChild(buildTrackEl(entry));
+			wrap.appendChild(tracks);
+		}
+		list.appendChild(wrap);
 	}
+}
+
+function formatMB(bytes?: number): string {
+	if (bytes === undefined) return "?";
+	return `${(bytes / 1048576).toFixed(1)}MB`;
+}
+
+function setTrackProgress(t: Element, entry: ActiveTrack) {
+	const pct = entry.total ? ((entry.downloaded ?? 0) / entry.total) * 100 : 0;
+	const fill = t.querySelector(".sd-island-trackfill") as HTMLDivElement | null;
+	const sub = t.querySelector(".sd-island-trackpct") as HTMLSpanElement | null;
+	if (fill) fill.style.width = `${pct}%`;
+	if (sub) sub.textContent = entry.total ? `${formatMB(entry.downloaded)}/${formatMB(entry.total)} · ${pct.toFixed(0)}%` : "starting…";
+}
+
+function buildTrackEl(entry: ActiveTrack): HTMLDivElement {
+	const t = document.createElement("div");
+	t.className = "sd-island-track";
+	t.dataset.trackKey = entry.key;
+	if (entry.cover) {
+		const img = document.createElement("img");
+		img.className = "sd-island-thumb";
+		img.src = entry.cover;
+		img.alt = "";
+		img.draggable = false;
+		img.onerror = () => img.remove();
+		t.appendChild(img);
+	}
+	const main = document.createElement("div");
+	main.className = "sd-island-trackmain";
+	const title = document.createElement("div");
+	title.className = "sd-island-tracktitle";
+	title.textContent = entry.label;
+	title.title = entry.label;
+	const sub = document.createElement("div");
+	sub.className = "sd-island-tracksub";
+	sub.innerHTML = `<span class="sd-island-trackpct"></span>`;
+	main.appendChild(title);
+	main.appendChild(sub);
+	const bar = document.createElement("div");
+	bar.className = "sd-island-trackbar";
+	const fill = document.createElement("div");
+	fill.className = "sd-island-trackfill";
+	bar.appendChild(fill);
+	main.appendChild(bar);
+	t.appendChild(main);
+	setTrackProgress(t, entry);
+	return t;
 }
 // #endregion
 

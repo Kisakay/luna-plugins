@@ -493,6 +493,21 @@ body {
 	gap: 4px;
 }
 
+#luna-songdownloader-win .sd-island-jobwrap {
+	display: flex;
+	flex-direction: column;
+}
+
+#luna-songdownloader-win .sd-island-exp {
+	flex-shrink: 0;
+	width: 14px;
+	text-align: center;
+	font-size: 10px;
+	color: #767676;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
 #luna-songdownloader-win .sd-island-row {
 	display: flex;
 	align-items: center;
@@ -502,6 +517,7 @@ body {
 	border: 1px solid transparent;
 	border-left: 3px solid transparent;
 	transition: background 0.12s ease;
+	cursor: pointer;
 }
 
 #luna-songdownloader-win .sd-island-row:hover {
@@ -618,6 +634,91 @@ body {
 #luna-songdownloader-win .sd-island-action:hover {
 	background: #e81123;
 	color: #fff;
+}
+
+/* Tracks dépliées (thumbnails + progression live) */
+#luna-songdownloader-win .sd-island-tracks {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 2px 0 6px 34px;
+}
+
+#luna-songdownloader-win .sd-island-track {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 8px;
+	background: rgba(0, 0, 0, 0.03);
+	border-left: 2px solid #0078d7;
+}
+
+#luna-songdownloader-win .sd-island-thumb {
+	width: 40px;
+	height: 40px;
+	flex-shrink: 0;
+	object-fit: cover;
+	background: #edebe9;
+}
+
+#luna-songdownloader-win .sd-island-trackmain {
+	flex: 1;
+	min-width: 0;
+}
+
+#luna-songdownloader-win .sd-island-tracktitle {
+	font-size: 12px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#luna-songdownloader-win .sd-island-tracksub {
+	font-size: 11px;
+	color: #605e5c;
+	margin-top: 1px;
+	font-variant-numeric: tabular-nums;
+}
+
+#luna-songdownloader-win .sd-island-trackbar {
+	height: 3px;
+	margin-top: 5px;
+	background: #edebe9;
+	overflow: hidden;
+}
+
+#luna-songdownloader-win .sd-island-trackfill {
+	height: 100%;
+	width: 0%;
+	background: #0078d7;
+	transition: width 0.15s ease-out;
+}
+
+#luna-songdownloader-win .sd-island-wait {
+	font-size: 11px;
+	color: #a19f9d;
+	font-style: italic;
+	padding: 4px 8px;
+}
+
+#luna-songdownloader-win.sd-win-dark .sd-island-track {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+#luna-songdownloader-win.sd-win-dark .sd-island-thumb {
+	background: #3a3a3a;
+}
+
+#luna-songdownloader-win.sd-win-dark .sd-island-tracksub {
+	color: #a19f9d;
+}
+
+#luna-songdownloader-win.sd-win-dark .sd-island-trackbar {
+	background: #3a3a3a;
+}
+
+#luna-songdownloader-win.sd-win-dark .sd-island-exp {
+	color: #a19f9d;
 }
 
 #luna-songdownloader-win .sd-win-resize {

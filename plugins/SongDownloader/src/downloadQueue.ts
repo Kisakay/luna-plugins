@@ -36,8 +36,18 @@ export type QueueJob = {
 	uiButton?: CtxButton;
 	/** Dossier de destination spécifique au job (sinon dossier par défaut). */
 	folderOverride?: string;
-	/** Labels des tracks en cours de traitement par les workers. */
-	current: Set<string>;
+	/** Tracks en cours de traitement par les workers (clé unique -> détail). */
+	current: Map<string, ActiveTrack>;
+	/** Ligne dépliée dans la fenêtre (voir les tracks en cours). */
+	tracksOpen?: boolean;
+};
+
+export type ActiveTrack = {
+	key: string;
+	label: string;
+	cover?: string;
+	downloaded?: number;
+	total?: number;
 };
 
 const { trace } = Tracer("[SongDownloader][Queue]");
@@ -50,6 +60,7 @@ const MAX_CONCURRENT = 5;
 let jobs: QueueJob[] = [];
 let processing = false;
 let nextId = 1;
+let trackToken = 1;
 
 const listeners = new Set<() => void>();
 let progressPainter: ((job: QueueJob) => void) | null = null;
@@ -118,7 +129,7 @@ export async function enqueueCollection(collection: MediaCollection, uiButton?: 
 		status: "queued",
 		collection,
 		uiButton,
-		current: new Set<string>(),
+		current: new Map<string, ActiveTrack>(),
 	};
 	jobs.push(job);
 	if (uiButton) {
@@ -281,7 +292,14 @@ async function runJob(job: QueueJob) {
 				setBannerStatus(`Loading tags...`);
 				const { tags } = await mediaItem.flacTags();
 				const label = tags.artist && tags.title ? `${tags.artist} – ${tags.title}` : (tags.title ?? fallbackLabel);
-				job.current.add(label);
+				const trackKey = `${mediaItem.id}:${trackToken++}`;
+				let cover: string | undefined;
+				try {
+					cover = await mediaItem.coverUrl();
+				} catch {
+					cover = undefined;
+				}
+				job.current.set(trackKey, { key: trackKey, label, cover });
 				setBannerCurrent(job.done, trackCount, `${job.title} — ${label}`);
 
 				if (uiButton) uiButton.text = `Fetching filename...`;
@@ -312,6 +330,11 @@ async function runJob(job: QueueJob) {
 						const progress = await mediaItem.downloadProgress();
 						if (progress === undefined) return;
 						const { total, downloaded } = progress;
+						const entry = job.current.get(trackKey);
+						if (entry && total !== undefined && downloaded !== undefined) {
+							entry.downloaded = downloaded;
+							entry.total = total;
+						}
 						if (total === undefined || downloaded === undefined) return;
 						const percent = total > 0 ? (downloaded / total) * 100 : 0;
 						uiButton?.elem?.style.setProperty("--progress", `${percent}%`);
@@ -335,7 +358,7 @@ async function runJob(job: QueueJob) {
 				} finally {
 					clearInterval();
 				}
-				job.current.delete(label);
+				job.current.delete(trackKey);
 				job.done++;
 				setBannerCurrent(job.done - 1, trackCount, `${job.title} — ${label}`);
 				notify();
