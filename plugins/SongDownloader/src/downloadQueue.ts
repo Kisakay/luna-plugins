@@ -256,18 +256,53 @@ async function runJob(job: QueueJob) {
 		const items = await collection.mediaItems();
 		const width = Math.min(MAX_CONCURRENT, trackCount);
 
+		// Prédiction suivante : pendant que les workers téléchargent, un pump
+		// résout en avance les N prochains items (store + qualité), pour que
+		// les workers n'attendent jamais la résolution.
+		const LOOKAHEAD = 10;
+		const ready: MediaItem[] = [];
+		let genDone = false;
+		const sleep = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
+
+		const prefetch = (async () => {
+			try {
+				while (true) {
+					if (downloadState.cancel) break;
+					if (ready.length >= LOOKAHEAD) {
+						await sleep(25);
+						continue;
+					}
+					let next: IteratorResult<MediaItem, unknown>;
+					try {
+						next = await items.next();
+					} catch (err) {
+						trace.msg.warn.withContext("Prefetch failed to pull next media item")(err);
+						break;
+					}
+					if (next.done || next.value === undefined) break;
+					ready.push(next.value);
+				}
+			} finally {
+				genDone = true;
+			}
+		})();
+
+		const takeNext = async (): Promise<MediaItem | null> => {
+			while (true) {
+				if (downloadState.cancel) return null;
+				const item = ready.shift();
+				if (item !== undefined) return item;
+				if (genDone) return null;
+				await sleep(10);
+			}
+		};
+
 		const worker = async () => {
 			while (true) {
 				if (downloadState.cancel) break;
-				let next: IteratorResult<MediaItem, unknown>;
-				try {
-					next = await items.next();
-				} catch (err) {
-					trace.msg.warn.withContext("Failed to pull next media item")(err);
-					break;
-				}
-				if (next.done || next.value === undefined) break;
-				let mediaItem = next.value;
+				const pulled = await takeNext();
+				if (pulled === null) break;
+				let mediaItem = pulled;
 				const originalId = mediaItem.id;
 
 				// Déjà téléchargée (historique) -> skip sans re-télécharger
@@ -365,7 +400,7 @@ async function runJob(job: QueueJob) {
 			}
 		};
 
-		await Promise.all(Array.from({ length: width }, () => worker()));
+		await Promise.all([prefetch, ...Array.from({ length: width }, () => worker())]);
 		if (downloadState.cancel) {
 			job.status = "stopped";
 			setBannerStatus(`Stopped – ${job.succeeded}/${trackCount} downloaded (${job.title})`);
