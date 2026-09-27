@@ -8,6 +8,9 @@ on:
    - "**/*.md"
    - ".vscode/**"
 
+permissions:
+  contents: write
+
 jobs:
  Build:
   uses: ./.github/workflows/build.yml
