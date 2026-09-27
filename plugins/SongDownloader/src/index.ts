@@ -1,16 +1,16 @@
 import { Tracer } from "@luna/core";
 import { ContextMenu, observe, safeTimeout, StyleTag } from "@luna/lib";
 
-import { hideBanner, setBannerStatus, showBanner } from "./downloadBanner";
+import { setBannerStatus, showBanner } from "./downloadBanner";
 import { downloadMediaCollection } from "./downloadCollection";
 import { mountIsland } from "./downloadIsland";
 import { getFavoritesQueueInfo, onQueueChange, toggleFavorites } from "./downloadQueue";
 import { FavoriteTracks } from "./favoriteTracks";
 import { watchPlayedTracks } from "./autoDownload";
 import { unloads } from "./index.safe";
+import { settings } from "./Settings";
 
 import styles from "file://downloadButton.css?minify";
-import bannerStyles from "file://downloadBanner.css?minify";
 import islandStyles from "file://downloadIsland.css?minify";
 
 export const { errSignal, trace } = Tracer("[SongDownloader]");
@@ -18,15 +18,14 @@ export { Settings } from "./Settings";
 export { unloads };
 
 new StyleTag("SongDownloader", unloads, styles);
-new StyleTag("SongDownloaderBanner", unloads, bannerStyles);
 new StyleTag("SongDownloaderIsland", unloads, islandStyles);
 
-// Island de queue (glassmorphism, top center)
+// Fenêtre de gestion des downloads (style Windows 10) + taskbar
 mountIsland();
 
-// Nettoyage : retire la bannière + les boutons Tracks injectés
+// Nettoyage : retire le quickmenu + les boutons Tracks injectés
 unloads.add(() => {
-	hideBanner();
+	document.getElementById("luna-songdownloader-quickmenu")?.remove();
 	document.querySelectorAll('[data-luna-songdownloader="tracks-download-all"]').forEach((b) => b.remove());
 	document.getElementById("luna-songdownloader-quickmenu")?.remove();
 });
@@ -198,6 +197,7 @@ const showTracksQuickMenu = (x: number, y: number) => {
 	const menu = document.createElement("div");
 	menu.id = QUICKMENU_ID;
 	menu.className = "sd-quickmenu";
+	if (settings.winTheme === "dark") menu.classList.add("sd-qm-dark");
 	const item = document.createElement("button");
 	item.type = "button";
 	item.className = "sd-qm-item";

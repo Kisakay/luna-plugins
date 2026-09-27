@@ -1,6 +1,7 @@
 import { ReactiveStore } from "@luna/core";
 import { MediaItem, Quality, type redux } from "@luna/lib";
 import { LunaButtonSetting, LunaSelectItem, LunaSelectSetting, LunaSettings, LunaSwitchSetting, LunaTextSetting } from "@luna/ui";
+import { store as obyStore } from "oby";
 
 import React from "react";
 import { clearDownloaded, countDownloaded } from "./downloadHistory";
@@ -18,7 +19,8 @@ type Settings = {
 	autoDownloadPlayed: boolean;
 	downloadedIds: (number | string)[];
 	winPos: { x: number; y: number } | null;
-	bannerPos: { x: number; y: number } | null;
+	winSize: { w: number; h: number } | null;
+	winTheme: "light" | "dark";
 };
 export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDownloader", {
 	downloadQuality: Quality.Max.audioQuality,
@@ -29,7 +31,8 @@ export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDown
 	autoDownloadPlayed: false,
 	downloadedIds: [],
 	winPos: null,
-	bannerPos: null,
+	winSize: null,
+	winTheme: "light",
 });
 
 // Sanitize download quality
@@ -43,6 +46,35 @@ export const Settings = () => {
 	const [downloadLyrics, setDownloadLyrics] = React.useState(settings.downloadLyrics);
 	const [lyricsSuffix, setLyricsSuffix] = React.useState(settings.lyricsSuffix);
 	const [autoDownloadPlayed, setAutoDownloadPlayed] = React.useState(settings.autoDownloadPlayed);
+	const [winTheme, setWinTheme] = React.useState(settings.winTheme);
+
+	// Reste synchronisé avec les valeurs persistées (reload, fenêtre Win10, etc.)
+	React.useEffect(
+		() =>
+			obyStore.on(
+				() => {
+					void settings.downloadQuality;
+					void settings.defaultPath;
+					void settings.pathFormat;
+					void settings.useRealMAX;
+					void settings.downloadLyrics;
+					void settings.lyricsSuffix;
+					void settings.autoDownloadPlayed;
+					void settings.winTheme;
+				},
+				() => {
+					setDownloadQuality(settings.downloadQuality);
+					setDefaultPath(settings.defaultPath);
+					setPathFormat(settings.pathFormat);
+					setUseRealMAX(settings.useRealMAX);
+					setDownloadLyrics(settings.downloadLyrics);
+					setLyricsSuffix(settings.lyricsSuffix);
+					setAutoDownloadPlayed(settings.autoDownloadPlayed);
+					setWinTheme(settings.winTheme);
+				},
+			),
+		[],
+	);
 
 	return (
 		<LunaSettings>
@@ -117,6 +149,12 @@ export const Settings = () => {
 				desc={<>Remembered tracks are skipped automatically. {countDownloaded()} tracks remembered.</>}
 				children="Clear history"
 				onClick={() => clearDownloaded()}
+			/>
+			<LunaSwitchSetting
+				title="Dark window theme"
+				desc={<>Dark mode for the download manager window (light by default, like Windows 10).</>}
+				value={winTheme === "dark"}
+				onChange={(_, checked) => setWinTheme((settings.winTheme = checked ? "dark" : "light"))}
 			/>
 			<LunaTextSetting
 				title="Path format"

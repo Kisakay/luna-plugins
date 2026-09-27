@@ -1,3 +1,4 @@
+import { safeInterval } from "@luna/lib";
 import { MediaItem, Quality, type redux } from "@luna/lib";
 
 import { clearDownloaded, countDownloaded } from "./downloadHistory";
@@ -9,27 +10,38 @@ import {
 	moveJob,
 	onQueueChange,
 	removeJob,
+	setJobFolder,
 	setQueueProgressPainter,
 	type QueueJob,
 } from "./downloadQueue";
 import { getDownloadFolder } from "./helpers";
 import { unloads } from "./index.safe";
 import { settings } from "./Settings";
+import { showToast } from "./toast";
 
-const ISLAND_ID = "luna-songdownloader-island";
+const TASKBAR_ID = "luna-songdownloader-taskbar";
 const WIN_ID = "luna-songdownloader-win";
-const BUBBLE_ID = "luna-songdownloader-bubble";
+const JOBMENU_ID = "luna-songdownloader-jobmenu";
+
+// Vrais glyphes façon Segoe MDL2 Assets (Windows 10), en SVG pour un rendu
+// identique partout (la police MDL2 n'existe pas sous Linux).
+const GLYPH_MIN = `<svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5h8" stroke="currentColor" stroke-width="1"/></svg>`;
+const GLYPH_MAX = `<svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor"/></svg>`;
+const GLYPH_RESTORE = `<svg width="10" height="10" viewBox="0 0 10 10"><rect x="4" y="1" width="5" height="5" fill="none" stroke="currentColor"/><rect x="1" y="4" width="5" height="5" fill="none" stroke="currentColor"/></svg>`;
+const GLYPH_CLOSE = `<svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" stroke-width="1"/></svg>`;
 
 type Section = "downloads" | "history" | "settings";
 
-let pillRoot: HTMLDivElement | null = null;
-let pillEl: HTMLDivElement | null = null;
+let taskbarEl: HTMLDivElement | null = null;
+let appBtn: HTMLButtonElement | null = null;
+let timeEl: HTMLSpanElement | null = null;
+let dateEl: HTMLSpanElement | null = null;
 let winEl: HTMLDivElement | null = null;
 let winBody: HTMLDivElement | null = null;
-let bubbleEl: HTMLDivElement | null = null;
-let expanded = true;
+let expanded = false;
 let minimized = false;
 let maximized = false;
+let forceOpen = false;
 let section: Section = "downloads";
 let builtSection: Section | null = null;
 let search = "";
@@ -55,12 +67,21 @@ function summaryText(): string {
 	if (active) return `${active.done}/${active.total}${queued > 0 ? ` · ${queued} queued` : ""}`;
 	if (queued > 0) return `${queued} queued`;
 	const done = jobs.filter((j) => j.status === "done").length;
-	return done > 0 ? `${done} finished` : "";
+	return done > 0 ? `${done} finished` : "Queue is empty";
 }
 
-// #region Fenêtre : position / drag / chrome
+function isWinShown(): boolean {
+	const jobs = getJobs();
+	return (jobs.length > 0 || forceOpen) && expanded && !minimized;
+}
+
+function applyTheme() {
+	winEl?.classList.toggle("sd-win-dark", settings.winTheme === "dark");
+}
+
+// #region Fenêtre : position / taille / drag / resize / chrome
 function clampWin(win: HTMLDivElement) {
-	const w = win.offsetWidth || 480;
+	const w = win.offsetWidth || 520;
 	const rect = win.getBoundingClientRect();
 	let x = win.style.left === "" ? window.innerWidth / 2 - rect.width / 2 : rect.left;
 	let y = win.style.top === "" ? 80 : rect.top;
@@ -71,12 +92,18 @@ function clampWin(win: HTMLDivElement) {
 	win.style.transform = "none";
 }
 
-function applySavedWinPos(win: HTMLDivElement) {
+function applySavedGeom(win: HTMLDivElement) {
 	const pos = settings.winPos;
-	if (pos === null || pos === undefined) return;
-	win.style.left = `${pos.x}px`;
-	win.style.top = `${pos.y}px`;
-	win.style.transform = "none";
+	if (pos !== null && pos !== undefined) {
+		win.style.left = `${pos.x}px`;
+		win.style.top = `${pos.y}px`;
+		win.style.transform = "none";
+	}
+	const size = settings.winSize;
+	if (size !== null && size !== undefined) {
+		win.style.width = `${size.w}px`;
+		win.style.height = `${size.h}px`;
+	}
 }
 
 function makeWinDraggable(win: HTMLDivElement, titlebar: HTMLDivElement) {
@@ -97,7 +124,7 @@ function makeWinDraggable(win: HTMLDivElement, titlebar: HTMLDivElement) {
 	};
 	titlebar.onpointermove = (e) => {
 		if (drag === null) return;
-		const w = win.offsetWidth || 480;
+		const w = win.offsetWidth || 520;
 		const x = Math.max(-w + 120, Math.min(window.innerWidth - 120, e.clientX - drag.dx));
 		const y = Math.max(0, Math.min(window.innerHeight - 60, e.clientY - drag.dy));
 		win.style.left = `${x}px`;
@@ -119,11 +146,51 @@ function makeWinDraggable(win: HTMLDivElement, titlebar: HTMLDivElement) {
 	};
 }
 
+function makeWinResizable(win: HTMLDivElement, grip: HTMLDivElement) {
+	let resize: { startW: number; startH: number; startX: number; startY: number } | null = null;
+	grip.onpointerdown = (e) => {
+		if (maximized) return;
+		const rect = win.getBoundingClientRect();
+		win.style.width = `${rect.width}px`;
+		win.style.height = `${rect.height}px`;
+		resize = { startW: rect.width, startH: rect.height, startX: e.clientX, startY: e.clientY };
+		try {
+			grip.setPointerCapture(e.pointerId);
+		} catch {
+			// ignore
+		}
+		e.preventDefault();
+		e.stopPropagation();
+	};
+	grip.onpointermove = (e) => {
+		if (resize === null) return;
+		const w = Math.max(380, Math.min(window.innerWidth - 16, resize.startW + e.clientX - resize.startX));
+		const h = Math.max(420, Math.min(window.innerHeight - 16, resize.startH + e.clientY - resize.startY));
+		win.style.width = `${w}px`;
+		win.style.height = `${h}px`;
+	};
+	const endResize = () => {
+		if (resize === null) return;
+		resize = null;
+		settings.winSize = {
+			w: Math.round(Number.parseFloat(win.style.width) || 520),
+			h: Math.round(Number.parseFloat(win.style.height) || 560),
+		};
+	};
+	grip.onpointerup = endResize;
+	grip.onpointercancel = endResize;
+}
+
 function toggleMaximize() {
 	if (!winEl) return;
 	maximized = !maximized;
 	winEl.classList.toggle("sd-win-max", maximized);
-	winEl.querySelector(".sd-win-capbtn.sd-win-maxbtn")!.textContent = maximized ? "❐" : "▢";
+	const maxBtn = winEl.querySelector(".sd-win-capbtn.sd-win-maxbtn") as HTMLButtonElement | null;
+	if (maxBtn) {
+		maxBtn.innerHTML = maximized ? GLYPH_RESTORE : GLYPH_MAX;
+		maxBtn.title = maximized ? "Restore" : "Maximize";
+		maxBtn.setAttribute("aria-label", maximized ? "Restore" : "Maximize");
+	}
 	if (!maximized) clampWin(winEl);
 }
 // #endregion
@@ -137,46 +204,44 @@ function paintJob(job: QueueJob) {
 		if (fill) fill.style.width = job.total > 0 ? `${(job.done / job.total) * 100}%` : "0%";
 		if (count) count.textContent = `${job.done}/${job.total}`;
 	}
-	paintPill();
-	paintBubble();
+	paintTaskbar();
 }
 
-function paintPill() {
-	if (!pillEl) return;
+function paintTaskbar() {
+	if (!appBtn) return;
 	const jobs = getJobs();
-	const active = jobs.find((j) => j.status === "active");
-	pillEl.querySelector(".sd-island-pill-text")!.textContent = summaryText();
-	const fill = pillEl.querySelector(".sd-island-pill-fill") as HTMLDivElement | null;
-	if (fill && active) fill.style.width = active.total > 0 ? `${(active.done / active.total) * 100}%` : "0%";
-	if (fill && !active) fill.style.width = jobs.length > 0 ? "100%" : "0%";
+	const running = jobs.length > 0;
+	const open = isWinShown();
+	appBtn.classList.toggle("sd-taskbar-running", running);
+	appBtn.classList.toggle("sd-taskbar-open", open && !minimized);
+	appBtn.title = running ? `SongDownloaderV2 — ${summaryText()}` : "SongDownloaderV2";
 }
 
-function paintBubble() {
-	if (!bubbleEl) return;
-	const jobs = getJobs();
-	const active = jobs.find((j) => j.status === "active");
-	const queued = jobs.filter((j) => j.status === "queued").length;
-	bubbleEl.querySelector(".sd-bubble-text")!.textContent = active
-		? `${active.done}/${active.total}${queued > 0 ? ` · ${queued} queued` : ""}`
-		: `${queued} queued`;
-	const fill = bubbleEl.querySelector(".sd-bubble-fill") as HTMLDivElement | null;
-	if (fill && active) fill.style.width = active.total > 0 ? `${(active.done / active.total) * 100}%` : "0%";
+function tickClock() {
+	if (!timeEl || !dateEl) return;
+	const now = new Date();
+	timeEl.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+	dateEl.textContent = now.toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 function render() {
 	const jobs = getJobs();
 	const hasJobs = jobs.length > 0;
-	if (pillRoot) pillRoot.style.display = hasJobs ? "" : "none";
+	const showWin = (hasJobs || forceOpen) && expanded && !minimized;
 	if (winEl) {
-		winEl.style.display = hasJobs && expanded && !minimized ? "" : "none";
-		if (hasJobs && expanded && !minimized && !maximized) clampWin(winEl);
+		const wasHidden = winEl.style.display === "none";
+		winEl.style.display = showWin ? "" : "none";
+		if (showWin && !maximized) clampWin(winEl);
+		// Rebuild frais à chaque ouverture (settings toujours à jour)
+		if (showWin && wasHidden) builtSection = null;
 	}
-	if (bubbleEl) bubbleEl.style.display = hasJobs && expanded && minimized ? "" : "none";
-	if (!hasJobs) return;
+	if (!hasJobs && !forceOpen) {
+		paintTaskbar();
+		return;
+	}
 
-	paintPill();
-	paintBubble();
-	if (pillEl) pillEl.querySelector(".sd-island-chevron")!.textContent = expanded && !minimized ? "▾" : "▸";
+	applyTheme();
+	paintTaskbar();
 	renderNav();
 	if (builtSection !== section) {
 		buildBody();
@@ -192,6 +257,126 @@ function renderNav() {
 		el.classList.toggle("sd-win-navitem-active", (el as HTMLElement).dataset.section === section);
 	});
 }
+function shortFolder(folder: string): string {
+	const parts = folder.split(/[/\\]/).filter(Boolean);
+	return parts.length > 0 ? parts[parts.length - 1] : folder;
+}
+
+function closeJobMenu() {
+	document.getElementById(JOBMENU_ID)?.remove();
+}
+
+/** Clic droit sur un job : menu contextuel Win10 avec tracks en cours + actions. */
+function showJobMenu(job: QueueJob, x: number, y: number) {
+	closeJobMenu();
+	const menu = document.createElement("div");
+	menu.id = JOBMENU_ID;
+	menu.className = "sd-quickmenu";
+	if (settings.winTheme === "dark") menu.classList.add("sd-qm-dark");
+
+	const header = document.createElement("div");
+	header.className = "sd-qm-item sd-qm-disabled";
+	header.innerHTML = `<span>${job.title}</span><span class="sd-qm-sub">${job.done}/${job.total} · ${statusLabel(job)}</span>`;
+	menu.appendChild(header);
+	menu.appendChild(sep());
+
+	if (job.status === "active") {
+		const now = [...job.current];
+		const nowTitle = document.createElement("div");
+		nowTitle.className = "sd-qm-item sd-qm-disabled";
+		nowTitle.innerHTML = `<span>Downloading now (${now.length})</span>`;
+		menu.appendChild(nowTitle);
+		if (now.length === 0) {
+			const none = document.createElement("div");
+			none.className = "sd-qm-item sd-qm-disabled";
+			none.innerHTML = `<span class="sd-qm-sub">starting…</span>`;
+			menu.appendChild(none);
+		}
+		for (const label of now.slice(0, 5)) {
+			const t = document.createElement("div");
+			t.className = "sd-qm-item sd-qm-disabled sd-qm-track";
+			t.title = label;
+			t.textContent = `♫ ${label}`;
+			menu.appendChild(t);
+		}
+		menu.appendChild(sep());
+	}
+
+	const folderItem = document.createElement("div");
+	folderItem.className = "sd-qm-item sd-qm-disabled";
+	folderItem.innerHTML = `<span class="sd-qm-sub">Folder: ${job.folderOverride ? shortFolder(job.folderOverride) : "default"}</span>`;
+	menu.appendChild(folderItem);
+
+	if (job.status === "queued" || job.status === "active") {
+		const folderBtn = document.createElement("button");
+		folderBtn.type = "button";
+		folderBtn.className = "sd-qm-item";
+		folderBtn.textContent = "Save to another folder…";
+		folderBtn.onclick = async (e) => {
+			e.stopPropagation();
+			closeJobMenu();
+			const folder = await getDownloadFolder();
+			if (folder === undefined) return;
+			setJobFolder(job.id, folder);
+			showToast(`Folder changed for remaining tracks (${job.title})`);
+		};
+		menu.appendChild(folderBtn);
+	}
+
+	const actBtn = document.createElement("button");
+	actBtn.type = "button";
+	actBtn.className = "sd-qm-item";
+	if (job.status === "active") {
+		actBtn.textContent = "Stop this download";
+		actBtn.onclick = (e) => {
+			e.stopPropagation();
+			closeJobMenu();
+			cancelJob(job.id);
+		};
+	} else if (job.status === "queued") {
+		actBtn.textContent = "Remove from queue";
+		actBtn.onclick = (e) => {
+			e.stopPropagation();
+			closeJobMenu();
+			cancelJob(job.id);
+		};
+	} else {
+		actBtn.textContent = "Dismiss";
+		actBtn.onclick = (e) => {
+			e.stopPropagation();
+			closeJobMenu();
+			removeJob(job.id);
+		};
+	}
+	menu.appendChild(actBtn);
+
+	document.body.appendChild(menu);
+	const w = menu.offsetWidth || 260;
+	const h = menu.offsetHeight || 120;
+	menu.style.left = `${Math.max(0, Math.min(window.innerWidth - w, x))}px`;
+	menu.style.top = `${Math.max(0, Math.min(window.innerHeight - h, y))}px`;
+
+	const onPointerDown = (ev: PointerEvent) => {
+		if (!menu.contains(ev.target as Node)) closeJobMenu();
+	};
+	const onKey = (ev: KeyboardEvent) => {
+		if (ev.key === "Escape") closeJobMenu();
+	};
+	document.addEventListener("pointerdown", onPointerDown, { once: true });
+	document.addEventListener("keydown", onKey, { once: true });
+	unloads.add(() => {
+		closeJobMenu();
+		document.removeEventListener("pointerdown", onPointerDown);
+		document.removeEventListener("keydown", onKey);
+	});
+
+	function sep(): HTMLDivElement {
+		const d = document.createElement("div");
+		d.className = "sd-qm-sep";
+		return d;
+	}
+}
+
 // #endregion
 
 // #region Section Downloads
@@ -273,6 +458,13 @@ function renderList() {
 		}
 		row.appendChild(action);
 
+		// Clic droit : menu contextuel Win10 (tracks en cours + actions)
+		row.addEventListener("contextmenu", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			showJobMenu(job, (e as MouseEvent).clientX, (e as MouseEvent).clientY);
+		});
+
 		if (isQueued) {
 			row.addEventListener("dragstart", (e) => {
 				dragId = job.id;
@@ -327,6 +519,20 @@ function makeToggle(label: string, desc: string, get: () => boolean, set: (v: bo
 	const row = document.createElement("div");
 	row.className = "sd-win-setting";
 	row.dataset.search = `${label} ${desc}`.toLowerCase();
+	const box = document.createElement("button");
+	box.type = "button";
+	box.className = "sd-win-checkbox";
+	box.setAttribute("role", "checkbox");
+	const sync = () => {
+		const on = get();
+		box.classList.toggle("sd-win-checkbox-on", on);
+		box.setAttribute("aria-checked", String(on));
+	};
+	box.onclick = () => {
+		set(!get());
+		sync();
+	};
+	sync();
 	const texts = document.createElement("div");
 	texts.className = "sd-win-setting-texts";
 	const title = document.createElement("div");
@@ -337,22 +543,14 @@ function makeToggle(label: string, desc: string, get: () => boolean, set: (v: bo
 	sub.textContent = desc;
 	texts.appendChild(title);
 	texts.appendChild(sub);
-	const btn = document.createElement("button");
-	btn.type = "button";
-	btn.className = "sd-win-toggle";
-	btn.setAttribute("role", "switch");
-	const sync = () => {
-		const on = get();
-		btn.classList.toggle("sd-win-toggle-on", on);
-		btn.setAttribute("aria-checked", String(on));
-	};
-	btn.onclick = () => {
+	row.appendChild(box);
+	row.appendChild(texts);
+	row.onclick = (e) => {
+		// Clic sur le label = toggle aussi (comme Win10)
+		if ((e.target as HTMLElement).closest("button")) return;
 		set(!get());
 		sync();
 	};
-	sync();
-	row.appendChild(texts);
-	row.appendChild(btn);
 	return row;
 }
 
@@ -403,6 +601,14 @@ function buildSettingsPage(body: HTMLDivElement) {
 		el.textContent = text;
 		body.appendChild(el);
 	};
+
+	h("Appearance");
+	body.appendChild(
+		makeToggle("Dark theme", "Dark mode for this window (light by default, like Windows 10)", () => settings.winTheme === "dark", (v) => {
+			settings.winTheme = v ? "dark" : "light";
+			applyTheme();
+		}),
+	);
 
 	h("Quality");
 	const qualRow = document.createElement("div");
@@ -548,24 +754,44 @@ const NAV: { id: Section; label: string; glyph: string }[] = [
 ];
 
 export function mountIsland() {
-	if (document.getElementById(ISLAND_ID)) return;
+	if (document.getElementById(TASKBAR_ID)) return;
 
-	// Pilule (launcher)
-	pillRoot = document.createElement("div");
-	pillRoot.id = ISLAND_ID;
-	pillRoot.className = "sd-island";
-	pillRoot.style.display = "none";
-
-	pillEl = document.createElement("div");
-	pillEl.className = "sd-island-pill";
-	pillEl.innerHTML = `<span class="sd-island-pill-icon">⬇</span><span class="sd-island-pill-text"></span><span class="sd-island-chevron">▾</span><div class="sd-island-pill-bar"><div class="sd-island-pill-fill"></div></div>`;
-	pillEl.onclick = () => {
-		expanded = true;
-		minimized = false;
+	// Taskbar Win10 (toujours visible, lance la fenêtre)
+	const taskbar = document.createElement("div");
+	taskbar.id = TASKBAR_ID;
+	taskbar.className = "sd-taskbar";
+	appBtn = document.createElement("button");
+	appBtn.type = "button";
+	appBtn.className = "sd-taskbar-app";
+	appBtn.title = "SongDownloaderV2";
+	appBtn.innerHTML = `<span class="sd-taskbar-app-icon">⬇</span>`;
+	appBtn.onclick = () => {
+		if (isWinShown()) {
+			minimized = true;
+		} else {
+			expanded = true;
+			minimized = false;
+			if (getJobs().length === 0) forceOpen = true;
+		}
 		render();
 	};
-	pillRoot.appendChild(pillEl);
-	document.body.appendChild(pillRoot);
+	taskbar.appendChild(appBtn);
+	const spacer = document.createElement("div");
+	spacer.className = "sd-taskbar-spacer";
+	taskbar.appendChild(spacer);
+	const clock = document.createElement("div");
+	clock.className = "sd-taskbar-clock";
+	timeEl = document.createElement("span");
+	timeEl.className = "sd-taskbar-time";
+	dateEl = document.createElement("span");
+	dateEl.className = "sd-taskbar-date";
+	clock.appendChild(timeEl);
+	clock.appendChild(dateEl);
+	taskbar.appendChild(clock);
+	document.body.appendChild(taskbar);
+	taskbarEl = taskbar;
+	tickClock();
+	safeInterval(unloads, tickClock, 10000);
 
 	// Fenêtre Win10
 	winEl = document.createElement("div");
@@ -577,13 +803,22 @@ export function mountIsland() {
 	titlebar.className = "sd-win-titlebar";
 	const left = document.createElement("div");
 	left.className = "sd-win-titleleft";
-	left.innerHTML = `<span class="sd-win-icon">⬇</span><span class="sd-win-title">SongDownloaderV2</span>`;
+	const avatar = document.createElement("img");
+	avatar.className = "sd-win-avatar";
+	avatar.src = "https://github.com/Kisakay.png";
+	avatar.alt = "";
+	avatar.onerror = () => avatar.remove();
+	left.appendChild(avatar);
+	const titleWrap = document.createElement("span");
+	titleWrap.className = "sd-win-titletxt";
+	titleWrap.innerHTML = `SongDownloaderV2 <span class="sd-win-credit">by Kisakay</span>`;
+	left.appendChild(titleWrap);
 	const capBtns = document.createElement("div");
 	capBtns.className = "sd-win-caption";
 	const minBtn = document.createElement("button");
 	minBtn.type = "button";
 	minBtn.className = "sd-win-capbtn";
-	minBtn.textContent = "–";
+	minBtn.innerHTML = GLYPH_MIN;
 	minBtn.title = "Minimize";
 	minBtn.setAttribute("aria-label", "Minimize");
 	minBtn.onclick = () => {
@@ -593,19 +828,20 @@ export function mountIsland() {
 	const maxBtn = document.createElement("button");
 	maxBtn.type = "button";
 	maxBtn.className = "sd-win-capbtn sd-win-maxbtn";
-	maxBtn.textContent = "▢";
+	maxBtn.innerHTML = GLYPH_MAX;
 	maxBtn.title = "Maximize";
 	maxBtn.setAttribute("aria-label", "Maximize");
 	maxBtn.onclick = () => toggleMaximize();
 	const closeBtn = document.createElement("button");
 	closeBtn.type = "button";
 	closeBtn.className = "sd-win-capbtn sd-win-close";
-	closeBtn.textContent = "✕";
+	closeBtn.innerHTML = GLYPH_CLOSE;
 	closeBtn.title = "Close";
 	closeBtn.setAttribute("aria-label", "Close");
 	closeBtn.onclick = () => {
 		expanded = false;
 		minimized = false;
+		forceOpen = false;
 		render();
 	};
 	capBtns.appendChild(minBtn);
@@ -637,27 +873,21 @@ export function mountIsland() {
 	winBody.className = "sd-win-body";
 	content.appendChild(winBody);
 	winEl.appendChild(content);
-	document.body.appendChild(winEl);
-	applySavedWinPos(winEl);
 
-	// Bulle bas-gauche (restaure la fenêtre)
-	bubbleEl = document.createElement("div");
-	bubbleEl.id = BUBBLE_ID;
-	bubbleEl.className = "sd-bubble";
-	bubbleEl.style.display = "none";
-	bubbleEl.title = "Restore downloads window";
-	bubbleEl.innerHTML = `<span class="sd-bubble-icon">⬇</span><span class="sd-bubble-text"></span><div class="sd-bubble-bar"><div class="sd-bubble-fill"></div></div>`;
-	bubbleEl.onclick = () => {
-		minimized = false;
-		render();
-	};
-	document.body.appendChild(bubbleEl);
+	const grip = document.createElement("div");
+	grip.className = "sd-win-resize";
+	grip.title = "Resize";
+	winEl.appendChild(grip);
+	makeWinResizable(winEl, grip);
+
+	document.body.appendChild(winEl);
+	applySavedGeom(winEl);
 
 	unloads.add(() => {
-		pillRoot?.remove();
+		taskbarEl?.remove();
 		winEl?.remove();
-		bubbleEl?.remove();
-		pillRoot = pillEl = winEl = winBody = bubbleEl = null;
+		taskbarEl = appBtn = timeEl = dateEl = null;
+		winEl = winBody = null;
 	});
 
 	onQueueChange(render);

@@ -33,6 +33,10 @@ export type QueueJob = {
 	status: JobStatus;
 	collection: MediaCollection;
 	uiButton?: CtxButton;
+	/** Dossier de destination spécifique au job (sinon dossier par défaut). */
+	folderOverride?: string;
+	/** Labels des tracks en cours de traitement par les workers. */
+	current: Set<string>;
 };
 
 const { trace } = Tracer("[SongDownloader][Queue]");
@@ -113,6 +117,7 @@ export async function enqueueCollection(collection: MediaCollection, uiButton?: 
 		status: "queued",
 		collection,
 		uiButton,
+		current: new Set<string>(),
 	};
 	jobs.push(job);
 	if (uiButton) {
@@ -157,6 +162,14 @@ export function removeJob(id: number) {
 	const job = jobs.find((j) => j.id === id);
 	if (!job || job.status === "active") return;
 	jobs = jobs.filter((j) => j.id !== id);
+	notify();
+}
+
+/** Dossier de destination spécifique au job (s'applique aux tracks restantes). */
+export function setJobFolder(id: number, folder: string | undefined) {
+	const job = jobs.find((j) => j.id === id);
+	if (!job || (job.status !== "queued" && job.status !== "active")) return;
+	job.folderOverride = folder;
 	notify();
 }
 
@@ -267,6 +280,7 @@ async function runJob(job: QueueJob) {
 				setBannerStatus(`Loading tags...`);
 				const { tags } = await mediaItem.flacTags();
 				const label = tags.artist && tags.title ? `${tags.artist} – ${tags.title}` : (tags.title ?? fallbackLabel);
+				job.current.add(label);
 				setBannerCurrent(job.done, trackCount, `${job.title} — ${label}`);
 
 				if (uiButton) uiButton.text = `Fetching filename...`;
@@ -274,7 +288,8 @@ async function runJob(job: QueueJob) {
 				const fileName = await getFileName(mediaItem, settings.downloadQuality);
 
 				if (uiButton) uiButton.text = `Fetching download path...`;
-				const path = downloadFolder !== undefined ? [downloadFolder, fileName] : await getDownloadPath(fileName);
+				const baseFolder = job.folderOverride ?? downloadFolder;
+				const path = baseFolder !== undefined ? [baseFolder, fileName] : await getDownloadPath(fileName);
 				if (path === undefined) break;
 
 				if (uiButton) uiButton.text = `Downloading...`;
@@ -309,6 +324,7 @@ async function runJob(job: QueueJob) {
 				} finally {
 					clearInterval();
 				}
+				job.current.delete(label);
 				job.done++;
 				setBannerCurrent(job.done - 1, trackCount, `${job.title} — ${label}`);
 				notify();
