@@ -3,6 +3,7 @@ import { MediaItem, safeInterval } from "@luna/lib";
 
 import { downloadState, setBannerFileProgress, setBannerStatus, showBanner } from "./downloadBanner";
 import { isDownloaded, markDownloaded } from "./downloadHistory";
+import { fileExists } from "./fs.native";
 import { isQueueBusy } from "./downloadQueue";
 import { getFileName } from "./helpers";
 import { unloads } from "./index.safe";
@@ -83,6 +84,12 @@ async function autoDownloadOne(mediaItem: MediaItem) {
 		const label = tags.artist && tags.title ? `${tags.artist} – ${tags.title}` : (tags.title ?? `id ${item.id}`);
 		const fileName = await getFileName(item, settings.downloadQuality);
 		const path = [folder, fileName];
+
+		// Double sécurité : fichier déjà sur disque -> skip + synchro historique
+		if (await fileExists(path)) {
+			markDownloaded(originalId, item.id);
+			return;
+		}
 
 		setBannerStatus(`Auto-saving... ${label}`);
 		setBannerFileProgress(0);

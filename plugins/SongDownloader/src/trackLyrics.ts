@@ -2,7 +2,7 @@ import { Tracer } from "@luna/core";
 import type { MediaItem } from "@luna/lib";
 
 import { setBannerStatus } from "./downloadBanner";
-import { saveTextFile } from "./lyrics.native";
+import { saveTextFile } from "./fs.native";
 import { settings } from "./Settings";
 
 const { trace } = Tracer("[SongDownloader]");

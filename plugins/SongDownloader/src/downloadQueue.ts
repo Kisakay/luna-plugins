@@ -4,6 +4,7 @@ import type { MediaCollection, MediaItem } from "@luna/lib";
 
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
 import { isDownloaded, markDownloaded } from "./downloadHistory";
+import { fileExists } from "./fs.native";
 import { unloads } from "./index.safe";
 import { settings } from "./Settings";
 import { FavoriteTracks } from "./favoriteTracks";
@@ -291,6 +292,16 @@ async function runJob(job: QueueJob) {
 				const baseFolder = job.folderOverride ?? downloadFolder;
 				const path = baseFolder !== undefined ? [baseFolder, fileName] : await getDownloadPath(fileName);
 				if (path === undefined) break;
+
+				// Double sécurité : le fichier existe déjà sur disque -> skip + synchro historique
+				if (await fileExists(path)) {
+					markDownloaded(originalId, mediaItem.id);
+					job.skipped++;
+					job.done++;
+					setBannerCurrent(job.done - 1, trackCount, `${job.title} — skipped (file exists)`);
+					notify();
+					continue;
+				}
 
 				if (uiButton) uiButton.text = `Downloading...`;
 				setBannerStatus(`Downloading... ${label}`);
