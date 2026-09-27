@@ -238,9 +238,13 @@ export function setBannerFileProgress(percent: number, downloadedMB?: string, to
 	showBanner();
 }
 
-export function setBannerDone(succeeded: number, failed: number, total: number) {
+export function setBannerDone(succeeded: number, failed: number, total: number, skipped = 0) {
 	const b = ensure();
-	b.status.textContent = failed > 0 ? `Done – ${succeeded}/${total} ok, ${failed} failed` : `Done – ${succeeded}/${total} downloaded`;
+	const skippedTxt = skipped > 0 ? ` · ${skipped} skipped` : "";
+	b.status.textContent =
+		failed > 0
+			? `Done – ${succeeded}/${total} ok, ${failed} failed${skippedTxt}`
+			: `Done – ${succeeded}/${total} downloaded${skippedTxt}`;
 	b.fileFill.style.width = "100%";
 	b.overallFill.style.width = "100%";
 	b.filePct.textContent = "100%";

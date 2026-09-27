@@ -2,6 +2,7 @@ import { Tracer } from "@luna/core";
 import { MediaItem, safeInterval } from "@luna/lib";
 
 import { downloadState, setBannerFileProgress, setBannerStatus, showBanner } from "./downloadBanner";
+import { isDownloaded, markDownloaded } from "./downloadHistory";
 import { isQueueBusy } from "./downloadQueue";
 import { getFileName } from "./helpers";
 import { unloads } from "./index.safe";
@@ -56,6 +57,8 @@ async function pumpAutoQueue() {
 }
 
 async function autoDownloadOne(mediaItem: MediaItem) {
+	// Déjà dans l'historique -> skip direct
+	if (isDownloaded(mediaItem.id)) return;
 	const folder = settings.defaultPath;
 	if (folder === undefined) {
 		// Throttle le warning : une fois toutes les 30s max
@@ -69,6 +72,7 @@ async function autoDownloadOne(mediaItem: MediaItem) {
 
 	downloadState.active = true;
 	try {
+		const originalId = mediaItem.id;
 		let item = mediaItem;
 		if (settings.useRealMAX) {
 			setBannerStatus("Auto: checking RealMax...");
@@ -95,6 +99,7 @@ async function autoDownloadOne(mediaItem: MediaItem) {
 		);
 		try {
 			await item.download(path, settings.downloadQuality);
+			markDownloaded(originalId, item.id);
 			await saveLyricsForTrack(item, path, label, tags.title);
 			setBannerStatus(`Auto-saved: ${label}`);
 		} catch (err) {

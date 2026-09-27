@@ -3,6 +3,7 @@ import { MediaItem, Quality, type redux } from "@luna/lib";
 import { LunaButtonSetting, LunaSelectItem, LunaSelectSetting, LunaSettings, LunaSwitchSetting, LunaTextSetting } from "@luna/ui";
 
 import React from "react";
+import { clearDownloaded, countDownloaded } from "./downloadHistory";
 import { getDownloadFolder } from "./helpers";
 
 const defaultFilenameFormat = "{artist} - {album} - {title}";
@@ -15,6 +16,8 @@ type Settings = {
 	downloadLyrics: boolean;
 	lyricsSuffix: string;
 	autoDownloadPlayed: boolean;
+	downloadedIds: (number | string)[];
+	winPos: { x: number; y: number } | null;
 	bannerPos: { x: number; y: number } | null;
 };
 export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDownloader", {
@@ -24,6 +27,8 @@ export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDown
 	downloadLyrics: true,
 	lyricsSuffix: ".lyrics",
 	autoDownloadPlayed: false,
+	downloadedIds: [],
+	winPos: null,
 	bannerPos: null,
 });
 
@@ -106,6 +111,12 @@ export const Settings = () => {
 				}
 				value={autoDownloadPlayed}
 				onChange={(_, checked) => setAutoDownloadPlayed((settings.autoDownloadPlayed = checked))}
+			/>
+			<LunaButtonSetting
+				title="Downloaded history"
+				desc={<>Remembered tracks are skipped automatically. {countDownloaded()} tracks remembered.</>}
+				children="Clear history"
+				onClick={() => clearDownloaded()}
 			/>
 			<LunaTextSetting
 				title="Path format"

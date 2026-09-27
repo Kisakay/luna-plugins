@@ -13,7 +13,9 @@ Fork of [Inrixia/luna-plugins](https://github.com/Inrixia/luna-plugins) with a s
 
 ## What V2 adds
 
-- Liked **Tracks** download (header button + context menu)
+- Liked **Tracks** download (header button + context menu + queue)
+- Download queue in a Windows 10 style window (reorder, per-item cancel)
 - Draggable download status banner
 - `.lyrics` text file next to each track
 - Auto-download of every played track
+- Persistent download history (auto-skip, clearable)

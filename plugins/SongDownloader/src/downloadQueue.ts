@@ -3,6 +3,7 @@ import { ContextMenu, safeInterval } from "@luna/lib";
 import type { MediaCollection, MediaItem } from "@luna/lib";
 
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
+import { isDownloaded, markDownloaded } from "./downloadHistory";
 import { unloads } from "./index.safe";
 import { settings } from "./Settings";
 import { FavoriteTracks } from "./favoriteTracks";
@@ -28,6 +29,7 @@ export type QueueJob = {
 	done: number;
 	succeeded: number;
 	failed: number;
+	skipped: number;
 	status: JobStatus;
 	collection: MediaCollection;
 	uiButton?: CtxButton;
@@ -107,6 +109,7 @@ export async function enqueueCollection(collection: MediaCollection, uiButton?: 
 		done: 0,
 		succeeded: 0,
 		failed: 0,
+		skipped: 0,
 		status: "queued",
 		collection,
 		uiButton,
@@ -240,6 +243,16 @@ async function runJob(job: QueueJob) {
 				}
 				if (next.done || next.value === undefined) break;
 				let mediaItem = next.value;
+				const originalId = mediaItem.id;
+
+				// Déjà téléchargée (historique) -> skip sans re-télécharger
+				if (isDownloaded(originalId)) {
+					job.skipped++;
+					job.done++;
+					setBannerCurrent(job.done - 1, trackCount, `${job.title} — skipped (already downloaded)`);
+					notify();
+					continue;
+				}
 
 				const fallbackLabel = `#${job.done + 1} (id ${mediaItem.id})`;
 				setBannerCurrent(job.done, trackCount, `${job.title} — ${fallbackLabel}`);
@@ -287,6 +300,7 @@ async function runJob(job: QueueJob) {
 				try {
 					await mediaItem.download(path, settings.downloadQuality);
 					job.succeeded++;
+					markDownloaded(originalId, mediaItem.id);
 					await saveLyricsForTrack(mediaItem, path, label, tags.title);
 				} catch (err) {
 					job.failed++;
@@ -307,7 +321,7 @@ async function runJob(job: QueueJob) {
 			setBannerStatus(`Stopped – ${job.succeeded}/${trackCount} downloaded (${job.title})`);
 		} else {
 			job.status = "done";
-			setBannerDone(job.succeeded, job.failed, trackCount);
+			setBannerDone(job.succeeded, job.failed, trackCount, job.skipped);
 		}
 	} finally {
 		if (uiButton && defaultText !== undefined) uiButton.text = defaultText;
