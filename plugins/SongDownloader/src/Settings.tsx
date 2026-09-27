@@ -24,7 +24,10 @@ type Settings = {
 	winPos: { x: number; y: number } | null;
 	winSize: { w: number; h: number } | null;
 	winTheme: "light" | "dark";
+	accent: string;
 };
+export const DEFAULT_ACCENT = "#0078d7";
+export const isValidAccent = (v: string) => /^#[0-9a-fA-F]{6}$/.test(v);
 export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDownloader", {
 	downloadQuality: Quality.Max.audioQuality,
 	pathFormat: defaultFilenameFormat,
@@ -39,7 +42,11 @@ export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDown
 	winPos: null,
 	winSize: null,
 	winTheme: "light",
+	accent: DEFAULT_ACCENT,
 });
+
+// Sanitize accent (hex) + download quality
+if (!isValidAccent(settings.accent)) settings.accent = DEFAULT_ACCENT;
 
 // Sanitize download quality
 if (Quality.fromAudioQuality(settings.downloadQuality) === undefined) settings.downloadQuality = Quality.Max.audioQuality;
@@ -55,6 +62,7 @@ export const Settings = () => {
 	const [metaSuffix, setMetaSuffix] = React.useState(settings.metaSuffix);
 	const [autoDownloadPlayed, setAutoDownloadPlayed] = React.useState(settings.autoDownloadPlayed);
 	const [winTheme, setWinTheme] = React.useState(settings.winTheme);
+	const [accent, setAccent] = React.useState(settings.accent);
 
 	// Reste synchronisé avec les valeurs persistées (reload, fenêtre Win10, etc.)
 	React.useEffect(
@@ -71,6 +79,7 @@ export const Settings = () => {
 					void settings.metaSuffix;
 					void settings.autoDownloadPlayed;
 					void settings.winTheme;
+					void settings.accent;
 				},
 				() => {
 					setDownloadQuality(settings.downloadQuality);
@@ -83,6 +92,7 @@ export const Settings = () => {
 					setMetaSuffix(settings.metaSuffix);
 					setAutoDownloadPlayed(settings.autoDownloadPlayed);
 					setWinTheme(settings.winTheme);
+					setAccent(settings.accent);
 				},
 			),
 		[],
@@ -185,6 +195,22 @@ export const Settings = () => {
 				desc={<>Dark mode for the download manager window (light by default, like Windows 10).</>}
 				value={winTheme === "dark"}
 				onChange={(_, checked) => setWinTheme((settings.winTheme = checked ? "dark" : "light"))}
+			/>
+			<LunaTextSetting
+				title="Accent color"
+				desc={
+					<>
+						Windows 10 accent color used by the download window and taskbar (hex, e.g. <b>#0078d7</b>).
+						<br />
+						You can also change it in the download window → Theme.
+					</>
+				}
+				value={accent}
+				onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+					const v = e.target.value.trim();
+					if (isValidAccent(v)) setAccent((settings.accent = v));
+					else setAccent(v);
+				}}
 			/>
 			<LunaTextSetting
 				title="Path format"

@@ -17,22 +17,59 @@ import {
 } from "./downloadQueue";
 import { getDownloadFolder } from "./helpers";
 import { unloads } from "./index.safe";
-import { settings } from "./Settings";
+import { DEFAULT_ACCENT, isValidAccent, settings } from "./Settings";
 
 const TASKBAR_ID = "luna-songdownloader-taskbar";
 const WIN_ID = "luna-songdownloader-win";
 const CAL_ID = "luna-songdownloader-cal";
 const JOBMENU_ID = "luna-songdownloader-jobmenu";
 
-// Vrais glyphes façon Segoe MDL2 Assets (Windows 10), en SVG pour un rendu
-// identique partout (la police MDL2 n'existe pas sous Linux).
-const WIN10_LOGO = `<svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.549L10.546 4.484V11.504H3V5.549Zm8.546-1.204L21 3v8.504H11.546V4.345ZM3 12.504h7.546v7.014L3 18.453v-5.949Zm8.546 0H21V21l-9.454-1.343v-7.153Z"/></svg>`;
+// Vrai logo officiel Windows 8/10/11 (2012-2021, Microsoft / Pentagram) —
+// tracé Wikimedia "Windows logo - 2012.svg" avec la vraie perspective,
+// en blanc (currentColor) comme le bouton Démarrer de la taskbar Win10.
+const WIN10_LOGO = `<svg width="19" height="19" viewBox="0 0 88 88" fill="currentColor" aria-hidden="true"><path d="M0 12.402l35.687-4.86.016 34.423-35.67.203zm35.67 33.529l.028 34.453L.028 75.48.026 45.7zm4.326-39.025L87.314 0v41.527l-47.318.376zm47.329 39.349l-.011 41.34-47.318-6.678-.066-34.739z"/></svg>`;
 const GLYPH_MIN = `<svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 5h8" stroke="currentColor" stroke-width="1"/></svg>`;
 const GLYPH_MAX = `<svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor"/></svg>`;
 const GLYPH_RESTORE = `<svg width="10" height="10" viewBox="0 0 10 10"><rect x="4" y="1" width="5" height="5" fill="none" stroke="currentColor"/><rect x="1" y="4" width="5" height="5" fill="none" stroke="currentColor"/></svg>`;
 const GLYPH_CLOSE = `<svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" stroke-width="1"/></svg>`;
 
-type Section = "downloads" | "history" | "settings";
+type Section = "downloads" | "history" | "settings" | "theme";
+
+// Palette officielle Windows 10 (Paramètres > Personnalisation > Couleurs)
+const THEME_ACCENTS = [
+	"#0078d7",
+	"#00b7c3",
+	"#00b294",
+	"#009e49",
+	"#10893e",
+	"#bad80a",
+	"#ffb900",
+	"#ff8c00",
+	"#ca5010",
+	"#e81123",
+	"#ba141a",
+	"#ec008c",
+	"#b4009e",
+	"#68217a",
+	"#00188f",
+	"#003788",
+	"#004b8d",
+	"#4c4c4c",
+];
+
+function currentAccent(): string {
+	return isValidAccent(settings.accent) ? settings.accent : DEFAULT_ACCENT;
+}
+
+function applyAccent() {
+	const accent = currentAccent();
+	// Variable héritée par la fenêtre, la taskbar, le calendrier et les menus
+	document.documentElement.style.setProperty("--sd-accent", accent);
+	winEl?.style.setProperty("--sd-accent", accent);
+	taskbarEl?.style.setProperty("--sd-accent", accent);
+	document.getElementById(CAL_ID)?.style.setProperty("--sd-accent", accent);
+	document.getElementById(JOBMENU_ID)?.style.setProperty("--sd-accent", accent);
+}
 
 let taskbarEl: HTMLDivElement | null = null;
 let appBtn: HTMLButtonElement | null = null;
@@ -80,6 +117,7 @@ function isWinShown(): boolean {
 
 function applyTheme() {
 	winEl?.classList.toggle("sd-win-dark", settings.winTheme === "dark");
+	applyAccent();
 }
 
 // #region Fenêtre : position / taille / drag / resize / chrome
@@ -422,6 +460,7 @@ function render() {
 		if (showWin && wasHidden) builtSection = null;
 	}
 	if (!hasJobs && !forceOpen) {
+		applyAccent();
 		paintTaskbar();
 		return;
 	}
@@ -1001,6 +1040,138 @@ function buildSettingsPage(body: HTMLDivElement) {
 	body.appendChild(tagsRow);
 }
 
+// #region Section Theme (mode + couleur d'accent façon Win10)
+function buildThemePage(body: HTMLDivElement) {
+	body.innerHTML = "";
+	const accent = currentAccent();
+
+	const h = (text: string) => {
+		const el = document.createElement("div");
+		el.className = "sd-win-grouptitle";
+		el.textContent = text;
+		body.appendChild(el);
+	};
+
+	h("Mode");
+	const modes = document.createElement("div");
+	modes.className = "sd-win-modes";
+	const lightBtn = document.createElement("button");
+	lightBtn.type = "button";
+	lightBtn.className = "sd-win-modebtn" + (settings.winTheme === "light" ? " sd-win-modebtn-active" : "");
+	lightBtn.innerHTML = `<span class="sd-win-modeswatch sd-win-modeswatch-light"></span><span>Light</span>`;
+	lightBtn.onclick = () => {
+		settings.winTheme = "light";
+		applyTheme();
+		buildThemePage(body);
+	};
+	const darkBtn = document.createElement("button");
+	darkBtn.type = "button";
+	darkBtn.className = "sd-win-modebtn" + (settings.winTheme === "dark" ? " sd-win-modebtn-active" : "");
+	darkBtn.innerHTML = `<span class="sd-win-modeswatch sd-win-modeswatch-dark"></span><span>Dark</span>`;
+	darkBtn.onclick = () => {
+		settings.winTheme = "dark";
+		applyTheme();
+		buildThemePage(body);
+	};
+	modes.appendChild(lightBtn);
+	modes.appendChild(darkBtn);
+	body.appendChild(modes);
+
+	h("Accent color");
+	const sub = document.createElement("div");
+	sub.className = "sd-win-setting-desc";
+	sub.textContent = "Windows 10 accent color, applied to this window and the taskbar.";
+	body.appendChild(sub);
+
+	const grid = document.createElement("div");
+	grid.className = "sd-win-swatches";
+	const paintSwatches = () => {
+		grid.querySelectorAll(".sd-win-swatch").forEach((el) => {
+			el.classList.toggle("sd-win-swatch-active", (el as HTMLElement).dataset.color === currentAccent().toLowerCase());
+		});
+	};
+	for (const color of THEME_ACCENTS) {
+		const sw = document.createElement("button");
+		sw.type = "button";
+		sw.className = "sd-win-swatch";
+		sw.dataset.color = color;
+		sw.style.background = color;
+		sw.title = color;
+		sw.setAttribute("aria-label", `Accent ${color}`);
+		sw.onclick = () => {
+			settings.accent = color;
+			applyAccent();
+			paintSwatches();
+			customColor.value = color;
+			hexInput.value = color;
+		};
+		grid.appendChild(sw);
+	}
+	body.appendChild(grid);
+	paintSwatches();
+
+	const customRow = document.createElement("div");
+	customRow.className = "sd-win-setting";
+	const customTexts = document.createElement("div");
+	customTexts.className = "sd-win-setting-texts";
+	const customTitle = document.createElement("div");
+	customTitle.className = "sd-win-setting-title";
+	customTitle.textContent = "Custom color";
+	const customColor = document.createElement("input");
+	customColor.type = "color";
+	customColor.className = "sd-win-color";
+	customColor.value = accent;
+	customColor.title = "Pick a custom accent color";
+	customColor.oninput = () => {
+		settings.accent = customColor.value;
+		applyAccent();
+		hexInput.value = customColor.value;
+		paintSwatches();
+	};
+	customTexts.appendChild(customTitle);
+	customTexts.appendChild(customColor);
+	customRow.appendChild(customTexts);
+	body.appendChild(customRow);
+
+	const hexRow = document.createElement("div");
+	hexRow.className = "sd-win-setting sd-win-setting-col";
+	const hexTitle = document.createElement("div");
+	hexTitle.className = "sd-win-setting-title";
+	hexTitle.textContent = "Color code (hex)";
+	const hexInput = document.createElement("input");
+	hexInput.type = "text";
+	hexInput.className = "sd-win-textbox sd-win-hex";
+	hexInput.value = accent;
+	hexInput.spellcheck = false;
+	hexInput.placeholder = "#0078d7";
+	hexInput.onchange = () => {
+		const v = hexInput.value.trim().toLowerCase();
+		if (isValidAccent(v)) {
+			settings.accent = v;
+			applyAccent();
+			customColor.value = v;
+		} else {
+			hexInput.value = currentAccent();
+		}
+		paintSwatches();
+	};
+	hexRow.appendChild(hexTitle);
+	hexRow.appendChild(hexInput);
+	body.appendChild(hexRow);
+
+	const resetBtn = document.createElement("button");
+	resetBtn.type = "button";
+	resetBtn.className = "sd-win-btn";
+	resetBtn.textContent = "Reset to default blue";
+	resetBtn.onclick = () => {
+		settings.accent = DEFAULT_ACCENT;
+		applyAccent();
+		buildThemePage(body);
+	};
+	body.appendChild(resetBtn);
+}
+// #endregion
+
 function buildHistoryPage(body: HTMLDivElement) {
 	body.innerHTML = "";
 	const hero = document.createElement("div");
@@ -1077,6 +1248,7 @@ const NAV: { id: Section; label: string; glyph: string }[] = [
 	{ id: "downloads", label: "Downloads", glyph: "⬇" },
 	{ id: "history", label: "History", glyph: "✓" },
 	{ id: "settings", label: "Settings", glyph: "⚙" },
+	{ id: "theme", label: "Theme", glyph: "◐" },
 ];
 
 export function mountIsland() {
@@ -1236,6 +1408,7 @@ function buildBody() {
 	if (!winBody) return;
 	if (section === "downloads") buildDownloadsPage(winBody);
 	else if (section === "history") buildHistoryPage(winBody);
+	else if (section === "theme") buildThemePage(winBody);
 	else buildSettingsPage(winBody);
 }
 // #endregion
