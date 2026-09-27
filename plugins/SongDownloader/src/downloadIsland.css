@@ -450,6 +450,35 @@ body {
 	margin-bottom: 12px;
 }
 
+#luna-songdownloader-win .sd-win-outrow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+	padding: 8px 10px;
+	background: #f3f3f3;
+	border: 1px solid #e6e6e6;
+}
+
+#luna-songdownloader-win .sd-win-folderval {
+	flex: 1;
+	min-width: 0;
+	font-size: 12px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#luna-songdownloader-win .sd-win-btn-small {
+	min-width: 0;
+	padding: 3px 12px;
+}
+
+#luna-songdownloader-win.sd-win-dark .sd-win-outrow {
+	background: #191919;
+	border-color: #2c2c2c;
+}
+
 #luna-songdownloader-win .sd-win-empty {
 	color: #605e5c;
 	font-size: 12px;

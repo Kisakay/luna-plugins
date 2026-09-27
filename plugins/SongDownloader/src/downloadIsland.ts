@@ -901,6 +901,32 @@ function buildDownloadsPage(body: HTMLDivElement) {
 	toolbar.appendChild(stopAllBtn);
 	toolbar.appendChild(clearBtn);
 	body.appendChild(toolbar);
+
+	// Dossier de sortie + path picker (appliqué aux nouveaux downloads)
+	const folderRow = document.createElement("div");
+	folderRow.className = "sd-win-outrow";
+	const folderVal = document.createElement("span");
+	folderVal.className = "sd-win-folderval";
+	const paintFolder = () => {
+		const full = settings.defaultPath;
+		folderVal.textContent = full ? `Output: ${shortFolder(full)}` : "Output: (asked each time)";
+		folderVal.title = full ?? "No default folder";
+		folderBtn.textContent = full ? "Change…" : "Choose…";
+	};
+	const folderBtn = document.createElement("button");
+	folderBtn.type = "button";
+	folderBtn.className = "sd-win-btn sd-win-btn-small";
+	folderBtn.onclick = async () => {
+		const folder = await getDownloadFolder();
+		if (folder === undefined) return;
+		settings.defaultPath = folder;
+		paintFolder();
+	};
+	paintFolder();
+	folderRow.appendChild(folderVal);
+	folderRow.appendChild(folderBtn);
+	body.appendChild(folderRow);
+
 	const list = document.createElement("div");
 	list.className = "sd-island-list";
 	body.appendChild(list);
