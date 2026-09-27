@@ -4,6 +4,7 @@ import { ContextMenu, observe, StyleTag } from "@luna/lib";
 import { downloadState, hideBanner } from "./downloadBanner";
 import { downloadMediaCollection } from "./downloadCollection";
 import { FavoriteTracks } from "./favoriteTracks";
+import { watchPlayedTracks } from "./autoDownload";
 import { unloads } from "./index.safe";
 
 import styles from "file://downloadButton.css?minify";
@@ -24,6 +25,9 @@ unloads.add(() => {
 
 const downloadButton = ContextMenu.addButton(unloads);
 const tracksDownloadButton = ContextMenu.addButton(unloads);
+
+// 0) Watcher : auto-download de chaque son joué (option "Auto-download every played track")
+watchPlayedTracks();
 
 // 1) Bouton context-menu classique : track / multi / album / playlist
 // (fonctionne déjà pour un clic droit sur une ligne de la page Tracks)

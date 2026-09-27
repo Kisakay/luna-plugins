@@ -14,6 +14,7 @@ type Settings = {
 	useRealMAX: boolean;
 	downloadLyrics: boolean;
 	lyricsSuffix: string;
+	autoDownloadPlayed: boolean;
 	bannerPos: { x: number; y: number } | null;
 };
 export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDownloader", {
@@ -22,6 +23,7 @@ export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDown
 	useRealMAX: true,
 	downloadLyrics: true,
 	lyricsSuffix: ".lyrics",
+	autoDownloadPlayed: false,
 	bannerPos: null,
 });
 
@@ -35,6 +37,7 @@ export const Settings = () => {
 	const [useRealMAX, setUseRealMAX] = React.useState(settings.useRealMAX);
 	const [downloadLyrics, setDownloadLyrics] = React.useState(settings.downloadLyrics);
 	const [lyricsSuffix, setLyricsSuffix] = React.useState(settings.lyricsSuffix);
+	const [autoDownloadPlayed, setAutoDownloadPlayed] = React.useState(settings.autoDownloadPlayed);
 
 	return (
 		<LunaSettings>
@@ -76,6 +79,8 @@ export const Settings = () => {
 				desc={
 					<>
 						Set a default folder to save files to (will disable prompting for path on download)
+						<br />
+						Required for auto-download of played tracks.
 						{defaultPath && (
 							<>
 								<br />
@@ -89,6 +94,18 @@ export const Settings = () => {
 					if (defaultPath !== undefined) return setDefaultPath((settings.defaultPath = undefined));
 					setDefaultPath((settings.defaultPath = await getDownloadFolder()));
 				}}
+			/>
+			<LunaSwitchSetting
+				title="Auto-download every played track"
+				desc={
+					<>
+						Watches playback and automatically saves each played track (+ lyrics) to the default folder.
+						<br />
+						Already-downloaded files are skipped. No prompt, no click needed.
+					</>
+				}
+				value={autoDownloadPlayed}
+				onChange={(_, checked) => setAutoDownloadPlayed((settings.autoDownloadPlayed = checked))}
 			/>
 			<LunaTextSetting
 				title="Path format"
