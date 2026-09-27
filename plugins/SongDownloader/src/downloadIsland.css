@@ -87,7 +87,7 @@ body {
 }
 
 #luna-songdownloader-taskbar .sd-taskbar-status-icon {
-	color: #4cc2ff;
+	color: var(--sd-accent, #0078d7);
 	font-size: 12px;
 }
 
