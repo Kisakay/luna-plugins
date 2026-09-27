@@ -1,6 +1,8 @@
-# Kisakay's TidaLuna store (download-only)
+# SongDownloaderV2
 
-Fork of [Inrixia/luna-plugins](https://github.com/Inrixia/luna-plugins) with a single, more advanced downloader: **SongDownloaderV2**.
+Advanced download manager for [TidaLuna](https://github.com/Inrixia/TidaLuna) (TIDAL client mod) by [Kisakay](https://github.com/Kisakay).
+
+Download tracks, albums, playlists and liked **Tracks** as FLAC, with a download queue, lyrics and metadata sidecars, auto-download and a Windows 10 style manager.
 
 ## Install
 
@@ -11,11 +13,26 @@ Fork of [Inrixia/luna-plugins](https://github.com/Inrixia/luna-plugins) with a s
    ```
 3. Install **SongDownloaderV2** (disable the stock Song Downloader to avoid duplicates).
 
-## What V2 adds
+## Features
 
-- Liked **Tracks** download (header button + context menu + queue)
-- Download queue in a Windows 10 style window (reorder, per-item cancel)
-- Draggable download status banner
-- `.lyrics` text file next to each track
-- Auto-download of every played track
-- Persistent download history (auto-skip, clearable)
+- Liked **Tracks**, albums, playlists and single tracks as FLAC (Max quality, RealMAX lookup)
+- Download queue: reorder by drag & drop, per-item cancel, 5 concurrent workers with lookahead prefetch
+- `.lyrics` text file and customizable `.meta` file next to each track (`{tags}` templates)
+- Auto-download of every played track (playback watcher)
+- Persistent download history with auto-skip (on-disk check included)
+- Manager window, Windows 10 style: light/dark theme, draggable, resizable, taskbar app with live status and calendar
+- Context menus: track rows, sidebar, Tracks page header, right-click on sidebar Tracks entry
+
+## Guide
+
+Downloads queue with live tracks, and the taskbar:
+
+![Downloads window](guide/downloads.png)
+
+Settings (quality, folders, lyrics, metadata, auto-download, appearance):
+
+![Settings](guide/settings.png)
+
+History of remembered tracks (auto-skipped):
+
+![History](guide/history.png)
