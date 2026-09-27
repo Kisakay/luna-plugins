@@ -21,6 +21,7 @@ import { showToast } from "./toast";
 
 const TASKBAR_ID = "luna-songdownloader-taskbar";
 const WIN_ID = "luna-songdownloader-win";
+const CAL_ID = "luna-songdownloader-cal";
 const JOBMENU_ID = "luna-songdownloader-jobmenu";
 
 // Vrais glyphes façon Segoe MDL2 Assets (Windows 10), en SVG pour un rendu
@@ -34,6 +35,7 @@ type Section = "downloads" | "history" | "settings";
 
 let taskbarEl: HTMLDivElement | null = null;
 let appBtn: HTMLButtonElement | null = null;
+let statusEl: HTMLSpanElement | null = null;
 let timeEl: HTMLSpanElement | null = null;
 let dateEl: HTMLSpanElement | null = null;
 let winEl: HTMLDivElement | null = null;
@@ -215,6 +217,33 @@ function paintTaskbar() {
 	appBtn.classList.toggle("sd-taskbar-running", running);
 	appBtn.classList.toggle("sd-taskbar-open", open && !minimized);
 	appBtn.title = running ? `SongDownloaderV2 — ${summaryText()}` : "SongDownloaderV2";
+	if (statusEl) {
+		const active = jobs.find((j) => j.status === "active");
+		const queued = jobs.filter((j) => j.status === "queued").length;
+		let html: string | null = null;
+		if (active) {
+			const current = [...active.current][0];
+			html = `<span class="sd-taskbar-status-icon">⬇</span><span>${active.done}/${active.total}${current ? ` · ${escapeHtml(current)}` : ""}${queued > 0 ? ` · ${queued} queued` : ""}</span>`;
+		} else if (queued > 0) {
+			html = `<span class="sd-taskbar-status-icon">⬇</span><span>${queued} queued</span>`;
+		} else if (jobs.length > 0) {
+			html = `<span>✓ finished</span>`;
+		}
+		if (html === null) {
+			statusEl.style.display = "none";
+		} else {
+			statusEl.style.display = "";
+			// Throttle : les ticks de progression appellent très souvent
+			if (statusEl.dataset.html !== html) {
+				statusEl.dataset.html = html;
+				statusEl.innerHTML = html;
+			}
+		}
+	}
+}
+
+function escapeHtml(text: string): string {
+	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function tickClock() {
@@ -223,6 +252,141 @@ function tickClock() {
 	timeEl.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 	dateEl.textContent = now.toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" });
 }
+
+// #region Calendrier façon Win10 (clic sur l'horloge)
+let calYear = -1;
+let calMonth = -1;
+
+function closeCalendar() {
+	document.getElementById(CAL_ID)?.remove();
+}
+
+function openCalendar() {
+	closeCalendar();
+	const today = new Date();
+	if (calYear < 0) {
+		calYear = today.getFullYear();
+		calMonth = today.getMonth();
+	}
+	const cal = document.createElement("div");
+	cal.id = CAL_ID;
+	cal.className = "sd-cal";
+	if (settings.winTheme === "dark") cal.classList.add("sd-cal-dark");
+
+	const head = document.createElement("div");
+	head.className = "sd-cal-head";
+	const title = document.createElement("span");
+	title.className = "sd-cal-title";
+	head.appendChild(title);
+	const nav = document.createElement("div");
+	nav.className = "sd-cal-nav";
+	const prev = document.createElement("button");
+	prev.type = "button";
+	prev.className = "sd-cal-navbtn";
+	prev.textContent = "‹";
+	prev.title = "Previous month";
+	prev.onclick = (e) => {
+		e.stopPropagation();
+		calMonth--;
+		if (calMonth < 0) {
+			calMonth = 11;
+			calYear--;
+		}
+		paintCalendar(cal, title, grid);
+	};
+	const next = document.createElement("button");
+	next.type = "button";
+	next.className = "sd-cal-navbtn";
+	next.textContent = "›";
+	next.title = "Next month";
+	next.onclick = (e) => {
+		e.stopPropagation();
+		calMonth++;
+		if (calMonth > 11) {
+			calMonth = 0;
+			calYear++;
+		}
+		paintCalendar(cal, title, grid);
+	};
+	nav.appendChild(prev);
+	nav.appendChild(next);
+	head.appendChild(nav);
+	cal.appendChild(head);
+
+	const grid = document.createElement("div");
+	grid.className = "sd-cal-grid";
+	cal.appendChild(grid);
+
+	const foot = document.createElement("div");
+	foot.className = "sd-cal-foot";
+	foot.textContent = `Today: ${today.toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+	foot.style.cursor = "pointer";
+	foot.onclick = () => {
+		calYear = today.getFullYear();
+		calMonth = today.getMonth();
+		paintCalendar(cal, title, grid);
+	};
+	cal.appendChild(foot);
+
+	document.body.appendChild(cal);
+	paintCalendar(cal, title, grid);
+
+	const onPointerDown = (ev: PointerEvent) => {
+		if (!cal.contains(ev.target as Node)) closeCalendar();
+	};
+	const onKey = (ev: KeyboardEvent) => {
+		if (ev.key === "Escape") closeCalendar();
+	};
+	document.addEventListener("pointerdown", onPointerDown, { once: true });
+	document.addEventListener("keydown", onKey, { once: true });
+	unloads.add(() => {
+		closeCalendar();
+		document.removeEventListener("pointerdown", onPointerDown);
+		document.removeEventListener("keydown", onKey);
+	});
+}
+
+function paintCalendar(cal: HTMLDivElement, title: HTMLSpanElement, grid: HTMLDivElement) {
+	const today = new Date();
+	title.textContent = new Date(calYear, calMonth, 1).toLocaleDateString([], { month: "long", year: "numeric" });
+	grid.innerHTML = "";
+	// En-têtes jours (lundi en premier), libellés FR courts
+	for (let i = 0; i < 7; i++) {
+		const d = new Date(2024, 0, 1 + i);
+		const dow = document.createElement("div");
+		dow.className = "sd-cal-dow";
+		dow.textContent = d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "");
+		grid.appendChild(dow);
+	}
+	// 1er janvier 2024 = lundi -> décalage mois
+	const first = new Date(calYear, calMonth, 1);
+	const lead = (first.getDay() + 6) % 7;
+	const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+	const daysPrev = new Date(calYear, calMonth, 0).getDate();
+	for (let i = lead - 1; i >= 0; i--) {
+		grid.appendChild(calDay(cal, daysPrev - i, true, false));
+	}
+	for (let d = 1; d <= daysInMonth; d++) {
+		const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+		grid.appendChild(calDay(cal, d, false, isToday));
+	}
+	const total = lead + daysInMonth;
+	for (let d = 1; d <= (7 - (total % 7)) % 7; d++) {
+		grid.appendChild(calDay(cal, d, true, false));
+	}
+	cal.classList.toggle("sd-cal-dark", settings.winTheme === "dark");
+}
+
+function calDay(_cal: HTMLDivElement, day: number, other: boolean, today: boolean): HTMLButtonElement {
+	const b = document.createElement("button");
+	b.type = "button";
+	b.className = "sd-cal-day";
+	if (other) b.classList.add("sd-cal-other");
+	if (today) b.classList.add("sd-cal-today");
+	b.textContent = String(day);
+	return b;
+}
+// #endregion
 
 function render() {
 	const jobs = getJobs();
@@ -779,8 +943,18 @@ export function mountIsland() {
 	const spacer = document.createElement("div");
 	spacer.className = "sd-taskbar-spacer";
 	taskbar.appendChild(spacer);
+	statusEl = document.createElement("span");
+	statusEl.className = "sd-taskbar-status";
+	statusEl.style.display = "none";
+	taskbar.appendChild(statusEl);
 	const clock = document.createElement("div");
 	clock.className = "sd-taskbar-clock";
+	clock.title = "Open calendar";
+	clock.style.cursor = "pointer";
+	clock.onclick = () => {
+		if (document.getElementById(CAL_ID)) closeCalendar();
+		else openCalendar();
+	};
 	timeEl = document.createElement("span");
 	timeEl.className = "sd-taskbar-time";
 	dateEl = document.createElement("span");
@@ -886,7 +1060,8 @@ export function mountIsland() {
 	unloads.add(() => {
 		taskbarEl?.remove();
 		winEl?.remove();
-		taskbarEl = appBtn = timeEl = dateEl = null;
+		closeCalendar();
+		taskbarEl = appBtn = statusEl = timeEl = dateEl = null;
 		winEl = winBody = null;
 	});
 
