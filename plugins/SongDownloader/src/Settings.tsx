@@ -16,6 +16,9 @@ type Settings = {
 	useRealMAX: boolean;
 	downloadLyrics: boolean;
 	lyricsSuffix: string;
+	downloadMeta: boolean;
+	metaSuffix: string;
+	metaTemplate: string;
 	autoDownloadPlayed: boolean;
 	downloadedIds: (number | string)[];
 	winPos: { x: number; y: number } | null;
@@ -28,6 +31,9 @@ export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDown
 	useRealMAX: true,
 	downloadLyrics: true,
 	lyricsSuffix: ".lyrics",
+	downloadMeta: true,
+	metaSuffix: ".meta",
+	metaTemplate: "Title: {title}\nArtist: {artist}\nAlbum: {album}\nYear: {year}\nISRC: {isrc}",
 	autoDownloadPlayed: false,
 	downloadedIds: [],
 	winPos: null,
@@ -45,6 +51,8 @@ export const Settings = () => {
 	const [useRealMAX, setUseRealMAX] = React.useState(settings.useRealMAX);
 	const [downloadLyrics, setDownloadLyrics] = React.useState(settings.downloadLyrics);
 	const [lyricsSuffix, setLyricsSuffix] = React.useState(settings.lyricsSuffix);
+	const [downloadMeta, setDownloadMeta] = React.useState(settings.downloadMeta);
+	const [metaSuffix, setMetaSuffix] = React.useState(settings.metaSuffix);
 	const [autoDownloadPlayed, setAutoDownloadPlayed] = React.useState(settings.autoDownloadPlayed);
 	const [winTheme, setWinTheme] = React.useState(settings.winTheme);
 
@@ -59,6 +67,8 @@ export const Settings = () => {
 					void settings.useRealMAX;
 					void settings.downloadLyrics;
 					void settings.lyricsSuffix;
+					void settings.downloadMeta;
+					void settings.metaSuffix;
 					void settings.autoDownloadPlayed;
 					void settings.winTheme;
 				},
@@ -69,6 +79,8 @@ export const Settings = () => {
 					setUseRealMAX(settings.useRealMAX);
 					setDownloadLyrics(settings.downloadLyrics);
 					setLyricsSuffix(settings.lyricsSuffix);
+					setDownloadMeta(settings.downloadMeta);
+					setMetaSuffix(settings.metaSuffix);
 					setAutoDownloadPlayed(settings.autoDownloadPlayed);
 					setWinTheme(settings.winTheme);
 				},
@@ -110,6 +122,24 @@ export const Settings = () => {
 				}
 				value={lyricsSuffix}
 				onChange={(e) => setLyricsSuffix((settings.lyricsSuffix = e.target.value))}
+			/>
+			<LunaSwitchSetting
+				title="Download metadata file next to track"
+				desc={
+					<>
+						Saves a customizable text file next to each track (edit the template in the download window → Settings).
+						<br />
+						For example with <b>.meta</b>: <b>Title.flac</b> → <b>Title.flac.meta</b>.
+					</>
+				}
+				value={downloadMeta}
+				onChange={(_, checked) => setDownloadMeta((settings.downloadMeta = checked))}
+			/>
+			<LunaTextSetting
+				title="Metadata file suffix"
+				desc={<>Appended to the audio filename.</>}
+				value={metaSuffix}
+				onChange={(e) => setMetaSuffix((settings.metaSuffix = e.target.value))}
 			/>
 			<LunaButtonSetting
 				title="Default save path"
@@ -166,12 +196,14 @@ export const Settings = () => {
 						<br />
 						Saves in subfolder artist/album/ named <b>title.flac</b>.
 						<div style={{ marginTop: 8 }} />
-						You can use the following tags:
-						<ul>
-							{MediaItem.availableTags.map((tag) => (
-								<li key={tag}>{tag}</li>
-							))}
-						</ul>
+						You can use the following tags (one per line):
+						<div style={{ marginTop: 4 }} />
+						{MediaItem.availableTags.map((tag, i, arr) => (
+							<span key={tag}>
+								{`{${tag}}`}
+								{i < arr.length - 1 && <br />}
+							</span>
+						))}
 					</>
 				}
 				value={pathFormat}

@@ -16,13 +16,20 @@ export const getDownloadPath = async (defaultPath: string) => {
 	if (!canceled) return filePath;
 };
 export const getFileName = async (mediaItem: MediaItem, audioQuality?: redux.AudioQuality) => {
-	let fileName = `${settings.pathFormat}.${await mediaItem.fileExtension(audioQuality)}`;
+	const fileName = `${settings.pathFormat}.${await mediaItem.fileExtension(audioQuality)}`;
 	const { tags } = await mediaItem.flacTags();
+	return renderTagTemplate(fileName, tags, true);
+};
+
+/** Remplace les {tags} par leurs valeurs (sanitize ou brut selon le contexte). */
+export const renderTagTemplate = (template: string, tags: Record<string, unknown>, sanitizeValues: boolean) => {
+	let out = template;
 	for (const tag of MediaItem.availableTags) {
-		let tagValue = tags[tag];
+		let tagValue: unknown = tags[tag];
 		if (Array.isArray(tagValue)) tagValue = tagValue[0];
-		if (tagValue === undefined) continue;
-		fileName = fileName.replaceAll(`{${tag}}`, sanitize(tagValue));
+		if (tagValue === undefined || tagValue === null) continue;
+		const rendered = sanitizeValues ? sanitize(String(tagValue)) : String(tagValue);
+		out = out.split(`{${tag}}`).join(rendered);
 	}
-	return fileName;
+	return out;
 };

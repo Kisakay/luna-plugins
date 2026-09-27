@@ -9,6 +9,7 @@ import { getFileName } from "./helpers";
 import { unloads } from "./index.safe";
 import { settings } from "./Settings";
 import { saveLyricsForTrack } from "./trackLyrics";
+import { saveMetaForTrack } from "./trackMeta";
 
 const { trace } = Tracer("[SongDownloader][Auto]");
 
@@ -108,6 +109,7 @@ async function autoDownloadOne(mediaItem: MediaItem) {
 			await item.download(path, settings.downloadQuality);
 			markDownloaded(originalId, item.id);
 			await saveLyricsForTrack(item, path, label, tags.title);
+			await saveMetaForTrack(item, path, label, tags.title);
 			setBannerStatus(`Auto-saved: ${label}`);
 		} catch (err) {
 			trace.msg.warn.withContext(`Auto-download failed for ${label}`)(err);

@@ -840,6 +840,28 @@ function makeTextRow(label: string, desc: string, get: () => string, set: (v: st
 	return row;
 }
 
+function makeTextareaRow(label: string, desc: string, get: () => string, set: (v: string) => void): HTMLDivElement {
+	const row = document.createElement("div");
+	row.className = "sd-win-setting sd-win-setting-col";
+	row.dataset.search = `${label} ${desc}`.toLowerCase();
+	const title = document.createElement("div");
+	title.className = "sd-win-setting-title";
+	title.textContent = label;
+	const sub = document.createElement("div");
+	sub.className = "sd-win-setting-desc";
+	sub.textContent = desc;
+	const input = document.createElement("textarea");
+	input.className = "sd-win-textbox sd-win-textarea";
+	input.rows = 6;
+	input.spellcheck = false;
+	input.value = get();
+	input.onchange = () => set(input.value);
+	row.appendChild(title);
+	row.appendChild(sub);
+	row.appendChild(input);
+	return row;
+}
+
 function buildSettingsPage(body: HTMLDivElement) {
 	body.innerHTML = "";
 
@@ -942,6 +964,18 @@ function buildSettingsPage(body: HTMLDivElement) {
 		makeToggle("Download lyrics", "Save a .lyrics text file next to each track", () => settings.downloadLyrics, (v) => (settings.downloadLyrics = v)),
 	);
 	body.appendChild(makeTextRow("Lyrics suffix", "Appended to the audio filename", () => settings.lyricsSuffix, (v) => (settings.lyricsSuffix = v)));
+	body.appendChild(
+		makeToggle("Download metadata file", "Save a customizable text file next to each track", () => settings.downloadMeta, (v) => (settings.downloadMeta = v)),
+	);
+	body.appendChild(makeTextRow("Metadata suffix", "Appended to the audio filename", () => settings.metaSuffix, (v) => (settings.metaSuffix = v)));
+	body.appendChild(
+		makeTextareaRow(
+			"Metadata template",
+			"One {tag} per line is replaced by its value. Available: {title} {trackNumber} {discNumber} {bpm} {year} {date} {copyright} {comment} {isrc} {upc} {artist} {album} {albumArtist} {genres}",
+			() => settings.metaTemplate,
+			(v) => (settings.metaTemplate = v),
+		),
+	);
 	body.appendChild(
 		makeToggle(
 			"Auto-download played tracks",

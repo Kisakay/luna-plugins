@@ -424,6 +424,21 @@ body {
 	padding: 0 7px;
 }
 
+#luna-songdownloader-win .sd-win-textbox.sd-win-textarea {
+	height: auto;
+	min-height: 120px;
+	padding: 6px 8px;
+	font-family: Consolas, "Courier New", monospace;
+	font-size: 12px;
+	line-height: 1.5;
+	resize: vertical;
+	white-space: pre;
+}
+
+#luna-songdownloader-win .sd-win-textbox.sd-win-textarea:focus {
+	padding: 5px 7px;
+}
+
 #luna-songdownloader-win .sd-win-searchrow {
 	position: sticky;
 	top: -20px;

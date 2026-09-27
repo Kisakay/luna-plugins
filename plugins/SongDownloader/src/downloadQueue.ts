@@ -5,6 +5,7 @@ import type { MediaCollection, MediaItem } from "@luna/lib";
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
 import { isDownloaded, markDownloaded } from "./downloadHistory";
 import { fileExists } from "./fs.native";
+import { saveMetaForTrack } from "./trackMeta";
 import { unloads } from "./index.safe";
 import { settings } from "./Settings";
 import { FavoriteTracks } from "./favoriteTracks";
@@ -386,6 +387,7 @@ async function runJob(job: QueueJob) {
 					job.succeeded++;
 					markDownloaded(originalId, mediaItem.id);
 					await saveLyricsForTrack(mediaItem, path, label, tags.title);
+					await saveMetaForTrack(mediaItem, path, label, tags.title);
 				} catch (err) {
 					job.failed++;
 					trace.msg.err.withContext(`Failed to download ${tags.title}`)(err);
