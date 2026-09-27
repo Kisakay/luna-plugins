@@ -1,4 +1,4 @@
-import { hideToast, showToast } from "./toast";
+import { hideToast, showToast, showToastForce } from "./toast";
 
 /**
  * État partagé des downloads (manuel + queue + auto).
@@ -20,9 +20,8 @@ export function setBannerStatus(text: string) {
 export function setBannerFileProgress(_percent: number, _downloadedMB?: string, _totalMB?: string) {}
 export function setBannerDone(succeeded: number, failed: number, total: number, skipped = 0) {
 	const skippedTxt = skipped > 0 ? ` · ${skipped} skipped` : "";
-	showToast(
+	showToastForce(
 		failed > 0 ? `Done – ${succeeded}/${total} ok, ${failed} failed${skippedTxt}` : `Done – ${succeeded}/${total} downloaded${skippedTxt}`,
-		6000,
 	);
 }
 export function setBannerIdle(_text = "Idle") {}

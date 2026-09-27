@@ -6,9 +6,26 @@ const TOAST_ID = "luna-songdownloader-toast";
 let el: HTMLDivElement | null = null;
 let timer: ReturnType<typeof setTimeout> | undefined;
 let unloadRegistered = false;
+// Pendant un bulk, les statuts de progression inondent : on les tait,
+// seuls les événements importants (fin, erreurs, actions user) ressortent.
+let quiet = false;
 
-/** Petit toast façon notification Win10, en bas à droite. Remplace l'ancienne bannière. */
+export function setToastQuiet(q: boolean) {
+	quiet = q;
+}
+
+/** Toast normal : ignoré en mode silencieux (bulk en cours). */
 export function showToast(text: string, ms = 4000) {
+	if (quiet) return;
+	paintToast(text, ms);
+}
+
+/** Toast forcé : affiché même en mode silencieux (fin de job, erreurs). */
+export function showToastForce(text: string, ms = 6000) {
+	paintToast(text, ms);
+}
+
+function paintToast(text: string, ms: number) {
 	if (!el || !document.body.contains(el)) {
 		el = document.createElement("div");
 		el.id = TOAST_ID;

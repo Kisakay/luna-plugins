@@ -4,6 +4,7 @@ import type { MediaCollection, MediaItem } from "@luna/lib";
 
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
 import { isDownloaded, markDownloaded } from "./downloadHistory";
+import { setToastQuiet, showToastForce } from "./toast";
 import { unloads } from "./index.safe";
 import { settings } from "./Settings";
 import { FavoriteTracks } from "./favoriteTracks";
@@ -236,6 +237,7 @@ async function runJob(job: QueueJob) {
 	job.status = "active";
 	downloadState.active = true;
 	downloadState.cancel = false;
+	setToastQuiet(true);
 	uiButton?.elem?.classList.add("download-button");
 	setBannerTotal(trackCount);
 	notify();
@@ -334,12 +336,13 @@ async function runJob(job: QueueJob) {
 		await Promise.all(Array.from({ length: width }, () => worker()));
 		if (downloadState.cancel) {
 			job.status = "stopped";
-			setBannerStatus(`Stopped – ${job.succeeded}/${trackCount} downloaded (${job.title})`);
+			showToastForce(`Stopped – ${job.succeeded}/${trackCount} downloaded (${job.title})`);
 		} else {
 			job.status = "done";
 			setBannerDone(job.succeeded, job.failed, trackCount, job.skipped);
 		}
 	} finally {
+		setToastQuiet(false);
 		if (uiButton && defaultText !== undefined) uiButton.text = defaultText;
 		uiButton?.elem?.classList.remove("download-button");
 		uiButton?.elem?.style.removeProperty("--progress");
