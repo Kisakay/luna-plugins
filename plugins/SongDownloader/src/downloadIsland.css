@@ -265,16 +265,22 @@ body {
 	overflow-y: auto;
 	padding: 20px 24px;
 	background: #fff;
+	scrollbar-width: thin;
+	scrollbar-color: #c1c1c1 transparent;
 }
 
 #luna-songdownloader-win .sd-win-body::-webkit-scrollbar {
 	width: 12px;
 }
 
+#luna-songdownloader-win .sd-win-body::-webkit-scrollbar-track {
+	background: transparent;
+}
+
 #luna-songdownloader-win .sd-win-body::-webkit-scrollbar-thumb {
 	background: #c1c1c1;
-	border: 3px solid #fff;
-	border-radius: 6px;
+	border: none;
+	border-radius: 0;
 }
 
 #luna-songdownloader-win .sd-win-body::-webkit-scrollbar-thumb:hover {
@@ -792,11 +798,12 @@ body {
 
 #luna-songdownloader-win.sd-win-dark .sd-win-body {
 	background: #202020;
+	scrollbar-color: #4d4d4d transparent;
 }
 
 #luna-songdownloader-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
 	background: #4d4d4d;
-	border-color: #202020;
+	border: none;
 }
 
 #luna-songdownloader-win.sd-win-dark .sd-win-setting {
