@@ -12,11 +12,13 @@ type Settings = {
 	defaultPath?: string;
 	pathFormat: string;
 	useRealMAX: boolean;
+	bannerPos: { x: number; y: number } | null;
 };
 export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDownloader", {
 	downloadQuality: Quality.Max.audioQuality,
 	pathFormat: defaultFilenameFormat,
 	useRealMAX: true,
+	bannerPos: null,
 });
 
 // Sanitize download quality

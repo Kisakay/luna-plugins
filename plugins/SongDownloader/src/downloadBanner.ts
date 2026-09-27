@@ -1,12 +1,16 @@
+import { settings } from "./Settings";
+
 /**
- * Bannière de statut des téléchargements (haut-droite).
+ * Bannière de statut des téléchargements (haut-droite par défaut).
  * Survit à la fermeture du context-menu (contrairement au bouton du menu).
+ * Déplaçable à la souris (par le header) avec position sauvegardée.
  */
 
 export const downloadState = { active: false, cancel: false };
 
 type BannerRefs = {
 	root: HTMLDivElement;
+	header: HTMLDivElement;
 	title: HTMLSpanElement;
 	track: HTMLDivElement;
 	status: HTMLDivElement;
@@ -23,6 +27,76 @@ let hideTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const BANNER_ID = "luna-songdownloader-banner";
 
+function clampToViewport(root: HTMLDivElement) {
+	const w = root.offsetWidth || 320;
+	const h = root.offsetHeight || 150;
+	const rect = root.getBoundingClientRect();
+	let x = rect.left;
+	let y = rect.top;
+	// Si ancrée à droite (pas de left inline), on la convertit en left/top
+	if (root.style.left === "") {
+		x = window.innerWidth - rect.width - 16;
+		y = 16;
+	}
+	x = Math.max(0, Math.min(window.innerWidth - w, x));
+	y = Math.max(0, Math.min(window.innerHeight - h, y));
+	root.style.left = `${x}px`;
+	root.style.top = `${y}px`;
+	root.style.right = "auto";
+}
+
+function applySavedPosition(root: HTMLDivElement) {
+	const pos = settings.bannerPos;
+	if (pos === null || pos === undefined) return;
+	const w = 320;
+	const h = 150;
+	const x = Math.max(0, Math.min(window.innerWidth - w, pos.x));
+	const y = Math.max(0, Math.min(window.innerHeight - h, pos.y));
+	root.style.left = `${x}px`;
+	root.style.top = `${y}px`;
+	root.style.right = "auto";
+}
+
+function makeDraggable(root: HTMLDivElement, header: HTMLDivElement) {
+	let drag: { dx: number; dy: number } | null = null;
+	header.onpointerdown = (e) => {
+		// Laisser le bouton close fonctionner normalement
+		if ((e.target as HTMLElement).closest("button")) return;
+		const rect = root.getBoundingClientRect();
+		root.style.left = `${rect.left}px`;
+		root.style.top = `${rect.top}px`;
+		root.style.right = "auto";
+		drag = { dx: e.clientX - rect.left, dy: e.clientY - rect.top };
+		root.classList.add("sd-dragging");
+		try {
+			header.setPointerCapture(e.pointerId);
+		} catch {
+			// ignore
+		}
+		e.preventDefault();
+	};
+	header.onpointermove = (e) => {
+		if (drag === null) return;
+		const w = root.offsetWidth || 320;
+		const h = root.offsetHeight || 150;
+		const x = Math.max(0, Math.min(window.innerWidth - w, e.clientX - drag.dx));
+		const y = Math.max(0, Math.min(window.innerHeight - h, e.clientY - drag.dy));
+		root.style.left = `${x}px`;
+		root.style.top = `${y}px`;
+	};
+	const endDrag = () => {
+		if (drag === null) return;
+		drag = null;
+		root.classList.remove("sd-dragging");
+		settings.bannerPos = {
+			x: Number.parseFloat(root.style.left) || 0,
+			y: Number.parseFloat(root.style.top) || 0,
+		};
+	};
+	header.onpointerup = endDrag;
+	header.onpointercancel = endDrag;
+}
+
 function buildBanner(): BannerRefs {
 	const root = document.createElement("div");
 	root.id = BANNER_ID;
@@ -30,6 +104,7 @@ function buildBanner(): BannerRefs {
 
 	const header = document.createElement("div");
 	header.className = "sd-header";
+	header.title = "Drag to move";
 
 	const title = document.createElement("span");
 	title.className = "sd-title";
@@ -106,8 +181,10 @@ function buildBanner(): BannerRefs {
 	root.appendChild(cancelBtn);
 
 	document.body.appendChild(root);
+	makeDraggable(root, header);
+	applySavedPosition(root);
 
-	return { root, title, track, status, count, fileFill, overallFill, filePct, cancelBtn, closeBtn };
+	return { root, header, title, track, status, count, fileFill, overallFill, filePct, cancelBtn, closeBtn };
 }
 
 function ensure(): BannerRefs {
@@ -122,7 +199,9 @@ function ensure(): BannerRefs {
 }
 
 export function showBanner() {
-	ensure().root.classList.remove("sd-hidden");
+	const b = ensure();
+	clampToViewport(b.root);
+	b.root.classList.remove("sd-hidden");
 }
 
 export function hideBanner() {

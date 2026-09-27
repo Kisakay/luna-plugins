@@ -3,9 +3,9 @@
 	"description": "Download tidal songs as FLAC files. V2 with liked Tracks support and download status banner.",
 	"homepage": "https://github.com/Kisakay/luna-plugins",
 	"author": {
-		"name": "Inrixia",
-		"url": "https://github.com/Inrixia",
-		"avatarUrl": "https://2.gravatar.com/avatar/eeaffef9eb9b436dccc58c6c44c9fe8c3528e83e3bf64e1c736a68dbe8c097d3"
+		"name": "Kisakay",
+		"url": "https://github.com/Kisakay",
+		"avatarUrl": "https://github.com/Kisakay.png"
 	},
 	"main": "./src/index.ts",
 	"dependencies": {

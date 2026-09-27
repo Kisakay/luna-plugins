@@ -23,11 +23,20 @@
 	display: none;
 }
 
+#luna-songdownloader-banner.sd-banner.sd-dragging {
+	opacity: 0.9;
+	transition: none;
+}
+
 #luna-songdownloader-banner .sd-header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	margin-bottom: 8px;
+	cursor: move;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
 }
 
 #luna-songdownloader-banner .sd-title {
