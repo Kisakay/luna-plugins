@@ -56,17 +56,6 @@ body {
 	background: rgba(255, 255, 255, 0.12);
 }
 
-#luna-songdownloader-taskbar .sd-taskbar-app.sd-taskbar-running::after {
-	content: "";
-	position: absolute;
-	left: 14px;
-	right: 14px;
-	bottom: 3px;
-	height: 2px;
-	background: var(--sd-accent, #0078d7);
-	border-radius: 1px;
-}
-
 #luna-songdownloader-taskbar .sd-taskbar-spacer {
 	flex: 1;
 }
@@ -80,13 +69,23 @@ body {
 	font-size: 12px;
 	white-space: nowrap;
 	overflow: hidden;
-	text-overflow: ellipsis;
-	max-width: 280px;
+	max-width: 380px;
+	min-width: 0;
+	flex-shrink: 1;
 	user-select: none;
 	-webkit-user-select: none;
 }
 
+/* Le texte tronque à gauche de l'horloge, l'horloge ne bouge jamais */
+#luna-songdownloader-taskbar .sd-taskbar-status > span:last-child {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 #luna-songdownloader-taskbar .sd-taskbar-status-icon {
+	flex-shrink: 0;
 	color: var(--sd-accent, #0078d7);
 	font-size: 12px;
 }
@@ -96,6 +95,7 @@ body {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	flex-shrink: 0;
 	padding: 0 12px;
 	color: #fff;
 	font-size: 12px;

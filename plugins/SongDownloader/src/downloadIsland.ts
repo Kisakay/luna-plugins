@@ -269,21 +269,122 @@ function paintJob(job: QueueJob) {
 	paintTaskbar();
 }
 
+// #region ETA restant (débit observé + taille moyenne des tracks)
+const etaState = {
+	speed: 0, // octets/s, moyenne mobile exponentielle
+	lastT: 0,
+	lastBytes: 0,
+	avgTrackBytes: 0, // taille moyenne apprise des tracks observées
+	avgTrackCount: 0,
+	seenTotals: new Set<string>(),
+	extra: "", // " · 4.2 MB/s · ~3 min left" (recalculé 1×/s max)
+	extraAt: 0,
+};
+
+function resetEta() {
+	etaState.speed = 0;
+	etaState.lastT = 0;
+	etaState.lastBytes = 0;
+	etaState.extra = "";
+	etaState.extraAt = 0;
+}
+
+function formatSpeed(bps: number): string {
+	if (!isFinite(bps) || bps <= 0) return "";
+	const mb = bps / 1048576;
+	if (mb >= 10) return `${mb.toFixed(0)} MB/s`;
+	if (mb >= 1) return `${mb.toFixed(1)} MB/s`;
+	return `${Math.max(1, Math.round(bps / 1024))} KB/s`;
+}
+
+function formatEta(sec: number): string {
+	if (!isFinite(sec) || sec < 0) return "";
+	const s = Math.round(sec);
+	if (s < 60) return `~${Math.max(1, s)} s left`;
+	const m = Math.floor(s / 60);
+	if (m < 60) return `~${m} min left`;
+	return `~${Math.floor(m / 60)} h ${m % 60} min left`;
+}
+
+/**
+ * Estime le débit et le temps restant à partir des octets réellement reçus
+ * (pollés toutes les 50ms par les workers) et de la taille moyenne des tracks.
+ * Recalculé au plus 1×/seconde (paintTaskbar est appelée ~100×/s en download).
+ */
+function statusEtaExtra(jobs: QueueJob[]): string {
+	const now = performance.now();
+	if (etaState.extraAt > 0 && now - etaState.extraAt < 1000) return etaState.extra;
+	etaState.extraAt = now;
+
+	let inFlightBytes = 0;
+	let knownLeft = 0;
+	let notStarted = 0;
+	for (const job of jobs) {
+		if (job.status === "queued") {
+			notStarted += job.total;
+			continue;
+		}
+		if (job.status !== "active") continue;
+		for (const entry of job.current.values()) {
+			inFlightBytes += entry.downloaded ?? 0;
+			if (entry.total !== undefined && entry.total > 0) {
+				knownLeft += Math.max(0, entry.total - (entry.downloaded ?? 0));
+				const key = `${job.id}:${entry.key}`;
+				if (!etaState.seenTotals.has(key)) {
+					etaState.seenTotals.add(key);
+					etaState.avgTrackCount++;
+					etaState.avgTrackBytes += (entry.total - etaState.avgTrackBytes) / Math.min(etaState.avgTrackCount, 50);
+				}
+			}
+		}
+		notStarted += Math.max(0, job.total - job.done - job.current.size);
+	}
+
+	// Débit : delta d'octets reçus sur ~1s, lissé (inclut les phases fixes
+	// RealMAX/tags/lyrics où rien ne bouge, donc l'ETA reste honnête).
+	if (etaState.lastT > 0) {
+		const dt = (now - etaState.lastT) / 1000;
+		if (dt > 0) {
+			const delta = inFlightBytes - etaState.lastBytes;
+			if (delta >= 0) {
+				const inst = delta / dt;
+				etaState.speed = etaState.speed === 0 ? inst : etaState.speed * 0.7 + inst * 0.3;
+			}
+		}
+	}
+	etaState.lastT = now;
+	etaState.lastBytes = inFlightBytes;
+
+	const speedTxt = formatSpeed(etaState.speed);
+	let remaining = knownLeft;
+	if (etaState.avgTrackBytes > 0) remaining += notStarted * etaState.avgTrackBytes;
+	const etaTxt = etaState.speed > 0 && remaining > 0 ? formatEta(remaining / etaState.speed) : "";
+
+	if (!speedTxt && !etaTxt) {
+		etaState.extra = "";
+		return "";
+	}
+	etaState.extra = `${speedTxt ? ` · ${speedTxt}` : ""}${etaTxt ? ` · ${etaTxt}` : ""}`;
+	return etaState.extra;
+}
+// #endregion
+
 function paintTaskbar() {
 	if (!appBtn) return;
 	const jobs = getJobs();
 	const running = jobs.length > 0;
 	const open = isWinShown();
-	appBtn.classList.toggle("sd-taskbar-running", running);
 	appBtn.classList.toggle("sd-taskbar-open", open && !minimized);
 	appBtn.title = running ? `SongDownloaderV2 — ${summaryText()}` : "SongDownloaderV2";
 	if (statusEl) {
 		const active = jobs.find((j) => j.status === "active");
 		const queued = jobs.filter((j) => j.status === "queued").length;
+		if (!active) resetEta();
 		let html: string | null = null;
 		if (active) {
 			const current = [...active.current.values()][0]?.label;
-			html = `<span class="sd-taskbar-status-icon">⬇</span><span>${active.done}/${active.total}${current ? ` · ${escapeHtml(current)}` : ""}${queued > 0 ? ` · ${queued} queued` : ""}</span>`;
+			const extra = statusEtaExtra(jobs);
+			html = `<span class="sd-taskbar-status-icon">⬇</span><span>${active.done}/${active.total}${current ? ` · ${escapeHtml(current)}` : ""}${queued > 0 ? ` · ${queued} queued` : ""}${extra}</span>`;
 		} else if (queued > 0) {
 			html = `<span class="sd-taskbar-status-icon">⬇</span><span>${queued} queued</span>`;
 		} else if (jobs.length > 0) {
