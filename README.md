@@ -1,3 +1,10 @@
+# [TidaLuna](https://github.com/Inrixia/TidaLuna) Plugins — Kisakay fork (download-only)
+
+> This fork is just a **more advanced downloader** than the original *Song Downloader*.
+> It ships a single plugin, **SongDownloaderV2**: liked **Tracks** download (context menu + header button),
+> live download status banner, lyrics `.lyrics` file next to each track, and auto-download of every played track.
+> Original plugins by [Inrixia](https://github.com/Inrixia/luna-plugins) were removed, only the downloader remains.
+
 # [TidaLuna](https://github.com/Inrixia/TidaLuna) Plugins
 
 This is a repository containing plugins I have made for the [TidaLuna Client](https://github.com/Inrixia/TidaLuna).  

@@ -1,7 +1,7 @@
 import { Tracer } from "@luna/core";
-import { ContextMenu, observe, StyleTag } from "@luna/lib";
+import { ContextMenu, observe, safeTimeout, StyleTag } from "@luna/lib";
 
-import { downloadState, hideBanner } from "./downloadBanner";
+import { downloadState, hideBanner, setBannerStatus, showBanner } from "./downloadBanner";
 import { downloadMediaCollection } from "./downloadCollection";
 import { FavoriteTracks } from "./favoriteTracks";
 import { watchPlayedTracks } from "./autoDownload";
@@ -48,6 +48,8 @@ ContextMenu.onOpen(unloads, async ({ event, contextMenu }) => {
 	if (event.type === "MEDIA_ITEM" || event.type === "MULTI_MEDIA_ITEM") return;
 	// ALBUM / PLAYLIST sont déjà gérés par onMediaItem ci-dessus, on évite le doublon
 	if (event.type === "ALBUM" || event.type === "PLAYLIST") return;
+	// Le menu sidebar Sort/Filter est géré par l'observer DOM ci-dessous
+	if (contextMenu.closest('[data-test="folders-playlists-sort-menu"]') !== null) return;
 	if (!FavoriteTracks.isTracksPage()) return;
 
 	const favs = new FavoriteTracks();
@@ -106,3 +108,60 @@ const injectTracksHeaderButton = (tracksPage: Element) => {
 };
 
 observe(unloads, '[data-test="my-tracks-page"]', injectTracksHeaderButton);
+
+// 4) Fallback DOM : le menu sidebar Sort/Filter (folders-playlists-sort-menu,
+// celui avec Created date / Alphabetical / Your playlists...) n'est pas émis
+// de façon fiable via contextMenu/OPEN, donc on y injecte directement un bouton
+// "Download N liked tracks" (la collection Tracks = playlist privée des likés).
+const injectSidebarMenuEntry = (menu: Element) => {
+	if (menu.querySelector('[data-luna-songdownloader="sidebar-tracks-download"]')) return;
+	const closeBtn = menu.querySelector('button[data-test="context-menu-close-button"]') as HTMLButtonElement | null;
+	if (closeBtn === null || closeBtn.parentElement === null) {
+		// Le menu se construit parfois en plusieurs temps : réessaie à la prochaine mutation
+		const mo = new MutationObserver(() => {
+			if (!document.body.contains(menu)) return mo.disconnect();
+			if (menu.querySelector('[data-luna-songdownloader="sidebar-tracks-download"]') !== null) return mo.disconnect();
+			if (menu.querySelector('button[data-test="context-menu-close-button"]') !== null) {
+				mo.disconnect();
+				injectSidebarMenuEntry(menu);
+			}
+		});
+		mo.observe(menu, { childList: true, subtree: true });
+		unloads.add(() => mo.disconnect());
+		safeTimeout(unloads, () => mo.disconnect(), 5000);
+		return;
+	}
+	const dlBtn = closeBtn.cloneNode(true) as HTMLButtonElement;
+	dlBtn.removeAttribute("data-test");
+	dlBtn.setAttribute("data-luna-songdownloader", "sidebar-tracks-download");
+	dlBtn.title = "Download all liked Tracks as FLAC";
+	const setLabel = () => {
+		const count = FavoriteTracks.ids().length;
+		dlBtn.textContent = count > 0 ? `Download ${count} liked tracks` : "Download liked tracks";
+	};
+	setLabel();
+	dlBtn.onclick = async (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		const favs = new FavoriteTracks();
+		if ((await favs.count()) === 0) {
+			setBannerStatus("No liked tracks found — open the Tracks page first");
+			showBanner();
+			return;
+		}
+		// Click pendant un download = stop
+		if (downloadState.active) {
+			await downloadMediaCollection(favs);
+			return;
+		}
+		dlBtn.textContent = "Stop";
+		try {
+			await downloadMediaCollection(favs);
+		} finally {
+			setLabel();
+		}
+	};
+	closeBtn.parentElement.insertBefore(dlBtn, closeBtn);
+};
+
+observe(unloads, '[data-test="folders-playlists-sort-menu"]', injectSidebarMenuEntry);

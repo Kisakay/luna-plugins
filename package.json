@@ -1,10 +1,10 @@
 {
-	"name": "@kisakay/luna-plugins",
-	"description": "Plugins for Tidal Luna (Kisakay fork - SongDownloaderV2)",
+	"name": "@kisakay/luna-downloads",
+	"description": "Download-only TidaLuna plugin store by Kisakay (SongDownloaderV2, advanced downloader)",
 	"author": {
-		"name": "Inrixia",
-		"url": "https://github.com/Inrixia",
-		"avatarUrl": "https://2.gravatar.com/avatar/eeaffef9eb9b436dccc58c6c44c9fe8c3528e83e3bf64e1c736a68dbe8c097d3"
+		"name": "Kisakay",
+		"url": "https://github.com/Kisakay",
+		"avatarUrl": "https://github.com/Kisakay.png"
 	},
 	"homepage": "https://github.com/Kisakay/luna-plugins",
 	"repository": {
