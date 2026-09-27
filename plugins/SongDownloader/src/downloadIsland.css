@@ -3,8 +3,9 @@ body {
 	padding-bottom: 41px !important;
 }
 
+#footerPlayer,
 [data-test="footer-player"] {
-	bottom: 41px !important;
+	bottom: 51px !important;
 }
 
 /* ============ Taskbar Windows 10 ============ */

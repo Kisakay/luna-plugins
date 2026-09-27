@@ -12,6 +12,14 @@ import { unloads } from "./index.safe";
  */
 
 const LIFT_PX = 41;
+// Le player Tidal flotte à bottom:10px en inline !important : on le pose à 51px
+// pour garder son gap flottant au-dessus de la taskbar.
+const PLAYER_LIFT_PX = 51;
+// Sélecteurs explicites (le player a id="footerPlayer" + data-test="footer-player")
+const EXPLICIT_LIFT: [selector: string, bottom: number][] = [
+	["#footerPlayer", PLAYER_LIFT_PX],
+	['[data-test="footer-player"]', PLAYER_LIFT_PX],
+];
 const lifted = new Map<HTMLElement, string | null>();
 const shrunk = new Map<HTMLElement, { height: string | null; maxHeight: string | null }>();
 
@@ -39,10 +47,21 @@ function isBottomBar(el: Element): el is HTMLElement {
 	if (r.width === 0 || r.height === 0) return false;
 	if (r.height < 20 || r.height > 260) return false;
 	if (r.width < window.innerWidth * 0.3) return false;
-	if (Math.abs(r.bottom - window.innerHeight) > 4) return false;
+	// Tolérance large : les players flottants (bottom:10px) doivent matcher aussi
+	if (r.bottom < window.innerHeight - 120) return false;
 	if (isOurs(el)) return false;
 	const pos = getComputedStyle(el).position;
 	return pos === "fixed" || pos === "sticky" || pos === "absolute";
+}
+
+/** Cibles explicites : toujours soulevées, peu importe les heuristiques. */
+function liftExplicit() {
+	for (const [selector, bottom] of EXPLICIT_LIFT) {
+		const el = document.querySelector(selector);
+		if (!(el instanceof HTMLElement) || isOurs(el)) continue;
+		if (!lifted.has(el)) lifted.set(el, el.style.getPropertyValue("bottom") || null);
+		el.style.setProperty("bottom", `${bottom}px`, "important");
+	}
 }
 
 function lift(el: HTMLElement) {
@@ -69,6 +88,8 @@ function shrinkShell(el: HTMLElement) {
 }
 
 function scan() {
+	// 0. Cibles explicites d'abord (bourrin et fiable)
+	liftExplicit();
 	// 1. Barres bottom -> lift
 	const els = document.querySelectorAll("body *");
 	els.forEach((el) => {
