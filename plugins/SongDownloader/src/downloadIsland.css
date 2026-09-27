@@ -838,45 +838,6 @@ button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 	opacity: 0.8;
 }
 
-/* ============ Toast façon notification Win10 ============ */
-#luna-songdownloader-toast.sd-toast {
-	position: fixed;
-	right: 16px;
-	bottom: 52px;
-	z-index: 99996;
-	max-width: 320px;
-	padding: 10px 14px;
-	font-family: "Segoe UI", system-ui, sans-serif;
-	font-size: 12px;
-	color: #000;
-	background: #fff;
-	border: 1px solid #0078d7;
-	border-left-width: 4px;
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-	cursor: pointer;
-	animation: sd-toast-in 0.18s ease-out;
-}
-
-#luna-songdownloader-toast.sd-toast.sd-toast-dark {
-	color: #fff;
-	background: #2b2b2b;
-}
-
-#luna-songdownloader-toast.sd-toast.sd-toast-hidden {
-	display: none;
-}
-
-@keyframes sd-toast-in {
-	from {
-		opacity: 0;
-		transform: translateX(20px);
-	}
-	to {
-		opacity: 1;
-		transform: translateX(0);
-	}
-}
-
 /* ============ Calendrier façon Win10 (clic horloge) ============ */
 #luna-songdownloader-cal.sd-cal {
 	position: fixed;
@@ -890,7 +851,18 @@ button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 	background: #fff;
 	border: 1px solid #767676;
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-	animation: sd-toast-in 0.15s ease-out;
+	animation: sd-cal-in 0.15s ease-out;
+}
+
+@keyframes sd-cal-in {
+	from {
+		opacity: 0;
+		transform: translateX(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
 }
 
 #luna-songdownloader-cal .sd-cal-head {

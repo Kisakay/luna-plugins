@@ -17,7 +17,6 @@ import {
 import { getDownloadFolder } from "./helpers";
 import { unloads } from "./index.safe";
 import { settings } from "./Settings";
-import { showToast } from "./toast";
 
 const TASKBAR_ID = "luna-songdownloader-taskbar";
 const WIN_ID = "luna-songdownloader-win";
@@ -482,7 +481,6 @@ function showJobMenu(job: QueueJob, x: number, y: number) {
 			const folder = await getDownloadFolder();
 			if (folder === undefined) return;
 			setJobFolder(job.id, folder);
-			showToast(`Folder changed for remaining tracks (${job.title})`);
 		};
 		menu.appendChild(folderBtn);
 	}
