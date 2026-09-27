@@ -2,6 +2,7 @@ import { Tracer } from "@luna/core";
 import { ContextMenu, observe, safeTimeout, StyleTag } from "@luna/lib";
 
 import { setBannerStatus, showBanner } from "./downloadBanner";
+import { mountBottomOffset } from "./bottomOffset";
 import { downloadMediaCollection } from "./downloadCollection";
 import { mountIsland } from "./downloadIsland";
 import { getFavoritesQueueInfo, onQueueChange, toggleFavorites } from "./downloadQueue";
@@ -22,6 +23,8 @@ new StyleTag("SongDownloaderIsland", unloads, islandStyles);
 
 // Fenêtre de gestion des downloads (style Windows 10) + taskbar
 mountIsland();
+// Décale les barres bottom (player Tidal) au-dessus de la taskbar
+mountBottomOffset();
 
 // Nettoyage : retire le quickmenu + les boutons Tracks injectés
 unloads.add(() => {

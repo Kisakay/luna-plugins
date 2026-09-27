@@ -1,10 +1,10 @@
 /* ============ Layout : la taskbar ne mange pas le player ============ */
 body {
-	padding-bottom: 40px !important;
+	padding-bottom: 41px !important;
 }
 
 [data-test="footer-player"] {
-	bottom: 40px !important;
+	bottom: 41px !important;
 }
 
 /* ============ Taskbar Windows 10 ============ */
