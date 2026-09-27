@@ -1,14 +1,17 @@
 import { Tracer } from "@luna/core";
 import { ContextMenu, observe, safeTimeout, StyleTag } from "@luna/lib";
 
-import { downloadState, hideBanner, setBannerStatus, showBanner } from "./downloadBanner";
+import { hideBanner, setBannerStatus, showBanner } from "./downloadBanner";
 import { downloadMediaCollection } from "./downloadCollection";
+import { mountIsland } from "./downloadIsland";
+import { getFavoritesQueueInfo, onQueueChange, toggleFavorites } from "./downloadQueue";
 import { FavoriteTracks } from "./favoriteTracks";
 import { watchPlayedTracks } from "./autoDownload";
 import { unloads } from "./index.safe";
 
 import styles from "file://downloadButton.css?minify";
 import bannerStyles from "file://downloadBanner.css?minify";
+import islandStyles from "file://downloadIsland.css?minify";
 
 export const { errSignal, trace } = Tracer("[SongDownloader]");
 export { Settings } from "./Settings";
@@ -16,27 +19,53 @@ export { unloads };
 
 new StyleTag("SongDownloader", unloads, styles);
 new StyleTag("SongDownloaderBanner", unloads, bannerStyles);
+new StyleTag("SongDownloaderIsland", unloads, islandStyles);
+
+// Island de queue (glassmorphism, top center)
+mountIsland();
 
 // Nettoyage : retire la bannière + les boutons Tracks injectés
 unloads.add(() => {
 	hideBanner();
 	document.querySelectorAll('[data-luna-songdownloader="tracks-download-all"]').forEach((b) => b.remove());
+	document.getElementById("luna-songdownloader-quickmenu")?.remove();
 });
 
 const downloadButton = ContextMenu.addButton(unloads);
 const tracksDownloadButton = ContextMenu.addButton(unloads);
 
-// Helper partagé : télécharge tous les likés (avec feedback si vide).
-// Appelé pendant un download actif = demande d'arrêt (voir downloadMediaCollection).
-const runLikedTracksDownload = async () => {
-	const favs = new FavoriteTracks();
-	if ((await favs.count()) === 0) {
+// Helper partagé : toggle les Tracks likés dans la queue.
+// (absent -> queue, déjà en file/active -> retire/annule)
+const runLikedTracksDownload = async (): Promise<"queued" | "removed" | "cancelled" | "empty"> => {
+	const res = await toggleFavorites();
+	if (res === "empty") {
 		setBannerStatus("No liked tracks found — open the Tracks page first");
 		showBanner();
-		return;
 	}
-	await downloadMediaCollection(favs);
+	refreshAllHeaderButtons();
+	return res;
 };
+
+// Label live du bouton header selon l'état de la queue
+const refreshAllHeaderButtons = () => {
+	const info = getFavoritesQueueInfo();
+	document.querySelectorAll<HTMLButtonElement>('button[data-luna-songdownloader="tracks-download-all"]').forEach((btn) => {
+		const labelSpan = btn.querySelector("span:last-child");
+		if (!labelSpan) return;
+		if (!btn.dataset.orig) btn.dataset.orig = labelSpan.textContent ?? "Download all";
+		if (!info) {
+			labelSpan.textContent = btn.dataset.orig;
+			btn.classList.remove("sd-busy");
+		} else if (info.status === "active") {
+			labelSpan.textContent = "Stop";
+			btn.classList.add("sd-busy");
+		} else {
+			labelSpan.textContent = `Queued #${info.pos}`;
+			btn.classList.add("sd-busy");
+		}
+	});
+};
+let headerQueueSub = false;
 
 // 0) Watcher : auto-download de chaque son joué (option "Auto-download every played track")
 watchPlayedTracks();
@@ -96,24 +125,19 @@ const injectTracksHeaderButton = (tracksPage: Element) => {
 
 	// Icône download + label (même structure que les boutons Tidal)
 	dlBtn.innerHTML = `<span aria-hidden="true" style="display:inline-flex;margin-right:6px"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16"/></svg></span><span class="${labelClass}">${labelText}</span>`;
-	const labelSpan = dlBtn.querySelector("span:last-child") as HTMLSpanElement | null;
 
 	dlBtn.onclick = async (e) => {
 		e.preventDefault();
-		// Click pendant un download = stop
-		if (downloadState.active) return runLikedTracksDownload();
-		const orig = labelSpan?.textContent ?? labelText;
-		if (labelSpan) labelSpan.textContent = "Stop";
-		dlBtn.classList.add("sd-busy");
-		try {
-			await runLikedTracksDownload();
-		} finally {
-			if (labelSpan) labelSpan.textContent = orig;
-			dlBtn.classList.remove("sd-busy");
-		}
+		// Toggle dans la queue (jamais de stop brutal) : le label suit via refreshAllHeaderButtons
+		await runLikedTracksDownload();
 	};
 
 	container.appendChild(dlBtn);
+	if (!headerQueueSub) {
+		headerQueueSub = true;
+		onQueueChange(refreshAllHeaderButtons);
+	}
+	refreshAllHeaderButtons();
 };
 
 observe(unloads, '[data-test="my-tracks-page"]', injectTracksHeaderButton);
@@ -152,14 +176,10 @@ const injectSidebarMenuEntry = (menu: Element) => {
 	dlBtn.onclick = async (e) => {
 		e.preventDefault();
 		e.stopPropagation();
-		// Click pendant un download = stop
-		if (downloadState.active) return runLikedTracksDownload();
-		dlBtn.textContent = "Stop";
-		try {
-			await runLikedTracksDownload();
-		} finally {
-			setLabel();
-		}
+		// Toggle dans la queue (jamais de stop brutal, annulation via l'island)
+		const res = await runLikedTracksDownload();
+		if (res === "queued") dlBtn.textContent = "Queued ✓ — see island";
+		else setLabel();
 	};
 	// En haut du menu (pas en bas) : garanti visible sans scroll
 	menu.prepend(dlBtn);

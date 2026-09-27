@@ -2,6 +2,7 @@ import { Tracer } from "@luna/core";
 import { MediaItem, safeInterval } from "@luna/lib";
 
 import { downloadState, setBannerFileProgress, setBannerStatus, showBanner } from "./downloadBanner";
+import { isQueueBusy } from "./downloadQueue";
 import { getFileName } from "./helpers";
 import { unloads } from "./index.safe";
 import { settings } from "./Settings";
@@ -49,7 +50,7 @@ async function pumpAutoQueue() {
 		}
 	} finally {
 		autoBusy = false;
-		if (pending === null) downloadState.active = false;
+		if (pending === null && !isQueueBusy()) downloadState.active = false;
 		downloadState.cancel = false;
 	}
 }
@@ -105,6 +106,6 @@ async function autoDownloadOne(mediaItem: MediaItem) {
 	} catch (err) {
 		trace.msg.warn.withContext(`Auto-download failed for id ${mediaItem.id}`)(err);
 	} finally {
-		if (pending === null) downloadState.active = false;
+		if (pending === null && !isQueueBusy()) downloadState.active = false;
 	}
 }
