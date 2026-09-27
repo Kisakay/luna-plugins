@@ -26,6 +26,18 @@ unloads.add(() => {
 const downloadButton = ContextMenu.addButton(unloads);
 const tracksDownloadButton = ContextMenu.addButton(unloads);
 
+// Helper partagé : télécharge tous les likés (avec feedback si vide).
+// Appelé pendant un download actif = demande d'arrêt (voir downloadMediaCollection).
+const runLikedTracksDownload = async () => {
+	const favs = new FavoriteTracks();
+	if ((await favs.count()) === 0) {
+		setBannerStatus("No liked tracks found — open the Tracks page first");
+		showBanner();
+		return;
+	}
+	await downloadMediaCollection(favs);
+};
+
 // 0) Watcher : auto-download de chaque son joué (option "Auto-download every played track")
 watchPlayedTracks();
 
@@ -89,15 +101,12 @@ const injectTracksHeaderButton = (tracksPage: Element) => {
 	dlBtn.onclick = async (e) => {
 		e.preventDefault();
 		// Click pendant un download = stop
-		if (downloadState.active) {
-			await downloadMediaCollection(new FavoriteTracks());
-			return;
-		}
+		if (downloadState.active) return runLikedTracksDownload();
 		const orig = labelSpan?.textContent ?? labelText;
 		if (labelSpan) labelSpan.textContent = "Stop";
 		dlBtn.classList.add("sd-busy");
 		try {
-			await downloadMediaCollection(new FavoriteTracks());
+			await runLikedTracksDownload();
 		} finally {
 			if (labelSpan) labelSpan.textContent = orig;
 			dlBtn.classList.remove("sd-busy");
@@ -143,25 +152,73 @@ const injectSidebarMenuEntry = (menu: Element) => {
 	dlBtn.onclick = async (e) => {
 		e.preventDefault();
 		e.stopPropagation();
-		const favs = new FavoriteTracks();
-		if ((await favs.count()) === 0) {
-			setBannerStatus("No liked tracks found — open the Tracks page first");
-			showBanner();
-			return;
-		}
 		// Click pendant un download = stop
-		if (downloadState.active) {
-			await downloadMediaCollection(favs);
-			return;
-		}
+		if (downloadState.active) return runLikedTracksDownload();
 		dlBtn.textContent = "Stop";
 		try {
-			await downloadMediaCollection(favs);
+			await runLikedTracksDownload();
 		} finally {
 			setLabel();
 		}
 	};
-	closeBtn.parentElement.insertBefore(dlBtn, closeBtn);
+	// En haut du menu (pas en bas) : garanti visible sans scroll
+	menu.prepend(dlBtn);
 };
 
 observe(unloads, '[data-test="folders-playlists-sort-menu"]', injectSidebarMenuEntry);
+
+// 5) Clic droit sur le lien "Tracks" de la sidebar -> notre propre mini-menu,
+// positionné au curseur et entièrement visible (ne dépend pas des menus Tidal).
+const QUICKMENU_ID = "luna-songdownloader-quickmenu";
+const closeQuickMenu = () => document.getElementById(QUICKMENU_ID)?.remove();
+
+const showTracksQuickMenu = (x: number, y: number) => {
+	closeQuickMenu();
+	const count = FavoriteTracks.ids().length;
+	const menu = document.createElement("div");
+	menu.id = QUICKMENU_ID;
+	menu.className = "sd-quickmenu";
+	const item = document.createElement("button");
+	item.type = "button";
+	item.className = "sd-qm-item";
+	item.innerHTML = `<span>Download ${count > 0 ? `${count} ` : ""}liked tracks</span><span class="sd-qm-sub">FLAC + lyrics, with current settings</span>`;
+	item.onclick = async (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		closeQuickMenu();
+		await runLikedTracksDownload();
+	};
+	menu.appendChild(item);
+	document.body.appendChild(menu);
+	// Position au curseur, clampée dans l'écran
+	const w = menu.offsetWidth || 250;
+	const h = menu.offsetHeight || 60;
+	menu.style.left = `${Math.max(0, Math.min(window.innerWidth - w, x))}px`;
+	menu.style.top = `${Math.max(0, Math.min(window.innerHeight - h, y))}px`;
+	// Ferme sur clic ailleurs / Escape
+	const onPointerDown = (ev: PointerEvent) => {
+		if (!menu.contains(ev.target as Node)) closeQuickMenu();
+	};
+	const onKey = (ev: KeyboardEvent) => {
+		if (ev.key === "Escape") closeQuickMenu();
+	};
+	document.addEventListener("pointerdown", onPointerDown, { once: true });
+	document.addEventListener("keydown", onKey, { once: true });
+	unloads.add(() => {
+		closeQuickMenu();
+		document.removeEventListener("pointerdown", onPointerDown);
+		document.removeEventListener("keydown", onKey);
+	});
+};
+
+const attachTracksNavMenu = (navItem: Element) => {
+	if (navItem.hasAttribute("data-luna-songdownloader-nav")) return;
+	navItem.setAttribute("data-luna-songdownloader-nav", "true");
+	navItem.addEventListener("contextmenu", (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		showTracksQuickMenu((e as MouseEvent).clientX, (e as MouseEvent).clientY);
+	});
+};
+
+observe(unloads, '[data-test="sidebar-collection-tracks"]', attachTracksNavMenu);
