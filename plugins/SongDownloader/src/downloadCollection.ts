@@ -3,6 +3,7 @@ import { ContextMenu, safeInterval } from "@luna/lib";
 import type { MediaCollection } from "@luna/lib";
 
 import { unloads } from "./index.safe";
+import { saveTextFile } from "./lyrics.native";
 import { settings } from "./Settings";
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
 import {
@@ -102,6 +103,25 @@ export async function downloadMediaCollection(mediaCollection: MediaCollection, 
 			try {
 				await mediaItem.download(path, settings.downloadQuality);
 				succeeded++;
+				// Lyrics : fichier texte à côté de la track (ex: Title.flac -> Title.flac.lyrics)
+				if (settings.downloadLyrics) {
+					try {
+						const suffix = (settings.lyricsSuffix ?? ".lyrics").replace(/[/\\]/g, "");
+						if (suffix === "") {
+							trace.msg.warn.withContext("Skipping lyrics, suffix is empty (would overwrite audio file)");
+						} else {
+							setBannerStatus(`Fetching lyrics... ${label}`);
+							const lyrics = await mediaItem.lyrics();
+							const text = lyrics?.lyrics?.trim();
+							if (text) {
+								const lyricsPath = Array.isArray(path) ? [...path.slice(0, -1), `${path[path.length - 1]}${suffix}`] : `${path}${suffix}`;
+								await saveTextFile(lyricsPath, text);
+							}
+						}
+					} catch (lyricsErr) {
+						trace.msg.warn.withContext(`Failed to download lyrics for ${tags.title}`)(lyricsErr);
+					}
+				}
 			} catch (err) {
 				failed++;
 				trace.msg.err.withContext(`Failed to download ${tags.title}`)(err);

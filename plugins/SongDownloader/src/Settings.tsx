@@ -12,12 +12,16 @@ type Settings = {
 	defaultPath?: string;
 	pathFormat: string;
 	useRealMAX: boolean;
+	downloadLyrics: boolean;
+	lyricsSuffix: string;
 	bannerPos: { x: number; y: number } | null;
 };
 export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDownloader", {
 	downloadQuality: Quality.Max.audioQuality,
 	pathFormat: defaultFilenameFormat,
 	useRealMAX: true,
+	downloadLyrics: true,
+	lyricsSuffix: ".lyrics",
 	bannerPos: null,
 });
 
@@ -29,6 +33,8 @@ export const Settings = () => {
 	const [defaultPath, setDefaultPath] = React.useState(settings.defaultPath);
 	const [pathFormat, setPathFormat] = React.useState(settings.pathFormat);
 	const [useRealMAX, setUseRealMAX] = React.useState(settings.useRealMAX);
+	const [downloadLyrics, setDownloadLyrics] = React.useState(settings.downloadLyrics);
+	const [lyricsSuffix, setLyricsSuffix] = React.useState(settings.lyricsSuffix);
 
 	return (
 		<LunaSettings>
@@ -46,6 +52,24 @@ export const Settings = () => {
 				title="Use RealMAX to find the highest quality"
 				value={useRealMAX}
 				onChange={(_, checked) => setUseRealMAX((settings.useRealMAX = checked))}
+			/>
+			<LunaSwitchSetting
+				title="Download lyrics file next to track"
+				desc={<>Saves a text file with the lyrics next to each downloaded track</>}
+				value={downloadLyrics}
+				onChange={(_, checked) => setDownloadLyrics((settings.downloadLyrics = checked))}
+			/>
+			<LunaTextSetting
+				title="Lyrics file suffix"
+				desc={
+					<>
+						Appended to the audio filename.
+						<br />
+						For example with <b>.lyrics</b>: <b>Title.flac</b> → <b>Title.flac.lyrics</b> (plain text).
+					</>
+				}
+				value={lyricsSuffix}
+				onChange={(e) => setLyricsSuffix((settings.lyricsSuffix = e.target.value))}
 			/>
 			<LunaButtonSetting
 				title="Default save path"
