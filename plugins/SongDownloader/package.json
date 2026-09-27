@@ -1,7 +1,7 @@
 {
-	"name": "Song Downloader",
-	"description": "Download tidal songs as FLAC files.",
-	"homepage": "https://github.com/Inrixia/luna-plugins#SongDownloader",
+	"name": "SongDownloaderV2",
+	"description": "Download tidal songs as FLAC files. V2 with liked Tracks support and download status banner.",
+	"homepage": "https://github.com/Kisakay/luna-plugins",
 	"author": {
 		"name": "Inrixia",
 		"url": "https://github.com/Inrixia",
