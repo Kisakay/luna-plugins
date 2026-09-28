@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>win10-shell demo</title>
+		<link rel="stylesheet" href="../dist/win10-shell.css" />
+		<style>
+			html,
+			body {
+				margin: 0;
+				height: 100%;
+				background: #2d89ef;
+				font-family: "Segoe UI", system-ui, sans-serif;
+			}
+			.demo-hint {
+				position: fixed;
+				top: 24px;
+				left: 50%;
+				transform: translateX(-50%);
+				color: #fff;
+				opacity: 0.9;
+				font-size: 14px;
+				user-select: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="demo-hint">Right-click anywhere · drag windows · double-click titlebar to maximize</div>
+		<script src="./dist/demo.js"></script>
+	</body>
+</html>

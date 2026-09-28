@@ -1,0 +1,62 @@
+{
+	"name": "@kisakay/win10-shell",
+	"version": "0.1.0",
+	"description": "Framework-agnostic Windows 10 desktop HUD for the web: draggable windows, taskbar with Start button and pinned apps, menus, controls and markdown. Zero dependencies, pure DOM.",
+	"license": "AGPL-3.0-only",
+	"author": {
+		"name": "Kisakay",
+		"url": "https://github.com/Kisakay"
+	},
+	"homepage": "https://github.com/Kisakay/luna-plugins",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Kisakay/luna-plugins.git",
+		"directory": "packages/win10-shell"
+	},
+	"keywords": [
+		"windows-10",
+		"desktop",
+		"taskbar",
+		"window-manager",
+		"hud",
+		"ui",
+		"zero-dependency",
+		"vanilla-js"
+	],
+	"type": "module",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
+		},
+		"./style.css": "./dist/win10-shell.css",
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"dist",
+		"styles",
+		"README.md",
+		"LICENSE"
+	],
+	"sideEffects": [
+		"*.css"
+	],
+	"scripts": {
+		"clean": "rm -rf dist demo/dist",
+		"build:js": "esbuild src/index.ts --bundle --minify --format=esm --outfile=dist/index.js && esbuild src/index.ts --bundle --minify --format=cjs --outfile=dist/index.cjs",
+		"build:dts": "tsc -p tsconfig.json",
+		"build:css": "mkdir -p dist && cp styles/win10-shell.css dist/win10-shell.css",
+		"build:demo": "mkdir -p demo/dist && esbuild demo/main.ts --bundle --minify --format=iife --outfile=demo/dist/demo.js",
+		"build": "npm run clean && npm run build:js && npm run build:dts && npm run build:css && npm run build:demo",
+		"prepublishOnly": "npm run build",
+		"demo": "npx http-server ./demo -p 8080 -c-1"
+	},
+	"devDependencies": {
+		"esbuild": "^0.27.2",
+		"typescript": "^5.9.3"
+	}
+}

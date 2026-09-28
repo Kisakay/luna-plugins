@@ -1,0 +1,759 @@
+/* @kisakay/win10-shell — Windows 10 desktop HUD stylesheet.
+   Self-contained: every rule is scoped to a `.w10-*` class.
+   No global element selectors — safe to drop into any page or app.
+   Accent color theming via `--w10-accent` (default #0078d7). */
+
+.w10-taskbar,
+.w10-win,
+.w10-menu {
+	--w10-accent: #0078d7;
+}
+
+/* ================= Taskbar ================= */
+.w10-taskbar {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 40px;
+	z-index: 99995;
+	display: flex;
+	align-items: stretch;
+	background: #101010;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.w10-taskbar .w10-app {
+	position: relative;
+	min-width: 52px;
+	border: none;
+	background: transparent;
+	color: #fff;
+	font-size: 18px;
+	cursor: pointer;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.w10-taskbar .w10-app:hover {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.w10-taskbar .w10-app-icon {
+	color: #fff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.w10-taskbar .w10-app-icon svg {
+	display: block;
+}
+
+/* Wide pinned app: icon + title, like Windows 10 */
+.w10-taskbar .w10-app-wide {
+	width: auto;
+	max-width: 220px;
+	padding: 0 12px 2px 10px;
+	gap: 8px;
+	font-size: 12px;
+}
+
+.w10-taskbar .w10-app-label {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+/* Accent underline while the app is running */
+.w10-taskbar .w10-app::after {
+	content: "";
+	position: absolute;
+	left: 5px;
+	right: 5px;
+	bottom: 0;
+	height: 2px;
+	background: var(--w10-accent, #0078d7);
+	opacity: 0;
+	transition: opacity 0.12s ease;
+	pointer-events: none;
+}
+
+.w10-taskbar .w10-app.w10-running::after {
+	opacity: 1;
+}
+
+.w10-taskbar .w10-app.w10-open {
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.w10-taskbar .w10-spacer {
+	flex: 1;
+}
+
+.w10-taskbar .w10-status {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 12px;
+	color: #fff;
+	font-size: 12px;
+	white-space: nowrap;
+	overflow: hidden;
+	max-width: 380px;
+	min-width: 0;
+	flex-shrink: 1;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.w10-taskbar .w10-status > span:last-child {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.w10-taskbar .w10-status-icon {
+	flex-shrink: 0;
+	color: var(--w10-accent, #0078d7);
+	font-size: 12px;
+}
+
+.w10-taskbar .w10-clock {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	padding: 0 12px;
+	color: #fff;
+	font-size: 12px;
+	line-height: 1.3;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+/* ================= Window ================= */
+.w10-win {
+	position: fixed;
+	top: 80px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 10000;
+	width: 520px;
+	max-width: calc(100vw - 32px);
+	height: 560px;
+	max-height: calc(100vh - 60px);
+	display: flex;
+	flex-direction: column;
+	font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+	font-size: 12px;
+	color: #000;
+	background: #fff;
+	border: 1px solid var(--w10-accent, #0078d7);
+	box-shadow:
+		0 0 0 1px rgba(0, 0, 0, 0.4),
+		0 12px 48px rgba(0, 0, 0, 0.55);
+}
+
+.w10-win.w10-win-max {
+	top: 8px !important;
+	left: 8px !important;
+	transform: none !important;
+	width: calc(100vw - 16px) !important;
+	height: calc(100vh - 56px) !important;
+	max-width: none;
+	max-height: none;
+}
+
+.w10-win .w10-titlebar {
+	display: flex;
+	align-items: stretch;
+	justify-content: space-between;
+	height: 32px;
+	flex-shrink: 0;
+	background: #fff;
+	user-select: none;
+	-webkit-user-select: none;
+	touch-action: none;
+	cursor: default;
+}
+
+.w10-win .w10-title-left {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-left: 10px;
+	flex: 1;
+	min-width: 0;
+}
+
+.w10-win .w10-avatar {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+}
+
+.w10-win .w10-title-text {
+	font-size: 12px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.w10-win .w10-credit {
+	font-size: 11px;
+	color: #605e5c;
+	font-weight: 400;
+}
+
+.w10-win .w10-caption {
+	display: flex;
+	align-items: stretch;
+}
+
+.w10-win .w10-capbtn {
+	width: 46px;
+	border: none;
+	background: transparent;
+	color: #000;
+	font-size: 10px;
+	line-height: 1;
+	cursor: pointer;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.w10-win .w10-capbtn svg {
+	display: block;
+}
+
+.w10-win .w10-capbtn:hover {
+	background: #e5e5e5;
+}
+
+.w10-win .w10-capbtn:active {
+	background: #cacacd;
+}
+
+.w10-win .w10-capbtn.w10-capbtn-close:hover {
+	background: #e81123;
+	color: #fff;
+}
+
+.w10-win .w10-capbtn.w10-capbtn-close:active {
+	background: #f1707a;
+	color: #fff;
+}
+
+.w10-win .w10-content {
+	display: flex;
+	flex: 1;
+	min-height: 0;
+	border-top: 1px solid #e6e6e6;
+}
+
+.w10-win .w10-nav {
+	width: 160px;
+	flex-shrink: 0;
+	background: #f3f3f3;
+	padding: 8px 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	border-right: 1px solid #e6e6e6;
+}
+
+.w10-win .w10-navitem {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	border: none;
+	background: transparent;
+	border-left: 3px solid transparent;
+	color: #000;
+	font-family: inherit;
+	font-size: 12px;
+	text-align: left;
+	padding: 9px 12px 9px 9px;
+	cursor: pointer;
+}
+
+.w10-win .w10-navitem:hover {
+	background: #e9e9e9;
+}
+
+.w10-win .w10-navitem-active {
+	background: #e6e6e6;
+	border-left-color: var(--w10-accent, #0078d7);
+}
+
+.w10-win .w10-navglyph {
+	width: 18px;
+	text-align: center;
+	font-size: 13px;
+	color: var(--w10-accent, #0078d7);
+}
+
+.w10-win .w10-body {
+	flex: 1;
+	min-width: 0;
+	overflow-y: auto;
+	padding: 20px 24px;
+	background: #fff;
+}
+
+.w10-win .w10-resize {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	width: 16px;
+	height: 16px;
+	cursor: nwse-resize;
+	touch-action: none;
+	background: linear-gradient(135deg, transparent 50%, #767676 50%);
+}
+
+.w10-win.w10-win-max .w10-resize {
+	display: none;
+}
+
+/* ================= Controls ================= */
+.w10-win .w10-grouptitle {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 18px 0 8px;
+}
+
+.w10-win .w10-grouptitle:first-child {
+	margin-top: 0;
+}
+
+.w10-win .w10-setting {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 10px 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.w10-win .w10-setting-col {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 6px;
+}
+
+.w10-win .w10-setting-texts {
+	flex: 1;
+	min-width: 0;
+}
+
+.w10-win .w10-setting-title {
+	font-size: 13px;
+}
+
+.w10-win .w10-desc {
+	font-size: 12px;
+	color: #605e5c;
+	margin-top: 2px;
+	line-height: 1.45;
+}
+
+.w10-win .w10-checkbox {
+	position: relative;
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	box-sizing: border-box;
+	background: #fff;
+	border: 2px solid #333;
+	border-radius: 0;
+	cursor: pointer;
+	padding: 0;
+}
+
+.w10-win .w10-checkbox:hover {
+	border-color: #000;
+}
+
+.w10-win .w10-checkbox.w10-checked {
+	background: var(--w10-accent, #0078d7);
+	border-color: var(--w10-accent, #0078d7);
+}
+
+.w10-win .w10-checkbox.w10-checked::after {
+	content: "";
+	position: absolute;
+	left: 6px;
+	top: 1px;
+	width: 6px;
+	height: 11px;
+	box-sizing: border-box;
+	border: solid #fff;
+	border-width: 0 3px 3px 0;
+	transform: rotate(45deg);
+}
+
+.w10-win .w10-btn {
+	min-width: 88px;
+	padding: 5px 20px;
+	font-family: inherit;
+	font-size: 12px;
+	color: #000;
+	background: #e1e1e1;
+	border: 1px solid #adadad;
+	border-radius: 0;
+	cursor: pointer;
+}
+
+.w10-win .w10-btn:hover {
+	border-color: var(--w10-accent, #0078d7);
+	background: #e5f1fb;
+}
+
+.w10-win .w10-btn:active {
+	background: #cce4f7;
+}
+
+.w10-win .w10-btn-small {
+	min-width: 0;
+	padding: 3px 12px;
+}
+
+.w10-win .w10-textbox,
+.w10-win .w10-combo {
+	font-family: inherit;
+	font-size: 12px;
+	color: #000;
+	background: #fff;
+	border: 1px solid #767676;
+	border-radius: 0;
+	padding: 0 8px;
+	height: 30px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.w10-win .w10-textbox:hover,
+.w10-win .w10-combo:hover {
+	border-color: #333;
+}
+
+.w10-win .w10-textbox:focus,
+.w10-win .w10-combo:focus {
+	outline: none;
+	border: 2px solid var(--w10-accent, #0078d7);
+	padding: 0 7px;
+}
+
+.w10-win .w10-textbox.w10-textarea {
+	height: auto;
+	min-height: 120px;
+	padding: 6px 8px;
+	font-family: Consolas, "Courier New", monospace;
+	font-size: 12px;
+	line-height: 1.5;
+	resize: vertical;
+	white-space: pre;
+}
+
+.w10-win .w10-textbox.w10-textarea:focus {
+	padding: 5px 7px;
+}
+
+.w10-win .w10-toolbar {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.w10-win .w10-hero {
+	text-align: center;
+	padding: 28px 0 12px;
+}
+
+.w10-win .w10-hero-num {
+	font-size: 52px;
+	font-weight: 300;
+	color: var(--w10-accent, #0078d7);
+	line-height: 1;
+}
+
+.w10-win .w10-hero-label {
+	font-size: 13px;
+	color: #605e5c;
+	margin-top: 4px;
+}
+
+/* ================= Context menu ================= */
+.w10-menu {
+	position: fixed;
+	z-index: 99998;
+	min-width: 250px;
+	max-width: calc(100vw - 32px);
+	background: #fff;
+	color: #000;
+	border: 1px solid #767676;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+	padding: 4px;
+	font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.w10-menu .w10-menu-item {
+	display: block;
+	width: 100%;
+	text-align: left;
+	background: transparent;
+	border: 1px solid transparent;
+	color: #000;
+	padding: 8px 12px;
+	font-family: inherit;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.w10-menu .w10-menu-item:hover {
+	background: #e5f1fb;
+	border-color: #cce8ff;
+}
+
+.w10-menu .w10-menu-sub {
+	display: block;
+	font-size: 11px;
+	color: #605e5c;
+	margin-top: 2px;
+}
+
+.w10-menu .w10-menu-item.w10-disabled {
+	opacity: 0.8;
+	cursor: default;
+}
+
+.w10-menu .w10-menu-item.w10-disabled:hover {
+	background: transparent;
+	border-color: transparent;
+}
+
+.w10-menu .w10-sep {
+	height: 1px;
+	background: #e1e1e1;
+	margin: 4px 2px;
+}
+
+/* ================= Markdown ================= */
+.w10-md {
+	font-size: 12px;
+	line-height: 1.55;
+	color: inherit;
+	font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.w10-md-p {
+	margin: 6px 0;
+}
+
+.w10-md-p:first-child {
+	margin-top: 0;
+}
+
+.w10-md-title {
+	font-weight: 600;
+	margin: 12px 0 4px;
+	line-height: 1.3;
+}
+
+h1.w10-md-title {
+	font-size: 15px;
+}
+
+h2.w10-md-title {
+	font-size: 13px;
+}
+
+h3.w10-md-title {
+	font-size: 12px;
+}
+
+.w10-md-list {
+	margin: 6px 0;
+	padding-left: 20px;
+}
+
+.w10-md-list li {
+	margin: 2px 0;
+}
+
+.w10-md-code {
+	font-family: Consolas, "Courier New", monospace;
+	font-size: 11px;
+	padding: 1px 5px;
+	background: #f3f3f3;
+	border: 1px solid #e1e1e1;
+}
+
+.w10-md-link {
+	color: var(--w10-accent, #0078d7);
+	text-decoration: none;
+}
+
+.w10-md-link:hover {
+	text-decoration: underline;
+}
+
+hr.w10-md-hr {
+	border: none;
+	border-top: 1px solid #e1e1e1;
+	margin: 12px 0;
+}
+
+/* ================= Dark theme ================= */
+.w10-win.w10-dark {
+	color: #fff;
+	background: #202020;
+	border-color: var(--w10-accent, #0078d7);
+}
+
+.w10-win.w10-dark .w10-titlebar {
+	background: #111;
+}
+
+.w10-win.w10-dark .w10-credit {
+	color: #a19f9d;
+}
+
+.w10-win.w10-dark .w10-capbtn {
+	color: #fff;
+}
+
+.w10-win.w10-dark .w10-capbtn:hover {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.w10-win.w10-dark .w10-capbtn:active {
+	background: rgba(255, 255, 255, 0.18);
+}
+
+.w10-win.w10-dark .w10-capbtn.w10-capbtn-close:hover {
+	background: #e81123;
+	color: #fff;
+}
+
+.w10-win.w10-dark .w10-content {
+	border-top-color: #2c2c2c;
+}
+
+.w10-win.w10-dark .w10-nav {
+	background: #191919;
+	border-right-color: #2c2c2c;
+}
+
+.w10-win.w10-dark .w10-navitem {
+	color: #fff;
+}
+
+.w10-win.w10-dark .w10-navitem:hover {
+	background: #2d2d2d;
+}
+
+.w10-win.w10-dark .w10-navitem-active {
+	background: #2d2d2d;
+	border-left-color: var(--w10-accent, #0078d7);
+}
+
+.w10-win.w10-dark .w10-body {
+	background: #202020;
+}
+
+.w10-win.w10-dark .w10-setting {
+	border-bottom-color: #2c2c2c;
+}
+
+.w10-win.w10-dark .w10-desc,
+.w10-win.w10-dark .w10-hero-label {
+	color: #a19f9d;
+}
+
+.w10-win.w10-dark .w10-checkbox {
+	background: transparent;
+	border-color: #fff;
+}
+
+.w10-win.w10-dark .w10-checkbox.w10-checked {
+	background: var(--w10-accent, #0078d7);
+	border-color: var(--w10-accent, #0078d7);
+}
+
+.w10-win.w10-dark .w10-btn {
+	color: #fff;
+	background: #333;
+	border-color: #8a8a8a;
+}
+
+.w10-win.w10-dark .w10-btn:hover {
+	border-color: var(--w10-accent, #0078d7);
+	background: #3a3a3a;
+}
+
+.w10-win.w10-dark .w10-textbox,
+.w10-win.w10-dark .w10-combo {
+	color: #fff;
+	background: #2b2b2b;
+	border-color: #8a8a8a;
+}
+
+.w10-win.w10-dark .w10-textbox:hover,
+.w10-win.w10-dark .w10-combo:hover {
+	border-color: #fff;
+}
+
+.w10-win.w10-dark .w10-combo option {
+	background: #2b2b2b;
+	color: #fff;
+}
+
+.w10-win.w10-dark .w10-resize {
+	background: linear-gradient(135deg, transparent 50%, #8a8a8a 50%);
+}
+
+.w10-menu.w10-dark {
+	background: #2b2b2b;
+	color: #fff;
+	border-color: #444;
+}
+
+.w10-menu.w10-dark .w10-menu-item {
+	color: #fff;
+}
+
+.w10-menu.w10-dark .w10-menu-item:hover {
+	background: #3a3a3a;
+	border-color: #555;
+}
+
+.w10-menu.w10-dark .w10-menu-sub {
+	color: #a19f9d;
+}
+
+.w10-menu.w10-dark .w10-sep {
+	background: #444;
+}
+
+.w10-dark .w10-md-code {
+	background: #191919;
+	border-color: #333;
+}
+
+.w10-dark hr.w10-md-hr {
+	border-top-color: #333;
+}
