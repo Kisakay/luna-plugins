@@ -2,7 +2,7 @@
 
 Advanced download manager for [TidaLuna](https://github.com/Inrixia/TidaLuna) (TIDAL client mod) by [Kisakay](https://github.com/Kisakay).
 
-Download tracks, albums, playlists and liked **Tracks** as FLAC, with a download queue, lyrics and metadata sidecars, auto-download and a Windows 10 style manager — powered by [winml](https://github.com/Kisakay/winml), the standalone Win10 HUD framework (also [on npm](https://www.npmjs.com/package/winml)).
+Download tracks, albums, playlists and liked **Tracks** as FLAC, with a download queue, lyrics and metadata sidecars, auto-download and a Windows 10 style manager — powered by [winml](https://github.com/Kisakay/winml), the standalone Win10 HUD framework (also [on npm as win10ml](https://www.npmjs.com/package/win10ml)).
 
 ## Install
 
