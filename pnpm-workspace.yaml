@@ -3,8 +3,6 @@ packages:
 allowBuilds:
   electron: true
   esbuild: true
-  # win10ml = framework first-party : flottant sur main, scripts toujours autorisés, aucun SHA à bumper
-  win10ml: true
 
 # Supply-chain policy tuning.
 #
