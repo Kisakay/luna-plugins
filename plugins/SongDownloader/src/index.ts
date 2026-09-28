@@ -13,6 +13,7 @@ import { settings } from "./Settings";
 
 import styles from "file://downloadButton.css?minify";
 import islandStyles from "file://downloadIsland.css?minify";
+import win10ExtraStyles from "file://win10extra.css?minify";
 
 export const { errSignal, trace } = Tracer("[SongDownloader]");
 export { Settings } from "./Settings";
@@ -20,6 +21,7 @@ export { unloads };
 
 new StyleTag("SongDownloader", unloads, styles);
 new StyleTag("SongDownloaderIsland", unloads, islandStyles);
+new StyleTag("SongDownloaderWin10", unloads, win10ExtraStyles);
 
 // Fenêtre de gestion des downloads (style Windows 10) + taskbar
 mountIsland();

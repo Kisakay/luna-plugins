@@ -23,7 +23,8 @@ body {
 	font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-#luna-songdownloader-taskbar .sd-taskbar-app {
+#luna-songdownloader-taskbar .sd-taskbar-app,
+#luna-songdownloader-taskbar .sd-taskbar-start {
 	position: relative;
 	width: 52px;
 	border: none;
@@ -35,10 +36,16 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	flex-shrink: 0;
 }
 
-#luna-songdownloader-taskbar .sd-taskbar-app:hover {
+#luna-songdownloader-taskbar .sd-taskbar-app:hover,
+#luna-songdownloader-taskbar .sd-taskbar-start:hover {
 	background: rgba(255, 255, 255, 0.1);
+}
+
+#luna-songdownloader-taskbar .sd-taskbar-start.sd-taskbar-open {
+	background: rgba(255, 255, 255, 0.12);
 }
 
 #luna-songdownloader-taskbar .sd-taskbar-app-icon {
@@ -52,9 +59,8 @@ body {
 	display: block;
 }
 
-#luna-songdownloader-taskbar .sd-taskbar-app.sd-taskbar-open {
-	background: rgba(255, 255, 255, 0.12);
-}
+/* (Les apps larges + la barre accent sont stylées dans win10extra.css :
+   .sd-taskbar-wide / .sd-taskbar-running, même DA.) */
 
 #luna-songdownloader-taskbar .sd-taskbar-spacer {
 	flex: 1;
@@ -109,7 +115,7 @@ body {
 :root {
 	--sd-accent: #0078d7;
 }
-#luna-songdownloader-win.sd-win {
+div.sd-win.sd-win {
 	position: fixed;
 	top: 80px;
 	left: 50%;
@@ -131,7 +137,7 @@ body {
 		0 12px 48px rgba(0, 0, 0, 0.55);
 }
 
-#luna-songdownloader-win.sd-win.sd-win-max {
+div.sd-win.sd-win.sd-win-max {
 	top: 8px !important;
 	left: 8px !important;
 	transform: none !important;
@@ -141,7 +147,7 @@ body {
 	max-height: none;
 }
 
-#luna-songdownloader-win .sd-win-titlebar {
+div.sd-win .sd-win-titlebar {
 	display: flex;
 	align-items: stretch;
 	justify-content: space-between;
@@ -154,7 +160,7 @@ body {
 	cursor: default;
 }
 
-#luna-songdownloader-win .sd-win-titleleft {
+div.sd-win .sd-win-titleleft {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -163,31 +169,31 @@ body {
 	min-width: 0;
 }
 
-#luna-songdownloader-win .sd-win-avatar {
+div.sd-win .sd-win-avatar {
 	width: 16px;
 	height: 16px;
 	flex-shrink: 0;
 }
 
-#luna-songdownloader-win .sd-win-titletxt {
+div.sd-win .sd-win-titletxt {
 	font-size: 12px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-#luna-songdownloader-win .sd-win-credit {
+div.sd-win .sd-win-credit {
 	font-size: 11px;
 	color: #605e5c;
 	font-weight: 400;
 }
 
-#luna-songdownloader-win .sd-win-caption {
+div.sd-win .sd-win-caption {
 	display: flex;
 	align-items: stretch;
 }
 
-#luna-songdownloader-win .sd-win-capbtn {
+div.sd-win .sd-win-capbtn {
 	width: 46px;
 	border: none;
 	background: transparent;
@@ -202,36 +208,36 @@ body {
 	font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-#luna-songdownloader-win .sd-win-capbtn svg {
+div.sd-win .sd-win-capbtn svg {
 	display: block;
 }
 
-#luna-songdownloader-win .sd-win-capbtn:hover {
+div.sd-win .sd-win-capbtn:hover {
 	background: #e5e5e5;
 }
 
-#luna-songdownloader-win .sd-win-capbtn:active {
+div.sd-win .sd-win-capbtn:active {
 	background: #cacacd;
 }
 
-#luna-songdownloader-win .sd-win-capbtn.sd-win-close:hover {
+div.sd-win .sd-win-capbtn.sd-win-close:hover {
 	background: #e81123;
 	color: #fff;
 }
 
-#luna-songdownloader-win .sd-win-capbtn.sd-win-close:active {
+div.sd-win .sd-win-capbtn.sd-win-close:active {
 	background: #f1707a;
 	color: #fff;
 }
 
-#luna-songdownloader-win .sd-win-content {
+div.sd-win .sd-win-content {
 	display: flex;
 	flex: 1;
 	min-height: 0;
 	border-top: 1px solid #e6e6e6;
 }
 
-#luna-songdownloader-win .sd-win-nav {
+div.sd-win .sd-win-nav {
 	width: 160px;
 	flex-shrink: 0;
 	background: #f3f3f3;
@@ -242,7 +248,7 @@ body {
 	border-right: 1px solid #e6e6e6;
 }
 
-#luna-songdownloader-win .sd-win-navitem {
+div.sd-win .sd-win-navitem {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -257,16 +263,16 @@ body {
 	cursor: pointer;
 }
 
-#luna-songdownloader-win .sd-win-navitem:hover {
+div.sd-win .sd-win-navitem:hover {
 	background: #e9e9e9;
 }
 
-#luna-songdownloader-win .sd-win-navitem-active {
+div.sd-win .sd-win-navitem-active {
 	background: #e6e6e6;
 	border-left-color: var(--sd-accent, #0078d7);
 }
 
-#luna-songdownloader-win .sd-win-navglyph {
+div.sd-win .sd-win-navglyph {
 	width: 18px;
 	text-align: center;
 	font-size: 13px;
@@ -274,13 +280,13 @@ body {
 }
 
 /* ============ Page Thème (mode + accent Win10, tout carré) ============ */
-#luna-songdownloader-win .sd-win-modes {
+div.sd-win .sd-win-modes {
 	display: flex;
 	gap: 8px;
 	margin-bottom: 4px;
 }
 
-#luna-songdownloader-win .sd-win-modebtn {
+div.sd-win .sd-win-modebtn {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
@@ -296,16 +302,16 @@ body {
 	cursor: pointer;
 }
 
-#luna-songdownloader-win .sd-win-modebtn:hover {
+div.sd-win .sd-win-modebtn:hover {
 	border-color: #333;
 }
 
-#luna-songdownloader-win .sd-win-modebtn-active {
+div.sd-win .sd-win-modebtn-active {
 	border: 2px solid var(--sd-accent, #0078d7);
 	padding: 15px 0 11px;
 }
 
-#luna-songdownloader-win .sd-win-modeswatch {
+div.sd-win .sd-win-modeswatch {
 	display: block;
 	width: 48px;
 	height: 32px;
@@ -313,23 +319,23 @@ body {
 	border-radius: 0;
 }
 
-#luna-songdownloader-win .sd-win-modeswatch-light {
+div.sd-win .sd-win-modeswatch-light {
 	background: #fff;
 }
 
-#luna-songdownloader-win .sd-win-modeswatch-dark {
+div.sd-win .sd-win-modeswatch-dark {
 	background: #202020;
 	border-color: #767676;
 }
 
-#luna-songdownloader-win .sd-win-swatches {
+div.sd-win .sd-win-swatches {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px;
 	margin: 10px 0 4px;
 }
 
-#luna-songdownloader-win .sd-win-swatch {
+div.sd-win .sd-win-swatch {
 	width: 32px;
 	height: 32px;
 	padding: 0;
@@ -338,27 +344,27 @@ body {
 	cursor: pointer;
 }
 
-#luna-songdownloader-win .sd-win-swatch:hover {
+div.sd-win .sd-win-swatch:hover {
 	border-color: #767676;
 }
 
-#luna-songdownloader-win .sd-win-swatch-active {
+div.sd-win .sd-win-swatch-active {
 	border-color: #000;
 	box-shadow: inset 0 0 0 2px #fff;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-modebtn {
+div.sd-win.sd-win-dark .sd-win-modebtn {
 	color: #fff;
 	background: #2b2b2b;
 	border-color: #8a8a8a;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-swatch-active {
+div.sd-win.sd-win-dark .sd-win-swatch-active {
 	border-color: #fff;
 	box-shadow: inset 0 0 0 2px #000;
 }
 
-#luna-songdownloader-win .sd-win-color {
+div.sd-win .sd-win-color {
 	width: 48px;
 	height: 32px;
 	padding: 0;
@@ -368,26 +374,26 @@ body {
 	cursor: pointer;
 }
 
-#luna-songdownloader-win .sd-win-color::-webkit-color-swatch-wrapper {
+div.sd-win .sd-win-color::-webkit-color-swatch-wrapper {
 	padding: 2px;
 }
 
-#luna-songdownloader-win .sd-win-color::-webkit-color-swatch {
+div.sd-win .sd-win-color::-webkit-color-swatch {
 	border: none;
 	border-radius: 0;
 }
 
-#luna-songdownloader-win .sd-win-color::-moz-color-swatch {
+div.sd-win .sd-win-color::-moz-color-swatch {
 	border: none;
 	border-radius: 0;
 }
 
-#luna-songdownloader-win .sd-win-hex {
+div.sd-win .sd-win-hex {
 	max-width: 140px;
 	text-transform: lowercase;
 }
 
-#luna-songdownloader-win .sd-win-body {
+div.sd-win .sd-win-body {
 	flex: 1;
 	min-width: 0;
 	overflow-y: auto;
@@ -399,81 +405,81 @@ body {
 }
 
 /* Scrollbar vraiment carrée façon Windows 10 : 17px, angles droits, pas de boutons */
-#luna-songdownloader-win .sd-win-body::-webkit-scrollbar {
+div.sd-win .sd-win-body::-webkit-scrollbar {
 	width: 17px;
 	height: 17px;
 }
 
-#luna-songdownloader-win .sd-win-body::-webkit-scrollbar-track {
+div.sd-win .sd-win-body::-webkit-scrollbar-track {
 	background: #f0f0f0;
 	border: none;
 	border-radius: 0 !important;
 }
 
-#luna-songdownloader-win .sd-win-body::-webkit-scrollbar-thumb {
+div.sd-win .sd-win-body::-webkit-scrollbar-thumb {
 	background: #c1c1c1;
 	border: none;
 	border-radius: 0 !important;
 	min-height: 32px;
 }
 
-#luna-songdownloader-win .sd-win-body::-webkit-scrollbar-thumb:hover {
+div.sd-win .sd-win-body::-webkit-scrollbar-thumb:hover {
 	background: #767676;
 	border-radius: 0 !important;
 }
 
-#luna-songdownloader-win .sd-win-body::-webkit-scrollbar-thumb:active {
+div.sd-win .sd-win-body::-webkit-scrollbar-thumb:active {
 	background: #555555;
 	border-radius: 0 !important;
 }
 
-#luna-songdownloader-win .sd-win-body::-webkit-scrollbar-button {
+div.sd-win .sd-win-body::-webkit-scrollbar-button {
 	display: none;
 	width: 0;
 	height: 0;
 }
 
-#luna-songdownloader-win .sd-win-body::-webkit-scrollbar-corner,
-#luna-songdownloader-win .sd-win-body::-webkit-resizer {
+div.sd-win .sd-win-body::-webkit-scrollbar-corner,
+div.sd-win .sd-win-body::-webkit-resizer {
 	background: #f0f0f0;
 	border: none;
 	border-radius: 0 !important;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-body {
+div.sd-win.sd-win-dark .sd-win-body {
 	scrollbar-color: #4d4d4d #171717;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-body::-webkit-scrollbar-track,
-#luna-songdownloader-win.sd-win-dark .sd-win-body::-webkit-scrollbar-corner,
-#luna-songdownloader-win.sd-win-dark .sd-win-body::-webkit-resizer {
+div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-track,
+div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-corner,
+div.sd-win.sd-win-dark .sd-win-body::-webkit-resizer {
 	background: #171717;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
+div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
 	background: #4d4d4d;
 	border-radius: 0 !important;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb:hover {
+div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb:hover {
 	background: #767676;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb:active {
+div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb:active {
 	background: #a6a6a6;
 }
 
-#luna-songdownloader-win .sd-win-grouptitle {
+div.sd-win .sd-win-grouptitle {
 	font-size: 14px;
 	font-weight: 600;
 	margin: 18px 0 8px;
 }
 
-#luna-songdownloader-win .sd-win-grouptitle:first-child {
+div.sd-win .sd-win-grouptitle:first-child {
 	margin-top: 0;
 }
 
-#luna-songdownloader-win .sd-win-setting {
+div.sd-win .sd-win-setting {
 	display: flex;
 	align-items: center;
 	gap: 16px;
@@ -481,22 +487,22 @@ body {
 	border-bottom: 1px solid #f0f0f0;
 }
 
-#luna-songdownloader-win .sd-win-setting-col {
+div.sd-win .sd-win-setting-col {
 	flex-direction: column;
 	align-items: stretch;
 	gap: 6px;
 }
 
-#luna-songdownloader-win .sd-win-setting-texts {
+div.sd-win .sd-win-setting-texts {
 	flex: 1;
 	min-width: 0;
 }
 
-#luna-songdownloader-win .sd-win-setting-title {
+div.sd-win .sd-win-setting-title {
 	font-size: 13px;
 }
 
-#luna-songdownloader-win .sd-win-setting-desc {
+div.sd-win .sd-win-setting-desc {
 	font-size: 12px;
 	color: #605e5c;
 	margin-top: 2px;
@@ -504,7 +510,7 @@ body {
 }
 
 /* Checkbox Win10 (carree) */
-#luna-songdownloader-win .sd-win-checkbox {
+div.sd-win .sd-win-checkbox {
 	position: relative;
 	width: 20px;
 	height: 20px;
@@ -517,16 +523,16 @@ body {
 	padding: 0;
 }
 
-#luna-songdownloader-win .sd-win-checkbox:hover {
+div.sd-win .sd-win-checkbox:hover {
 	border-color: #000;
 }
 
-#luna-songdownloader-win .sd-win-checkbox-on {
+div.sd-win .sd-win-checkbox-on {
 	background: var(--sd-accent, #0078d7);
 	border-color: var(--sd-accent, #0078d7);
 }
 
-#luna-songdownloader-win .sd-win-checkbox-on::after {
+div.sd-win .sd-win-checkbox-on::after {
 	content: "";
 	position: absolute;
 	left: 6px;
@@ -539,17 +545,17 @@ body {
 	transform: rotate(45deg);
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-checkbox {
+div.sd-win.sd-win-dark .sd-win-checkbox {
 	background: transparent;
 	border-color: #fff;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-checkbox-on {
+div.sd-win.sd-win-dark .sd-win-checkbox-on {
 	background: var(--sd-accent, #0078d7);
 	border-color: var(--sd-accent, #0078d7);
 }
 
-#luna-songdownloader-win .sd-win-btn {
+div.sd-win .sd-win-btn {
 	min-width: 88px;
 	padding: 5px 20px;
 	font-family: inherit;
@@ -561,17 +567,17 @@ body {
 	cursor: pointer;
 }
 
-#luna-songdownloader-win .sd-win-btn:hover {
+div.sd-win .sd-win-btn:hover {
 	border-color: var(--sd-accent, #0078d7);
 	background: #e5f1fb;
 }
 
-#luna-songdownloader-win .sd-win-btn:active {
+div.sd-win .sd-win-btn:active {
 	background: #cce4f7;
 }
 
-#luna-songdownloader-win .sd-win-textbox,
-#luna-songdownloader-win .sd-win-combo {
+div.sd-win .sd-win-textbox,
+div.sd-win .sd-win-combo {
 	font-family: inherit;
 	font-size: 12px;
 	color: #000;
@@ -584,19 +590,19 @@ body {
 	box-sizing: border-box;
 }
 
-#luna-songdownloader-win .sd-win-textbox:hover,
-#luna-songdownloader-win .sd-win-combo:hover {
+div.sd-win .sd-win-textbox:hover,
+div.sd-win .sd-win-combo:hover {
 	border-color: #333;
 }
 
-#luna-songdownloader-win .sd-win-textbox:focus,
-#luna-songdownloader-win .sd-win-combo:focus {
+div.sd-win .sd-win-textbox:focus,
+div.sd-win .sd-win-combo:focus {
 	outline: none;
 	border: 2px solid var(--sd-accent, #0078d7);
 	padding: 0 7px;
 }
 
-#luna-songdownloader-win .sd-win-textbox.sd-win-textarea {
+div.sd-win .sd-win-textbox.sd-win-textarea {
 	height: auto;
 	min-height: 120px;
 	padding: 6px 8px;
@@ -607,11 +613,11 @@ body {
 	white-space: pre;
 }
 
-#luna-songdownloader-win .sd-win-textbox.sd-win-textarea:focus {
+div.sd-win .sd-win-textbox.sd-win-textarea:focus {
 	padding: 5px 7px;
 }
 
-#luna-songdownloader-win .sd-win-searchrow {
+div.sd-win .sd-win-searchrow {
 	position: sticky;
 	top: -20px;
 	padding: 0 0 10px;
@@ -619,31 +625,31 @@ body {
 	z-index: 1;
 }
 
-#luna-songdownloader-win .sd-win-hero {
+div.sd-win .sd-win-hero {
 	text-align: center;
 	padding: 28px 0 12px;
 }
 
-#luna-songdownloader-win .sd-win-hero-num {
+div.sd-win .sd-win-hero-num {
 	font-size: 52px;
 	font-weight: 300;
 	color: var(--sd-accent, #0078d7);
 	line-height: 1;
 }
 
-#luna-songdownloader-win .sd-win-hero-label {
+div.sd-win .sd-win-hero-label {
 	font-size: 13px;
 	color: #605e5c;
 	margin-top: 4px;
 }
 
-#luna-songdownloader-win .sd-win-toolbar {
+div.sd-win .sd-win-toolbar {
 	display: flex;
 	gap: 8px;
 	margin-bottom: 12px;
 }
 
-#luna-songdownloader-win .sd-win-outrow {
+div.sd-win .sd-win-outrow {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -653,7 +659,7 @@ body {
 	border: 1px solid #e6e6e6;
 }
 
-#luna-songdownloader-win .sd-win-folderval {
+div.sd-win .sd-win-folderval {
 	flex: 1;
 	min-width: 0;
 	font-size: 12px;
@@ -662,17 +668,17 @@ body {
 	text-overflow: ellipsis;
 }
 
-#luna-songdownloader-win .sd-win-btn-small {
+div.sd-win .sd-win-btn-small {
 	min-width: 0;
 	padding: 3px 12px;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-outrow {
+div.sd-win.sd-win-dark .sd-win-outrow {
 	background: #191919;
 	border-color: #2c2c2c;
 }
 
-#luna-songdownloader-win .sd-win-empty {
+div.sd-win .sd-win-empty {
 	color: #605e5c;
 	font-size: 12px;
 	line-height: 1.5;
@@ -680,18 +686,18 @@ body {
 	text-align: center;
 }
 
-#luna-songdownloader-win .sd-island-list {
+div.sd-win .sd-island-list {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
 }
 
-#luna-songdownloader-win .sd-island-jobwrap {
+div.sd-win .sd-island-jobwrap {
 	display: flex;
 	flex-direction: column;
 }
 
-#luna-songdownloader-win .sd-island-exp {
+div.sd-win .sd-island-exp {
 	flex-shrink: 0;
 	width: 14px;
 	text-align: center;
@@ -701,7 +707,7 @@ body {
 	-webkit-user-select: none;
 }
 
-#luna-songdownloader-win .sd-island-row {
+div.sd-win .sd-island-row {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -713,24 +719,24 @@ body {
 	cursor: pointer;
 }
 
-#luna-songdownloader-win .sd-island-row:hover {
+div.sd-win .sd-island-row:hover {
 	background: #f3f3f3;
 }
 
-#luna-songdownloader-win .sd-island-row.sd-island-active {
+div.sd-win .sd-island-row.sd-island-active {
 	background: #e5f1fb;
 	border-left-color: var(--sd-accent, #0078d7);
 }
 
-#luna-songdownloader-win .sd-island-row.sd-island-dragging {
+div.sd-win .sd-island-row.sd-island-dragging {
 	opacity: 0.4;
 }
 
-#luna-songdownloader-win .sd-island-row.sd-island-dragover {
+div.sd-win .sd-island-row.sd-island-dragover {
 	border-top: 2px solid var(--sd-accent, #0078d7);
 }
 
-#luna-songdownloader-win .sd-island-handle {
+div.sd-win .sd-island-handle {
 	cursor: grab;
 	color: #767676;
 	font-size: 12px;
@@ -741,11 +747,11 @@ body {
 	text-align: center;
 }
 
-#luna-songdownloader-win .sd-island-handle:active {
+div.sd-win .sd-island-handle:active {
 	cursor: grabbing;
 }
 
-#luna-songdownloader-win .sd-island-dot {
+div.sd-win .sd-island-dot {
 	width: 8px;
 	height: 8px;
 	border-radius: 999px;
@@ -753,7 +759,7 @@ body {
 	background: #a6a6a6;
 }
 
-#luna-songdownloader-win .sd-island-row.sd-island-active .sd-island-dot {
+div.sd-win .sd-island-row.sd-island-active .sd-island-dot {
 	background: var(--sd-accent, #0078d7);
 	animation: sd-island-pulse 1.2s ease-in-out infinite;
 }
@@ -770,48 +776,48 @@ body {
 	}
 }
 
-#luna-songdownloader-win .sd-island-row.sd-island-done .sd-island-dot {
+div.sd-win .sd-island-row.sd-island-done .sd-island-dot {
 	background: #107c10;
 }
 
-#luna-songdownloader-win .sd-island-row.sd-island-stopped .sd-island-dot {
+div.sd-win .sd-island-row.sd-island-stopped .sd-island-dot {
 	background: #d83b01;
 }
 
-#luna-songdownloader-win .sd-island-main {
+div.sd-win .sd-island-main {
 	flex: 1;
 	min-width: 0;
 }
 
-#luna-songdownloader-win .sd-island-title {
+div.sd-win .sd-island-title {
 	font-size: 13px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-#luna-songdownloader-win .sd-island-sub {
+div.sd-win .sd-island-sub {
 	font-size: 12px;
 	color: #605e5c;
 	margin-top: 1px;
 	font-variant-numeric: tabular-nums;
 }
 
-#luna-songdownloader-win .sd-island-bar {
+div.sd-win .sd-island-bar {
 	height: 4px;
 	margin-top: 6px;
 	background: #edebe9;
 	overflow: hidden;
 }
 
-#luna-songdownloader-win .sd-island-bar-fill {
+div.sd-win .sd-island-bar-fill {
 	height: 100%;
 	width: 0%;
 	background: var(--sd-accent, #0078d7);
 	transition: width 0.15s ease-out;
 }
 
-#luna-songdownloader-win .sd-island-action {
+div.sd-win .sd-island-action {
 	flex-shrink: 0;
 	width: 28px;
 	height: 28px;
@@ -824,20 +830,20 @@ body {
 	font-family: inherit;
 }
 
-#luna-songdownloader-win .sd-island-action:hover {
+div.sd-win .sd-island-action:hover {
 	background: #e81123;
 	color: #fff;
 }
 
 /* Tracks dépliées (thumbnails + progression live) */
-#luna-songdownloader-win .sd-island-tracks {
+div.sd-win .sd-island-tracks {
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
 	padding: 2px 0 6px 34px;
 }
 
-#luna-songdownloader-win .sd-island-track {
+div.sd-win .sd-island-track {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -846,7 +852,7 @@ body {
 	border-left: 2px solid var(--sd-accent, #0078d7);
 }
 
-#luna-songdownloader-win .sd-island-thumb {
+div.sd-win .sd-island-thumb {
 	width: 40px;
 	height: 40px;
 	flex-shrink: 0;
@@ -854,67 +860,67 @@ body {
 	background: #edebe9;
 }
 
-#luna-songdownloader-win .sd-island-trackmain {
+div.sd-win .sd-island-trackmain {
 	flex: 1;
 	min-width: 0;
 }
 
-#luna-songdownloader-win .sd-island-tracktitle {
+div.sd-win .sd-island-tracktitle {
 	font-size: 12px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-#luna-songdownloader-win .sd-island-tracksub {
+div.sd-win .sd-island-tracksub {
 	font-size: 11px;
 	color: #605e5c;
 	margin-top: 1px;
 	font-variant-numeric: tabular-nums;
 }
 
-#luna-songdownloader-win .sd-island-trackbar {
+div.sd-win .sd-island-trackbar {
 	height: 3px;
 	margin-top: 5px;
 	background: #edebe9;
 	overflow: hidden;
 }
 
-#luna-songdownloader-win .sd-island-trackfill {
+div.sd-win .sd-island-trackfill {
 	height: 100%;
 	width: 0%;
 	background: var(--sd-accent, #0078d7);
 	transition: width 0.15s ease-out;
 }
 
-#luna-songdownloader-win .sd-island-wait {
+div.sd-win .sd-island-wait {
 	font-size: 11px;
 	color: #a19f9d;
 	font-style: italic;
 	padding: 4px 8px;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-track {
+div.sd-win.sd-win-dark .sd-island-track {
 	background: rgba(255, 255, 255, 0.04);
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-thumb {
+div.sd-win.sd-win-dark .sd-island-thumb {
 	background: #3a3a3a;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-tracksub {
+div.sd-win.sd-win-dark .sd-island-tracksub {
 	color: #a19f9d;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-trackbar {
+div.sd-win.sd-win-dark .sd-island-trackbar {
 	background: #3a3a3a;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-exp {
+div.sd-win.sd-win-dark .sd-island-exp {
 	color: #a19f9d;
 }
 
-#luna-songdownloader-win .sd-win-resize {
+div.sd-win .sd-win-resize {
 	position: absolute;
 	right: 0;
 	bottom: 0;
@@ -925,145 +931,145 @@ body {
 	background: linear-gradient(135deg, transparent 50%, #767676 50%);
 }
 
-#luna-songdownloader-win.sd-win-max .sd-win-resize {
+div.sd-win.sd-win-max .sd-win-resize {
 	display: none;
 }
 
 /* ============ Thème sombre Windows 10 ============ */
-#luna-songdownloader-win.sd-win.sd-win-dark {
+div.sd-win.sd-win.sd-win-dark {
 	color: #fff;
 	background: #202020;
 	border-color: var(--sd-accent, #0078d7);
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-titlebar {
+div.sd-win.sd-win-dark .sd-win-titlebar {
 	background: #111;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-credit {
+div.sd-win.sd-win-dark .sd-win-credit {
 	color: #a19f9d;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-capbtn {
+div.sd-win.sd-win-dark .sd-win-capbtn {
 	color: #fff;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-capbtn:hover {
+div.sd-win.sd-win-dark .sd-win-capbtn:hover {
 	background: rgba(255, 255, 255, 0.1);
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-capbtn:active {
+div.sd-win.sd-win-dark .sd-win-capbtn:active {
 	background: rgba(255, 255, 255, 0.18);
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-capbtn.sd-win-close:hover {
+div.sd-win.sd-win-dark .sd-win-capbtn.sd-win-close:hover {
 	background: #e81123;
 	color: #fff;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-content {
+div.sd-win.sd-win-dark .sd-win-content {
 	border-top-color: #2c2c2c;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-nav {
+div.sd-win.sd-win-dark .sd-win-nav {
 	background: #191919;
 	border-right-color: #2c2c2c;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-navitem {
+div.sd-win.sd-win-dark .sd-win-navitem {
 	color: #fff;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-navitem:hover {
+div.sd-win.sd-win-dark .sd-win-navitem:hover {
 	background: #2d2d2d;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-navitem-active {
+div.sd-win.sd-win-dark .sd-win-navitem-active {
 	background: #2d2d2d;
 	border-left-color: var(--sd-accent, #0078d7);
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-body {
+div.sd-win.sd-win-dark .sd-win-body {
 	background: #202020;
 	scrollbar-color: #4d4d4d transparent;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
+div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
 	background: #4d4d4d;
 	border: none;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-setting {
+div.sd-win.sd-win-dark .sd-win-setting {
 	border-bottom-color: #2c2c2c;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-setting-desc,
-#luna-songdownloader-win.sd-win-dark .sd-win-hero-label,
-#luna-songdownloader-win.sd-win-dark .sd-win-empty,
-#luna-songdownloader-win.sd-win-dark .sd-island-sub {
+div.sd-win.sd-win-dark .sd-win-setting-desc,
+div.sd-win.sd-win-dark .sd-win-hero-label,
+div.sd-win.sd-win-dark .sd-win-empty,
+div.sd-win.sd-win-dark .sd-island-sub {
 	color: #a19f9d;
 }
 
 
 
-#luna-songdownloader-win.sd-win-dark .sd-win-btn {
+div.sd-win.sd-win-dark .sd-win-btn {
 	color: #fff;
 	background: #333;
 	border-color: #8a8a8a;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-btn:hover {
+div.sd-win.sd-win-dark .sd-win-btn:hover {
 	border-color: var(--sd-accent, #0078d7);
 	background: #3a3a3a;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-textbox,
-#luna-songdownloader-win.sd-win-dark .sd-win-combo {
+div.sd-win.sd-win-dark .sd-win-textbox,
+div.sd-win.sd-win-dark .sd-win-combo {
 	color: #fff;
 	background: #2b2b2b;
 	border-color: #8a8a8a;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-textbox:hover,
-#luna-songdownloader-win.sd-win-dark .sd-win-combo:hover {
+div.sd-win.sd-win-dark .sd-win-textbox:hover,
+div.sd-win.sd-win-dark .sd-win-combo:hover {
 	border-color: #fff;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-searchrow {
+div.sd-win.sd-win-dark .sd-win-searchrow {
 	background: #202020;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-row {
+div.sd-win.sd-win-dark .sd-island-row {
 	background: #202020;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-row:hover {
+div.sd-win.sd-win-dark .sd-island-row:hover {
 	background: #2d2d2d;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-row.sd-island-active {
+div.sd-win.sd-win-dark .sd-island-row.sd-island-active {
 	background: rgba(0, 120, 215, 0.25);
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-bar {
+div.sd-win.sd-win-dark .sd-island-bar {
 	background: #3a3a3a;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-action {
+div.sd-win.sd-win-dark .sd-island-action {
 	color: #a19f9d;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-island-action:hover {
+div.sd-win.sd-win-dark .sd-island-action:hover {
 	background: #e81123;
 	color: #fff;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-combo option {
+div.sd-win.sd-win-dark .sd-win-combo option {
 	background: #2b2b2b;
 	color: #fff;
 }
 
-#luna-songdownloader-win.sd-win-dark .sd-win-resize {
+div.sd-win.sd-win-dark .sd-win-resize {
 	background: linear-gradient(135deg, transparent 50%, #8a8a8a 50%);
 }
 
@@ -1309,3 +1315,7 @@ button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 #luna-songdownloader-cal.sd-cal-dark .sd-cal-foot {
 	border-top-color: #444;
 }
+
+/* (La fenêtre About + le markdown sont stylés dans win10extra.css :
+   .sd-about-* / .w10-md-*, même DA. La généralisation `div.sd-win`
+   ci-dessus leur donne toute la base du manager.) */

@@ -1,0 +1,199 @@
+/* ============ Mini-framework Win10 : taskbar apps larges + About + markdown ============ */
+/* Complète downloadIsland.css en gardant exactement la même DA (mêmes classes sd-*). */
+
+/* --- Taskbar : bouton Démarrer + vraie app large façon Win10 --- */
+#luna-songdownloader-taskbar .sd-taskbar-start {
+	width: 48px;
+	flex-shrink: 0;
+}
+
+#luna-songdownloader-taskbar .sd-taskbar-wide {
+	width: auto;
+	min-width: 48px;
+	max-width: 220px;
+	padding: 0 12px 2px;
+	gap: 8px;
+	font-family: "Segoe UI", system-ui, sans-serif;
+	font-size: 12px;
+	color: #fff;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+#luna-songdownloader-taskbar .sd-taskbar-app-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+/* Barre de surlignage accent (façon Win10 : app en cours d'exécution) */
+#luna-songdownloader-taskbar .sd-taskbar-app::after {
+	content: "";
+	position: absolute;
+	left: 5px;
+	right: 5px;
+	bottom: 0;
+	height: 2px;
+	background: var(--sd-accent, #0078d7);
+	opacity: 0;
+	transition: opacity 0.12s ease;
+	pointer-events: none;
+}
+
+#luna-songdownloader-taskbar .sd-taskbar-app.sd-taskbar-running::after {
+	opacity: 1;
+}
+
+#luna-songdownloader-taskbar .sd-taskbar-app.sd-taskbar-open {
+	background: rgba(255, 255, 255, 0.12);
+}
+
+/* --- Fenêtre sans nav (About) : le body prend toute la largeur --- */
+#luna-songdownloader-about.sd-win .sd-win-content-nonav,
+.sd-win .sd-win-content-nonav {
+	border-top: 1px solid #e6e6e6;
+}
+.sd-win-dark .sd-win-content-nonav {
+	border-top-color: #2c2c2c;
+}
+
+/* --- About : hero auteur --- */
+.sd-about-hero {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin-bottom: 6px;
+}
+
+.sd-about-avatar {
+	width: 56px;
+	height: 56px;
+	flex-shrink: 0;
+	border: 1px solid #e1e1e1;
+	background: #f3f3f3;
+}
+
+.sd-win-dark .sd-about-avatar {
+	border-color: #444;
+	background: #191919;
+}
+
+.sd-about-name {
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.sd-about-sub {
+	font-size: 12px;
+	color: #605e5c;
+	margin-top: 2px;
+}
+
+.sd-win-dark .sd-about-sub {
+	color: #a19f9d;
+}
+
+.sd-about-badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 10px 0 2px;
+}
+
+.sd-about-badge {
+	font-size: 11px;
+	padding: 2px 8px;
+	background: #f3f3f3;
+	border: 1px solid #e1e1e1;
+	color: #323130;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.sd-win-dark .sd-about-badge {
+	background: #191919;
+	border-color: #333;
+	color: #d2d0ce;
+}
+
+.sd-about-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 12px 0 4px;
+}
+
+/* --- Mini-markdown (About) --- */
+.w10-md {
+	font-size: 12px;
+	line-height: 1.55;
+	color: inherit;
+}
+
+.w10-md-p {
+	margin: 6px 0;
+}
+
+.w10-md-p:first-child {
+	margin-top: 0;
+}
+
+.w10-md-title {
+	font-weight: 600;
+	margin: 12px 0 4px;
+	line-height: 1.3;
+}
+
+h1.w10-md-title {
+	font-size: 15px;
+}
+h2.w10-md-title {
+	font-size: 13px;
+}
+h3.w10-md-title {
+	font-size: 12px;
+}
+
+.w10-md-list {
+	margin: 6px 0;
+	padding-left: 20px;
+}
+
+.w10-md-list li {
+	margin: 2px 0;
+}
+
+.w10-md-code {
+	font-family: Consolas, "Courier New", monospace;
+	font-size: 11px;
+	padding: 1px 5px;
+	background: #f3f3f3;
+	border: 1px solid #e1e1e1;
+}
+
+.sd-win-dark .w10-md-code {
+	background: #191919;
+	border-color: #333;
+}
+
+.w10-md-link {
+	color: var(--sd-accent, #0078d7);
+	text-decoration: none;
+}
+
+.w10-md-link:hover {
+	text-decoration: underline;
+}
+
+hr.w10-md-hr {
+	border: none;
+	border-top: 1px solid #e1e1e1;
+	margin: 12px 0;
+}
+
+.sd-win-dark hr.w10-md-hr {
+	border-top-color: #333;
+}
