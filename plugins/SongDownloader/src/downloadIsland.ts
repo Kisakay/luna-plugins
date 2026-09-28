@@ -534,11 +534,11 @@ function showJobMenu(job: QueueJob, x: number, y: number) {
 					menu.appendChild(none);
 				}
 				for (const track of now.slice(0, 5)) {
-					const t = document.createElement("div");
-					t.className = "sd-qm-item sd-qm-disabled sd-qm-track";
-					t.title = track.label;
-					t.textContent = `♫ ${track.label}`;
-					menu.appendChild(t);
+					const trackEl = document.createElement("div");
+					trackEl.className = "sd-qm-item sd-qm-disabled sd-qm-track";
+					trackEl.title = track.label;
+					trackEl.textContent = `♫ ${track.label}`;
+					menu.appendChild(trackEl);
 				}
 				menu.appendChild(w10Separator());
 			}
@@ -740,18 +740,18 @@ function formatMB(bytes?: number): string {
 	return `${(bytes / 1048576).toFixed(1)}MB`;
 }
 
-function setTrackProgress(t: Element, entry: ActiveTrack) {
+function setTrackProgress(el: Element, entry: ActiveTrack) {
 	const pct = entry.total ? ((entry.downloaded ?? 0) / entry.total) * 100 : 0;
-	const fill = t.querySelector(".sd-island-trackfill") as HTMLDivElement | null;
-	const sub = t.querySelector(".sd-island-trackpct") as HTMLSpanElement | null;
+	const fill = el.querySelector(".sd-island-trackfill") as HTMLDivElement | null;
+	const sub = el.querySelector(".sd-island-trackpct") as HTMLSpanElement | null;
 	if (fill) fill.style.width = `${pct}%`;
 	if (sub) sub.textContent = entry.total ? `${formatMB(entry.downloaded)}/${formatMB(entry.total)} · ${pct.toFixed(0)}%` : t("trk.starting");
 }
 
 function buildTrackEl(entry: ActiveTrack): HTMLDivElement {
-	const t = document.createElement("div");
-	t.className = "sd-island-track";
-	t.dataset.trackKey = entry.key;
+	const el = document.createElement("div");
+	el.className = "sd-island-track";
+	el.dataset.trackKey = entry.key;
 	if (entry.cover) {
 		const img = document.createElement("img");
 		img.className = "sd-island-thumb";
@@ -759,7 +759,7 @@ function buildTrackEl(entry: ActiveTrack): HTMLDivElement {
 		img.alt = "";
 		img.draggable = false;
 		img.onerror = () => img.remove();
-		t.appendChild(img);
+		el.appendChild(img);
 	}
 	const main = document.createElement("div");
 	main.className = "sd-island-trackmain";
@@ -778,9 +778,9 @@ function buildTrackEl(entry: ActiveTrack): HTMLDivElement {
 	fill.className = "sd-island-trackfill";
 	bar.appendChild(fill);
 	main.appendChild(bar);
-	t.appendChild(main);
-	setTrackProgress(t, entry);
-	return t;
+	el.appendChild(main);
+	setTrackProgress(el, entry);
+	return el;
 }
 // #endregion
 
