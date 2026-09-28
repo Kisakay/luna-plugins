@@ -18,6 +18,9 @@ body {
 	z-index: 99995;
 	display: flex;
 	align-items: stretch;
+	/* Air autour du logo Start et de l'icône Downloader */
+	gap: 4px;
+	padding: 0 6px;
 	background: #101010;
 	border-top: 1px solid rgba(255, 255, 255, 0.08);
 	font-family: "Segoe UI", system-ui, sans-serif;
@@ -42,10 +45,6 @@ body {
 #luna-songdownloader-taskbar .sd-taskbar-app:hover,
 #luna-songdownloader-taskbar .sd-taskbar-start:hover {
 	background: rgba(255, 255, 255, 0.1);
-}
-
-#luna-songdownloader-taskbar .sd-taskbar-start.sd-taskbar-open {
-	background: rgba(255, 255, 255, 0.12);
 }
 
 #luna-songdownloader-taskbar .sd-taskbar-app-icon {

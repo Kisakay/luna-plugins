@@ -17,7 +17,7 @@ import {
 import { getDownloadFolder } from "./helpers";
 import { unloads } from "./index.safe";
 import { DEFAULT_ACCENT, isValidAccent, settings } from "./Settings";
-import { isAboutOpen, mountAboutWindow, onAboutChange, refreshAboutTheme, toggleAbout } from "./aboutWindow";
+import { mountAboutWindow, onAboutChange, refreshAboutTheme, toggleAbout } from "./aboutWindow";
 import {
 	DOWNLOAD_ICON,
 	WIN10_LOGO,
@@ -262,11 +262,12 @@ function statusEtaExtra(jobs: QueueJob[]): string {
 function paintTaskbar() {
 	if (!taskbar) return;
 	const jobs = getJobs();
-	const running = jobs.length > 0;
 	const open = isWinShown();
+	// Comme le vrai Win10 : la barre accent est là dès que l'app est
+	// ouverte (fenêtre visible), pas seulement pendant un download.
+	const running = jobs.length > 0 || open;
 	taskbar.setAppState(APP_ID, { running, open });
-	taskbar.setStartOpen(isAboutOpen());
-	taskbar.setAppTitle(APP_ID, running ? `Downloader Manager — ${summaryText()}` : "Downloader Manager");
+	taskbar.setAppTitle(APP_ID, jobs.length > 0 ? `Downloader Manager — ${summaryText()}` : "Downloader Manager");
 	const active = jobs.find((j) => j.status === "active");
 	const queued = jobs.filter((j) => j.status === "queued").length;
 	if (!active) resetEta();
