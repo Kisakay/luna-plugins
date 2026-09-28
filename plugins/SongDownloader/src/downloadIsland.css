@@ -1079,7 +1079,7 @@ div.sd-win.sd-win-dark .sd-win-resize {
 }
 
 /* ============ Mini-menu Tracks (style Win10) ============ */
-#luna-songdownloader-quickmenu.sd-quickmenu {
+.sd-quickmenu {
 	position: fixed;
 	z-index: 99998;
 	min-width: 250px;
@@ -1092,7 +1092,7 @@ div.sd-win.sd-win-dark .sd-win-resize {
 	font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-#luna-songdownloader-quickmenu .sd-qm-item {
+.sd-quickmenu .sd-qm-item {
 	display: block;
 	width: 100%;
 	text-align: left;
@@ -1105,35 +1105,35 @@ div.sd-win.sd-win-dark .sd-win-resize {
 	cursor: pointer;
 }
 
-#luna-songdownloader-quickmenu .sd-qm-item:hover {
+.sd-quickmenu .sd-qm-item:hover {
 	background: #e5f1fb;
 	border-color: #cce8ff;
 }
 
-#luna-songdownloader-quickmenu .sd-qm-sub {
+.sd-quickmenu .sd-qm-sub {
 	display: block;
 	font-size: 11px;
 	color: #605e5c;
 	margin-top: 2px;
 }
 
-#luna-songdownloader-quickmenu .sd-qm-item.sd-qm-disabled {
+.sd-quickmenu .sd-qm-item.sd-qm-disabled {
 	opacity: 0.8;
 	cursor: default;
 }
 
-#luna-songdownloader-quickmenu .sd-qm-item.sd-qm-disabled:hover {
+.sd-quickmenu .sd-qm-item.sd-qm-disabled:hover {
 	background: transparent;
 	border-color: transparent;
 }
 
-#luna-songdownloader-quickmenu .sd-qm-sep {
+.sd-quickmenu .sd-qm-sep {
 	height: 1px;
 	background: #e1e1e1;
 	margin: 4px 2px;
 }
 
-#luna-songdownloader-quickmenu .sd-qm-track {
+.sd-quickmenu .sd-qm-track {
 	padding-left: 22px;
 	font-size: 11px;
 	white-space: nowrap;
@@ -1142,26 +1142,26 @@ div.sd-win.sd-win-dark .sd-win-resize {
 	max-width: 300px;
 }
 
-#luna-songdownloader-quickmenu.sd-qm-dark .sd-qm-sep {
+.sd-quickmenu.sd-qm-dark .sd-qm-sep {
 	background: #444;
 }
 
-#luna-songdownloader-quickmenu.sd-qm-dark {
+.sd-quickmenu.sd-qm-dark {
 	background: #2b2b2b;
 	color: #fff;
 	border-color: #444;
 }
 
-#luna-songdownloader-quickmenu.sd-qm-dark .sd-qm-item {
+.sd-quickmenu.sd-qm-dark .sd-qm-item {
 	color: #fff;
 }
 
-#luna-songdownloader-quickmenu.sd-qm-dark .sd-qm-item:hover {
+.sd-quickmenu.sd-qm-dark .sd-qm-item:hover {
 	background: #3a3a3a;
 	border-color: #555;
 }
 
-#luna-songdownloader-quickmenu.sd-qm-dark .sd-qm-sub {
+.sd-quickmenu.sd-qm-dark .sd-qm-sub {
 	color: #a19f9d;
 }
 
