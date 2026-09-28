@@ -24,12 +24,12 @@ const lifted = new Map<HTMLElement, string | null>();
 const shrunk = new Map<HTMLElement, { height: string | null; maxHeight: string | null }>();
 
 const OURS = [
-	"luna-songdownloader-taskbar",
-	"luna-songdownloader-win",
-	"luna-songdownloader-toast",
-	"luna-songdownloader-cal",
-	"luna-songdownloader-quickmenu",
-	"luna-songdownloader-jobmenu",
+	"luna-downloadmanager-taskbar",
+	"luna-downloadmanager-win",
+	"luna-downloadmanager-toast",
+	"luna-downloadmanager-cal",
+	"luna-downloadmanager-quickmenu",
+	"luna-downloadmanager-jobmenu",
 ];
 
 function isOurs(el: Element): boolean {

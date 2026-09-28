@@ -6,7 +6,7 @@ import { DEFAULT_ACCENT, isValidAccent, settings } from "./Settings";
 import { INFO_ICON, Win10Window, renderMarkdown, w10Button, w10Desc, w10GroupTitle } from "win10ml";
 import { onLanguageChange, t } from "./i18n";
 
-export const ABOUT_ID = "luna-songdownloader-about";
+export const ABOUT_ID = "luna-downloadmanager-about";
 
 const AUTHOR_NAME = "Kisakay";
 const AUTHOR_URL = "https://github.com/Kisakay";
@@ -15,7 +15,7 @@ const REPO_URL = "https://github.com/Kisakay/luna-plugins";
 const ISSUES_URL = "https://github.com/Kisakay/luna-plugins/issues";
 
 function aboutMarkdown(): string {
-	return `# SongDownloaderV2
+	return `# DownloadManager
 
 ${t("ab.mdDesc")}
 
@@ -86,7 +86,7 @@ function buildContent(win: Win10Window) {
 	const texts = document.createElement("div");
 	const name = document.createElement("div");
 	name.className = "sd-about-name";
-	name.textContent = "SongDownloaderV2";
+	name.textContent = "DownloadManager";
 	const sub = document.createElement("div");
 	sub.className = "sd-about-sub";
 	sub.textContent = `by ${AUTHOR_NAME} · TidaLuna plugin`;

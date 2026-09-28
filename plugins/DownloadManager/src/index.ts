@@ -5,7 +5,7 @@ import { setBannerStatus, showBanner } from "./downloadBanner";
 import { mountBottomOffset } from "./bottomOffset";
 import { downloadMediaCollection } from "./downloadCollection";
 import { mountIsland } from "./downloadIsland";
-import { getFavoritesQueueInfo, onQueueChange, toggleFavorites } from "./downloadQueue";
+import { getFavoritesQueueInfo, onQueueChange, restoreSavedQueue, toggleFavorites } from "./downloadQueue";
 import { FavoriteTracks } from "./favoriteTracks";
 import { watchPlayedTracks } from "./autoDownload";
 import { unloads } from "./index.safe";
@@ -17,24 +17,26 @@ import islandStyles from "file://downloadIsland.css?minify";
 // DA framework winml, synchronisée depuis node_modules via prebuild (voir scripts/sync-winml-css.mjs)
 import winmlStyles from "file://vendor/win10-shell.css?minify";
 
-export const { errSignal, trace } = Tracer("[SongDownloader]");
+export const { errSignal, trace } = Tracer("[DownloadManager]");
 export { Settings } from "./Settings";
 export { unloads };
 
-new StyleTag("SongDownloader", unloads, styles);
-new StyleTag("SongDownloaderIsland", unloads, islandStyles);
+new StyleTag("DownloadManager", unloads, styles);
+new StyleTag("DownloadManagerIsland", unloads, islandStyles);
 new StyleTag("WinmlShell", unloads, winmlStyles);
 
 // Fenêtre de gestion des downloads (style Windows 10) + taskbar
 mountIsland();
 // Décale les barres bottom (player Tidal) au-dessus de la taskbar
 mountBottomOffset();
+// Recharge la queue sauvegardée (restart client) : les jobs repartent en queued
+void restoreSavedQueue();
 
 // Nettoyage : retire le quickmenu + les boutons Tracks injectés
 unloads.add(() => {
-	document.getElementById("luna-songdownloader-quickmenu")?.remove();
-	document.querySelectorAll('[data-luna-songdownloader="tracks-download-all"]').forEach((b) => b.remove());
-	document.getElementById("luna-songdownloader-quickmenu")?.remove();
+	document.getElementById("luna-downloadmanager-quickmenu")?.remove();
+	document.querySelectorAll('[data-luna-downloadmanager="tracks-download-all"]').forEach((b) => b.remove());
+	document.getElementById("luna-downloadmanager-quickmenu")?.remove();
 });
 
 const downloadButton = ContextMenu.addButton(unloads);
@@ -55,7 +57,7 @@ const runLikedTracksDownload = async (): Promise<"queued" | "removed" | "cancell
 // Label live du bouton header selon l'état de la queue
 const refreshAllHeaderButtons = () => {
 	const info = getFavoritesQueueInfo();
-	document.querySelectorAll<HTMLButtonElement>('button[data-luna-songdownloader="tracks-download-all"]').forEach((btn) => {
+	document.querySelectorAll<HTMLButtonElement>('button[data-luna-downloadmanager="tracks-download-all"]').forEach((btn) => {
 		const labelSpan = btn.querySelector("span:last-child");
 		if (!labelSpan) return;
 		if (!btn.dataset.orig) {
@@ -78,7 +80,7 @@ const refreshAllHeaderButtons = () => {
 // Changement de langue : les labels d'origine sont recalculés
 unloads.add(
 	onLanguageChange(() => {
-		document.querySelectorAll<HTMLButtonElement>('button[data-luna-songdownloader="tracks-download-all"]').forEach((btn) => delete btn.dataset.orig);
+		document.querySelectorAll<HTMLButtonElement>('button[data-luna-downloadmanager="tracks-download-all"]').forEach((btn) => delete btn.dataset.orig);
 		refreshAllHeaderButtons();
 	}),
 );
@@ -126,7 +128,7 @@ const injectTracksHeaderButton = (tracksPage: Element) => {
 	const playBtn = tracksPage.querySelector('[data-test="play-all"]') as HTMLButtonElement | null;
 	const container = playBtn?.parentElement;
 	if (!container) return;
-	if (container.querySelector('[data-luna-songdownloader="tracks-download-all"]')) return;
+	if (container.querySelector('[data-luna-downloadmanager="tracks-download-all"]')) return;
 
 	const refBtn = (container.querySelector('[data-test="shuffle-all"]') ?? playBtn) as HTMLButtonElement;
 	const labelClass = refBtn.querySelector("span:last-child")?.className ?? "";
@@ -134,7 +136,7 @@ const injectTracksHeaderButton = (tracksPage: Element) => {
 	const dlBtn = document.createElement("button");
 	dlBtn.type = "button";
 	dlBtn.className = refBtn.className;
-	dlBtn.setAttribute("data-luna-songdownloader", "tracks-download-all");
+	dlBtn.setAttribute("data-luna-downloadmanager", "tracks-download-all");
 	dlBtn.title = t("hd.title");
 
 	const count = FavoriteTracks.ids().length;
@@ -164,13 +166,13 @@ observe(unloads, '[data-test="my-tracks-page"]', injectTracksHeaderButton);
 // de façon fiable via contextMenu/OPEN, donc on y injecte directement un bouton
 // "Download N liked tracks" (la collection Tracks = playlist privée des likés).
 const injectSidebarMenuEntry = (menu: Element) => {
-	if (menu.querySelector('[data-luna-songdownloader="sidebar-tracks-download"]')) return;
+	if (menu.querySelector('[data-luna-downloadmanager="sidebar-tracks-download"]')) return;
 	const closeBtn = menu.querySelector('button[data-test="context-menu-close-button"]') as HTMLButtonElement | null;
 	if (closeBtn === null || closeBtn.parentElement === null) {
 		// Le menu se construit parfois en plusieurs temps : réessaie à la prochaine mutation
 		const mo = new MutationObserver(() => {
 			if (!document.body.contains(menu)) return mo.disconnect();
-			if (menu.querySelector('[data-luna-songdownloader="sidebar-tracks-download"]') !== null) return mo.disconnect();
+			if (menu.querySelector('[data-luna-downloadmanager="sidebar-tracks-download"]') !== null) return mo.disconnect();
 			if (menu.querySelector('button[data-test="context-menu-close-button"]') !== null) {
 				mo.disconnect();
 				injectSidebarMenuEntry(menu);
@@ -183,7 +185,7 @@ const injectSidebarMenuEntry = (menu: Element) => {
 	}
 	const dlBtn = closeBtn.cloneNode(true) as HTMLButtonElement;
 	dlBtn.removeAttribute("data-test");
-	dlBtn.setAttribute("data-luna-songdownloader", "sidebar-tracks-download");
+	dlBtn.setAttribute("data-luna-downloadmanager", "sidebar-tracks-download");
 	dlBtn.title = t("hd.title");
 	const setLabel = () => {
 		const count = FavoriteTracks.ids().length;
@@ -206,7 +208,7 @@ observe(unloads, '[data-test="folders-playlists-sort-menu"]', injectSidebarMenuE
 
 // 5) Clic droit sur le lien "Tracks" de la sidebar -> notre propre mini-menu,
 // positionné au curseur et entièrement visible (ne dépend pas des menus Tidal).
-const QUICKMENU_ID = "luna-songdownloader-quickmenu";
+const QUICKMENU_ID = "luna-downloadmanager-quickmenu";
 const closeQuickMenu = () => document.getElementById(QUICKMENU_ID)?.remove();
 
 const showTracksQuickMenu = (x: number, y: number) => {
@@ -250,8 +252,8 @@ const showTracksQuickMenu = (x: number, y: number) => {
 };
 
 const attachTracksNavMenu = (navItem: Element) => {
-	if (navItem.hasAttribute("data-luna-songdownloader-nav")) return;
-	navItem.setAttribute("data-luna-songdownloader-nav", "true");
+	if (navItem.hasAttribute("data-luna-downloadmanager-nav")) return;
+	navItem.setAttribute("data-luna-downloadmanager-nav", "true");
 	navItem.addEventListener("contextmenu", (e) => {
 		e.preventDefault();
 		e.stopPropagation();

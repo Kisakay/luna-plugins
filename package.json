@@ -1,6 +1,6 @@
 {
 	"name": "@kisakay/luna-downloads",
-	"description": "Download-only TidaLuna plugin store by Kisakay (SongDownloaderV2, advanced downloader)",
+	"description": "Download-only TidaLuna plugin store by Kisakay (DownloadManager, advanced downloader)",
 	"author": {
 		"name": "Kisakay",
 		"url": "https://github.com/Kisakay",
@@ -14,7 +14,7 @@
 	"type": "module",
 	"scripts": {
 		"watch": "concurrently npm:esWatch npm:serve",
-		"prebuild": "node ./plugins/SongDownloader/scripts/sync-winml-css.mjs",
+		"prebuild": "node ./plugins/DownloadManager/scripts/sync-winml-css.mjs",
 		"build": "rimraf ./dist && tsx esbuild.config.ts",
 		"esWatch": "rimraf ./dist && tsx ./esbuild.config.ts --watch",
 		"serve": "http-server ./dist -p 3000 -s --cors -c-1"

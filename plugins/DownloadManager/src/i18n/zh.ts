@@ -1,4 +1,4 @@
-// 简体中文 locale for SongDownloaderV2.
+// 简体中文 locale for DownloadManager.
 import type { EnDict } from "./en";
 
 export const zh: EnDict = {

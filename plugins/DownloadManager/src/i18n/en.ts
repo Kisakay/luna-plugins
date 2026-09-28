@@ -1,4 +1,4 @@
-// English reference locale for SongDownloaderV2.
+// English reference locale for DownloadManager.
 export const en = {
 	"nav.downloads": "Downloads",
 	"nav.history": "History",

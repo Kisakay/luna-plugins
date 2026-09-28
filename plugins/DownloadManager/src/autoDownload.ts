@@ -14,7 +14,7 @@ import { msgTheme, repaintTaskbar, setAutoTaskbarStatus } from "./downloadIsland
 import { showWin10MsgBox } from "win10ml";
 import { t } from "./i18n";
 
-const { trace } = Tracer("[SongDownloader][Auto]");
+const { trace } = Tracer("[DownloadManager][Auto]");
 
 let autoBusy = false;
 let pending: MediaItem | null = null;

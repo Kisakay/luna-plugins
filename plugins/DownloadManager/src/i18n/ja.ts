@@ -1,4 +1,4 @@
-// 日本語 locale for SongDownloaderV2.
+// 日本語 locale for DownloadManager.
 import type { EnDict } from "./en";
 
 export const ja: EnDict = {

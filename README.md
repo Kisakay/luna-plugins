@@ -1,4 +1,4 @@
-# SongDownloaderV2
+# DownloadManager
 
 Advanced download manager for [TidaLuna](https://github.com/Inrixia/TidaLuna) (TIDAL client mod) by [Kisakay](https://github.com/Kisakay).
 
@@ -11,7 +11,7 @@ Download tracks, albums, playlists and liked **Tracks** as FLAC, with a download
    ```
    https://github.com/Kisakay/luna-plugins/releases/download/latest/store.json
    ```
-3. Install **SongDownloaderV2** (disable the stock Song Downloader to avoid duplicates).
+3. Install **DownloadManager** (disable the stock Song Downloader to avoid duplicates).
 
 ## Features
 

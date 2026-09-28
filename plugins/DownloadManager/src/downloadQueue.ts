@@ -1,5 +1,6 @@
 import { Tracer } from "@luna/core";
-import { ContextMenu, MediaItem, safeInterval, type MediaCollection } from "@luna/lib";
+import { Album, ContextMenu, MediaItem, Playlist, safeInterval, type MediaCollection } from "@luna/lib";
+import { t } from "./i18n";
 
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
 import { isDownloaded, markDownloaded } from "./downloadHistory";
@@ -50,7 +51,7 @@ export type ActiveTrack = {
 	total?: number;
 };
 
-const { trace } = Tracer("[SongDownloader][Queue]");
+const { trace } = Tracer("[DownloadManager][Queue]");
 
 // Workers concurrents par job. Note : le core Luna sérialise le fetch des flux
 // audio côté natif (Semaphore 1) ; le gain vient de la parallélisation de tout
@@ -149,7 +150,101 @@ function notify() {
 			trace.msg.warn.withContext("Queue listener failed")(err);
 		}
 	}
+	persistQueue();
 }
+
+// #region Persistance de la queue (DB settings -> restore au restart)
+export type SavedSource = { type: "favorites" } | { type: "album"; id: number | string } | { type: "playlist"; id: number | string } | { type: "unknown" };
+
+export type SavedJob = {
+	kind: JobKind;
+	title: string;
+	folderOverride?: string;
+	tracksOpen?: boolean;
+	source: SavedSource;
+};
+
+/** Décrit comment reconstruire la collection d'un job (les instances ne sont pas sérialisables). */
+function describeCollection(collection: MediaCollection): SavedSource {
+	try {
+		if (collection instanceof FavoriteTracks) return { type: "favorites" };
+		if (collection instanceof Album) return { type: "album", id: collection.id };
+		if (collection instanceof Playlist) return { type: "playlist", id: collection.uuid };
+	} catch {
+		// instanceof inter-version : repli unknown
+	}
+	return { type: "unknown" };
+}
+
+async function materializeSource(source: SavedSource): Promise<MediaCollection | null> {
+	try {
+		switch (source.type) {
+			case "favorites":
+				return new FavoriteTracks();
+			case "album":
+				return (await Album.fromId(source.id)) ?? null;
+			case "playlist":
+				return (await Playlist.fromId(source.id)) ?? null;
+			default:
+				return null;
+		}
+	} catch (err) {
+		trace.msg.warn.withContext("Cannot materialize saved collection")(err);
+		return null;
+	}
+}
+
+/** Sauvegarde les jobs en attente/actifs à chaque changement (survit au restart). */
+function persistQueue(): void {
+	try {
+		settings.savedQueue = jobs
+			.filter((j) => j.status === "queued" || j.status === "active")
+			.map((j) => ({
+				kind: j.kind,
+				title: j.title,
+				folderOverride: j.folderOverride,
+				tracksOpen: j.tracksOpen ?? false,
+				source: describeCollection(j.collection),
+			}));
+	} catch (err) {
+		trace.msg.warn.withContext("Cannot persist queue")(err);
+	}
+}
+
+let restored = false;
+
+/**
+ * Recharge la queue sauvegardée (appelée une fois au démarrage).
+ * Les jobs repartent en queued et reprennent automatiquement ;
+ * les tracks déjà téléchargées sont skippées via l'historique.
+ */
+export async function restoreSavedQueue(): Promise<void> {
+	if (restored) return;
+	restored = true;
+	const saved = settings.savedQueue ?? [];
+	if (saved.length === 0) return;
+	// Consomme la sauvegarde (les ré-enqueues la réécrivent au fil de l'eau)
+	settings.savedQueue = [];
+	for (const s of saved) {
+		try {
+			const collection = await materializeSource(s.source);
+			if (collection === null) {
+				trace.msg.warn.withContext(`Skipping unrestorable saved job "${s.title}"`)({});
+				continue;
+			}
+			const job = await enqueueCollection(collection, undefined, s.kind);
+			if (job !== null) {
+				if (s.title) job.title = s.title;
+				if (s.folderOverride !== undefined) job.folderOverride = s.folderOverride;
+				if (s.tracksOpen === true) job.tracksOpen = true;
+			}
+		} catch (err) {
+			trace.msg.warn.withContext(`Cannot restore saved job "${s.title}"`)(err);
+		}
+	}
+	notify();
+}
+// #endregion
 
 function paint(job: QueueJob) {
 	try {
@@ -210,7 +305,7 @@ export async function enqueueCollection(collection: MediaCollection, uiButton?: 
 	jobs.push(job);
 	if (uiButton) {
 		const pos = jobs.filter((j) => j.status === "queued").findIndex((j) => j.id === job.id) + 1;
-		uiButton.text = pos > 1 || jobs.some((j) => j.status === "active") ? `Queued #${pos}` : `Download ${total} tracks`;
+		uiButton.text = pos > 1 || jobs.some((j) => j.status === "active") ? t("hd.queued", { n: pos }) : t("ctx.tracks", { n: total });
 	}
 	notify();
 	void ensureProcessing();

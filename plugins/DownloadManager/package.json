@@ -1,5 +1,5 @@
 {
-	"name": "SongDownloaderV2",
+	"name": "DownloadManager",
 	"description": "Download tidal songs as FLAC files. V2 with liked Tracks support and download status banner.",
 	"homepage": "https://github.com/Kisakay/luna-plugins",
 	"author": {

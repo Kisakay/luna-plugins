@@ -7,6 +7,7 @@ import React from "react";
 import { clearDownloaded, countDownloaded } from "./downloadHistory";
 import { getDownloadFolder } from "./helpers";
 import { LOCALES, LOCALE_NAMES, setLocaleOverride, t, type LangSetting } from "./i18n";
+import type { SavedJob } from "./downloadQueue";
 
 const defaultFilenameFormat = "{artist} - {album} - {title}";
 
@@ -27,9 +28,13 @@ type Settings = {
 	winTheme: "light" | "dark";
 	accent: string;
 	language: LangSetting;
+	/** Queue persistée (jobs en attente/actifs) pour restore au restart. */
+	savedQueue?: SavedJob[];
 };
 export const DEFAULT_ACCENT = "#0078d7";
 export const isValidAccent = (v: string) => /^#[0-9a-fA-F]{6}$/.test(v);
+// NOTE: la clé de stockage reste "SongDownloader" (nom historique) pour ne
+// pas perdre les réglages ni l'historique des installs existantes.
 export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDownloader", {
 	downloadQuality: Quality.Max.audioQuality,
 	pathFormat: defaultFilenameFormat,

@@ -6,7 +6,7 @@ import { saveTextFile } from "./fs.native";
 import { renderTagTemplate } from "./helpers";
 import { settings } from "./Settings";
 
-const { trace } = Tracer("[SongDownloader]");
+const { trace } = Tracer("[DownloadManager]");
 
 /**
  * Sauvegarde le fichier metadata custom à côté du fichier audio.

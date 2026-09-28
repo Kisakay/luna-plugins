@@ -1,4 +1,4 @@
-// Español locale for SongDownloaderV2.
+// Español locale for DownloadManager.
 import type { EnDict } from "./en";
 
 export const es: EnDict = {

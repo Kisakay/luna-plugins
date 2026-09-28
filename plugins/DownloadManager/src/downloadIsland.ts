@@ -43,10 +43,10 @@ import {
 	w10Toggle,
 } from "win10ml";
 
-const TASKBAR_ID = "luna-songdownloader-taskbar";
-const WIN_ID = "luna-songdownloader-win";
-const CAL_ID = "luna-songdownloader-cal";
-const JOBMENU_ID = "luna-songdownloader-jobmenu";
+const TASKBAR_ID = "luna-downloadmanager-taskbar";
+const WIN_ID = "luna-downloadmanager-win";
+const CAL_ID = "luna-downloadmanager-cal";
+const JOBMENU_ID = "luna-downloadmanager-jobmenu";
 const APP_ID = "downloader";
 
 type Section = "downloads" | "history" | "settings" | "theme" | "languages";
@@ -1203,7 +1203,7 @@ export function mountIsland() {
 		id: ABOUT_ID,
 		iconHTML: INFO_ICON,
 		label: "About",
-		title: "About — SongDownloaderV2",
+		title: "About — DownloadManager",
 		onClick: () => toggleAbout(),
 	});
 	taskbar.onClockClick(() => {

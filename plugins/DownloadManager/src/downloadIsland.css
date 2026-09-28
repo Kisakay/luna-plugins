@@ -1,4 +1,4 @@
-/* ============ SongDownloaderV2 : styles spécifiques au plugin ============ */
+/* ============ DownloadManager : styles spécifiques au plugin ============ */
 /* La DA framework (fenêtres, taskbar, nav, contrôles, menus, msgbox,
    markdown) vient de winml (src/vendor/win10-shell.css). Ici uniquement :
    layout Tidal, liste des jobs, About, calendrier custom, contrôles
@@ -403,10 +403,10 @@ body {
 	background: #e81123;
 	color: #fff;
 }
-button[data-luna-songdownloader="tracks-download-all"] {
+button[data-luna-downloadmanager="tracks-download-all"] {
 	cursor: pointer;
 }
-button[data-luna-songdownloader="tracks-download-all"].sd-busy {
+button[data-luna-downloadmanager="tracks-download-all"].sd-busy {
 	opacity: 0.8;
 }
 @keyframes sd-cal-in {
@@ -419,21 +419,21 @@ button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 		transform: translateX(0);
 	}
 }
-#luna-songdownloader-cal .sd-cal-head {
+#luna-downloadmanager-cal .sd-cal-head {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	margin-bottom: 8px;
 }
-#luna-songdownloader-cal .sd-cal-title {
+#luna-downloadmanager-cal .sd-cal-title {
 	font-size: 13px;
 	font-weight: 600;
 }
-#luna-songdownloader-cal .sd-cal-nav {
+#luna-downloadmanager-cal .sd-cal-nav {
 	display: flex;
 	gap: 2px;
 }
-#luna-songdownloader-cal .sd-cal-navbtn {
+#luna-downloadmanager-cal .sd-cal-navbtn {
 	width: 28px;
 	height: 24px;
 	border: none;
@@ -444,21 +444,21 @@ button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 	cursor: pointer;
 	font-family: inherit;
 }
-#luna-songdownloader-cal .sd-cal-navbtn:hover {
+#luna-downloadmanager-cal .sd-cal-navbtn:hover {
 	background: #e5e5e5;
 }
-#luna-songdownloader-cal .sd-cal-grid {
+#luna-downloadmanager-cal .sd-cal-grid {
 	display: grid;
 	grid-template-columns: repeat(7, 1fr);
 	gap: 1px;
 }
-#luna-songdownloader-cal .sd-cal-dow {
+#luna-downloadmanager-cal .sd-cal-dow {
 	text-align: center;
 	font-size: 11px;
 	color: #605e5c;
 	padding: 4px 0;
 }
-#luna-songdownloader-cal .sd-cal-day {
+#luna-downloadmanager-cal .sd-cal-day {
 	border: 1px solid transparent;
 	border-radius: 0;
 	background: transparent;
@@ -469,62 +469,62 @@ button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 	padding: 5px 0;
 	cursor: pointer;
 }
-#luna-songdownloader-cal .sd-cal-day:hover {
+#luna-downloadmanager-cal .sd-cal-day:hover {
 	background: #e5f1fb;
 	border-color: #cce8ff;
 	border-radius: 0;
 }
-#luna-songdownloader-cal .sd-cal-day.sd-cal-other {
+#luna-downloadmanager-cal .sd-cal-day.sd-cal-other {
 	color: #a19f9d;
 }
-#luna-songdownloader-cal .sd-cal-day.sd-cal-today {
+#luna-downloadmanager-cal .sd-cal-day.sd-cal-today {
 	background: var(--w10-accent, #0078d7);
 	border-color: var(--w10-accent, #0078d7);
 	color: #fff;
 	border-radius: 0;
 }
-#luna-songdownloader-cal .sd-cal-foot {
+#luna-downloadmanager-cal .sd-cal-foot {
 	margin-top: 8px;
 	padding-top: 8px;
 	border-top: 1px solid #e1e1e1;
 	font-size: 12px;
 	color: #605e5c;
 }
-#luna-songdownloader-cal.sd-cal-dark {
+#luna-downloadmanager-cal.sd-cal-dark {
 	color: #fff;
 	background: #2b2b2b;
 	border-color: #444;
 }
-#luna-songdownloader-cal.sd-cal-dark .sd-cal-navbtn {
+#luna-downloadmanager-cal.sd-cal-dark .sd-cal-navbtn {
 	color: #fff;
 }
-#luna-songdownloader-cal.sd-cal-dark .sd-cal-navbtn:hover {
+#luna-downloadmanager-cal.sd-cal-dark .sd-cal-navbtn:hover {
 	background: #3a3a3a;
 }
-#luna-songdownloader-cal.sd-cal-dark .sd-cal-foot {
+#luna-downloadmanager-cal.sd-cal-dark .sd-cal-foot {
 	color: #a19f9d;
 }
-#luna-songdownloader-cal.sd-cal-dark .sd-cal-day {
+#luna-downloadmanager-cal.sd-cal-dark .sd-cal-day {
 	color: #fff;
 }
-#luna-songdownloader-cal.sd-cal-dark .sd-cal-day:hover {
+#luna-downloadmanager-cal.sd-cal-dark .sd-cal-day:hover {
 	background: #3a3a3a;
 	border-color: #555;
 }
-#luna-songdownloader-cal.sd-cal-dark .sd-cal-day.sd-cal-other {
+#luna-downloadmanager-cal.sd-cal-dark .sd-cal-day.sd-cal-other {
 	color: #656565;
 }
-#luna-songdownloader-cal.sd-cal-dark .sd-cal-foot {
+#luna-downloadmanager-cal.sd-cal-dark .sd-cal-foot {
 	border-top-color: #444;
 }
 /* ============ About (déplacé depuis win10extra.css) ============ */
-#luna-songdownloader-about .sd-win-infoicon {
+#luna-downloadmanager-about .sd-win-infoicon {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
 }
-#luna-songdownloader-about .sd-win-infoicon svg {
+#luna-downloadmanager-about .sd-win-infoicon svg {
 	display: block;
 }
 .sd-about-hero {

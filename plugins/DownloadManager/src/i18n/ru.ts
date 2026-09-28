@@ -1,4 +1,4 @@
-// Русская локаль for SongDownloaderV2.
+// Русская локаль for DownloadManager.
 import type { EnDict } from "./en";
 
 export const ru: EnDict = {

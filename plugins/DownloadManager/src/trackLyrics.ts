@@ -5,7 +5,7 @@ import { setBannerStatus } from "./downloadBanner";
 import { saveTextFile } from "./fs.native";
 import { settings } from "./Settings";
 
-const { trace } = Tracer("[SongDownloader]");
+const { trace } = Tracer("[DownloadManager]");
 
 /**
  * Sauvegarde le fichier lyrics (texte) à côté du fichier audio.
