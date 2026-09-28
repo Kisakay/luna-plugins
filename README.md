@@ -16,16 +16,23 @@ Download tracks, albums, playlists and liked **Tracks** as FLAC, with a download
 ## Features
 
 - Liked **Tracks**, albums, playlists and single tracks as FLAC (Max quality, RealMAX lookup)
-- Download queue: reorder by drag & drop, per-item cancel, 5 concurrent workers with lookahead prefetch
+- Download queue: reorder by drag & drop, per-item cancel, 5 concurrent workers with lookahead prefetch, per-track retry with backoff (a single timeout never kills the queue)
 - `.lyrics` text file and customizable `.meta` file next to each track (`{tags}` templates)
-- Auto-download of every played track (playback watcher)
+- Auto-download of every played track (playback watcher with live taskbar status)
 - Persistent download history with auto-skip (on-disk check included)
-- Manager window, Windows 10 style: light/dark theme, draggable, resizable, taskbar app with live status and calendar
-- Context menus: track rows, sidebar, Tracks page header, right-click on sidebar Tracks entry
+- Windows 10 desktop HUD: Downloader Manager window + About window, taskbar apps with accent underline, live status, clock and calendar
+- Win10 MessageBox confirm before closing the manager mid-download (official system icons)
+- 5 interface languages (English, 中文, Русский, 日本語, Español) with auto-detection, switchable live in the **Languages** section
+- Light/dark theme, custom accent color, draggable/resizable/persisted windows
+- Context menus: track rows, sidebar, Tracks page header, right-click on sidebar Tracks entry, right-click on jobs
 
 ## Guide
 
-Downloads queue with live tracks, and the taskbar:
+Full overview: Downloader Manager downloading, About window, and both apps pinned in the taskbar:
+
+![Overview](guide/overview.png)
+
+Downloads queue with live per-track progress:
 
 ![Downloads window](guide/downloads.png)
 
