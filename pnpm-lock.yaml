@@ -51,7 +51,7 @@ importers:
         specifier: ^1.6.3
         version: 1.6.3
       win10ml:
-        specifier: github:Kisakay/winml#main
+        specifier: github:Kisakay/winml#19df8b8d3c373895f1fdfeaa789c1a21db1cc99a
         version: https://codeload.github.com/Kisakay/winml/tar.gz/19df8b8d3c373895f1fdfeaa789c1a21db1cc99a
 
 packages:

@@ -3,6 +3,7 @@ packages:
 allowBuilds:
   electron: true
   esbuild: true
+  win10ml@https://codeload.github.com/Kisakay/winml/tar.gz/19df8b8d3c373895f1fdfeaa789c1a21db1cc99a: true
 
 # Supply-chain policy tuning.
 #
