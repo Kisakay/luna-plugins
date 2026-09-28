@@ -3,7 +3,8 @@ packages:
 allowBuilds:
   electron: true
   esbuild: true
-  win10ml@https://codeload.github.com/Kisakay/winml/tar.gz/19df8b8d3c373895f1fdfeaa789c1a21db1cc99a: true
+  # win10ml = framework first-party : flottant sur main, scripts toujours autorisés, aucun SHA à bumper
+  win10ml: true
 
 # Supply-chain policy tuning.
 #
