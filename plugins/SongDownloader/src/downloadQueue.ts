@@ -1,6 +1,5 @@
 import { Tracer } from "@luna/core";
-import { ContextMenu, safeInterval } from "@luna/lib";
-import type { MediaCollection, MediaItem } from "@luna/lib";
+import { ContextMenu, MediaItem, safeInterval, type MediaCollection } from "@luna/lib";
 
 import { getDownloadFolder, getDownloadPath, getFileName } from "./helpers";
 import { isDownloaded, markDownloaded } from "./downloadHistory";
@@ -57,6 +56,82 @@ const { trace } = Tracer("[SongDownloader][Queue]");
 // audio côté natif (Semaphore 1) ; le gain vient de la parallélisation de tout
 // le reste : RealMAX, tags/MusicBrainz, playbackInfo, filenames et lyrics.
 const MAX_CONCURRENT = 5;
+
+// Résolution d'un item : 3 tentatives, car Tidal répond parfois
+// TIMEOUT sous la rafale (interceptActionResp.TIMEOUT sur LOAD_SINGLE_MEDIA_ITEM).
+const RESOLVE_RETRIES = 3;
+const RESOLVE_BACKOFF_MS = [1000, 2000, 4000];
+
+const sleep = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
+
+type FromIdParams = Parameters<typeof MediaItem.fromId>;
+type RawRef = { id: NonNullable<FromIdParams[0]>; type: NonNullable<FromIdParams[1]> };
+
+/** Entrée de queue : soit un item résolu, soit un échec comptabilisé (jamais de throw). */
+export type QueueEntry = { item: MediaItem } | { failed: true; label: string };
+
+/**
+ * Références brutes des tracks d'une collection, pour les résoudre une par
+ * une avec retry (au lieu du générateur luna qui MEURT au premier throw et
+ * faisait avorter toute la fin de la queue en silence).
+ * Retourne null si les refs sont inaccessibles -> repli sur le générateur d'origine.
+ */
+async function rawRefs(collection: MediaCollection): Promise<RawRef[] | null> {
+	try {
+		if (collection instanceof FavoriteTracks) {
+			return FavoriteTracks.ids().map((id) => ({ id, type: "track" as const }));
+		}
+		const maybe = collection as unknown as {
+			tMediaItems?: () => Promise<Array<{ item?: { id?: RawRef["id"] }; type?: RawRef["type"] } | undefined> | undefined>;
+		};
+		if (typeof maybe.tMediaItems === "function") {
+			const arr = await maybe.tMediaItems();
+			if (Array.isArray(arr)) {
+				return arr
+					.filter((e) => e?.item?.id !== undefined)
+					.map((e) => ({ id: e!.item!.id!, type: e!.type ?? "track" }));
+			}
+		}
+	} catch (err) {
+		trace.msg.warn.withContext("Cannot list collection refs, legacy generator fallback")(err);
+	}
+	return null;
+}
+
+/** Résout chaque ref avec retry ; un échec persistant devient une entrée {failed} (skip compté). */
+async function* resolveEntries(refs: RawRef[]): AsyncGenerator<QueueEntry, unknown, unknown> {
+	for (const ref of refs) {
+		if (downloadState.cancel) return;
+		let item: MediaItem | undefined;
+		for (let attempt = 0; attempt < RESOLVE_RETRIES; attempt++) {
+			if (downloadState.cancel) return;
+			try {
+				item = await MediaItem.fromId(ref.id, ref.type);
+				break;
+			} catch (err) {
+				trace.msg.warn.withContext(`Resolve id ${ref.id} failed (attempt ${attempt + 1}/${RESOLVE_RETRIES})`)(err);
+				if (attempt + 1 < RESOLVE_RETRIES) await sleep(RESOLVE_BACKOFF_MS[attempt] ?? 4000);
+			}
+		}
+		if (item !== undefined) yield { item };
+		else yield { failed: true, label: `id ${ref.id}` };
+	}
+}
+
+/** Repli legacy : passe le générateur d'origine (peut mourir au premier throw). */
+async function* legacyEntries(src: AsyncGenerator<MediaItem, unknown, unknown>): AsyncGenerator<QueueEntry, unknown, unknown> {
+	while (true) {
+		let next: IteratorResult<MediaItem, unknown>;
+		try {
+			next = await src.next();
+		} catch (err) {
+			trace.msg.warn.withContext("Prefetch failed to pull next media item")(err);
+			return;
+		}
+		if (next.done || next.value === undefined) return;
+		yield { item: next.value };
+	}
+}
 
 let jobs: QueueJob[] = [];
 let processing = false;
@@ -254,16 +329,19 @@ async function runJob(job: QueueJob) {
 	notify();
 
 	try {
-		const items = await collection.mediaItems();
+		// Résolution résiliente : chaque track est résolue avec retry, un échec
+		// persistant devient une entrée {failed} comptée (plus jamais de queue
+		// amputée en silence à cause d'un seul TIMEOUT).
+		const refs = await rawRefs(collection);
+		const entries: AsyncGenerator<QueueEntry, unknown, unknown> = refs !== null ? resolveEntries(refs) : legacyEntries(await collection.mediaItems());
 		const width = Math.min(MAX_CONCURRENT, trackCount);
 
 		// Prédiction suivante : pendant que les workers téléchargent, un pump
 		// résout en avance les N prochains items (store + qualité), pour que
 		// les workers n'attendent jamais la résolution.
 		const LOOKAHEAD = 10;
-		const ready: MediaItem[] = [];
+		const ready: QueueEntry[] = [];
 		let genDone = false;
-		const sleep = (ms: number) => new Promise<void>((res) => setTimeout(res, ms));
 
 		const prefetch = (async () => {
 			try {
@@ -273,9 +351,9 @@ async function runJob(job: QueueJob) {
 						await sleep(25);
 						continue;
 					}
-					let next: IteratorResult<MediaItem, unknown>;
+					let next: IteratorResult<QueueEntry, unknown>;
 					try {
-						next = await items.next();
+						next = await entries.next();
 					} catch (err) {
 						trace.msg.warn.withContext("Prefetch failed to pull next media item")(err);
 						break;
@@ -288,11 +366,11 @@ async function runJob(job: QueueJob) {
 			}
 		})();
 
-		const takeNext = async (): Promise<MediaItem | null> => {
+		const takeNext = async (): Promise<QueueEntry | null> => {
 			while (true) {
 				if (downloadState.cancel) return null;
-				const item = ready.shift();
-				if (item !== undefined) return item;
+				const entry = ready.shift();
+				if (entry !== undefined) return entry;
 				if (genDone) return null;
 				await sleep(10);
 			}
@@ -303,7 +381,17 @@ async function runJob(job: QueueJob) {
 				if (downloadState.cancel) break;
 				const pulled = await takeNext();
 				if (pulled === null) break;
-				let mediaItem = pulled;
+				// Track impossible à résoudre (TIMEOUT persistant, track retirée...)
+				// -> échec compté, la queue CONTINUE au lieu de mourir.
+				if ("failed" in pulled) {
+					job.failed++;
+					job.done++;
+					setBannerCurrent(job.done - 1, trackCount, `${job.title} — failed to resolve (${pulled.label})`);
+					notify();
+					paint(job);
+					continue;
+				}
+				let mediaItem = pulled.item;
 				const originalId = mediaItem.id;
 
 				// Déjà téléchargée (historique) -> skip sans re-télécharger
@@ -403,6 +491,14 @@ async function runJob(job: QueueJob) {
 		};
 
 		await Promise.all([prefetch, ...Array.from({ length: width }, () => worker())]);
+		// Filet de sécurité : si le générateur est mort en route (cas legacy),
+		// les tracks manquantes sont comptées en échec au lieu de fausser done/total.
+		if (!downloadState.cancel && job.done < trackCount) {
+			const missing = trackCount - job.done;
+			job.failed += missing;
+			job.done += missing;
+			notify();
+		}
 		if (downloadState.cancel) {
 			job.status = "stopped";
 			setBannerStatus(`Stopped – ${job.succeeded}/${trackCount} downloaded (${job.title})`);
