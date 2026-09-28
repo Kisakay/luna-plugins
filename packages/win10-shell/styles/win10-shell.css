@@ -1,4 +1,4 @@
-/* @kisakay/win10-shell — Windows 10 desktop HUD stylesheet.
+/* winml — Windows 10 desktop HUD stylesheet.
    Self-contained: every rule is scoped to a `.w10-*` class.
    No global element selectors — safe to drop into any page or app.
    Accent color theming via `--w10-accent` (default #0078d7). */
@@ -756,4 +756,471 @@ hr.w10-md-hr {
 
 .w10-dark hr.w10-md-hr {
 	border-top-color: #333;
+}
+
+/* ================= Toggle switch (official Win10 Settings switch) ================= */
+.w10-win .w10-switch {
+	position: relative;
+	width: 44px;
+	height: 20px;
+	flex-shrink: 0;
+	box-sizing: border-box;
+	background: transparent;
+	border: 2px solid #333;
+	border-radius: 999px;
+	cursor: pointer;
+	padding: 0;
+	transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.w10-win .w10-switch:hover {
+	border-color: #000;
+}
+
+.w10-win .w10-switch-knob {
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 10px;
+	height: 10px;
+	border-radius: 999px;
+	background: #333;
+	transition: left 0.12s ease, background 0.12s ease;
+}
+
+.w10-win .w10-switch.w10-on {
+	background: var(--w10-accent, #0078d7);
+	border-color: var(--w10-accent, #0078d7);
+}
+
+.w10-win .w10-switch.w10-on .w10-switch-knob {
+	left: 25px;
+	background: #fff;
+}
+
+.w10-win.w10-dark .w10-switch {
+	border-color: #fff;
+}
+
+.w10-win.w10-dark .w10-switch:hover {
+	border-color: #fff;
+}
+
+.w10-win.w10-dark .w10-switch-knob {
+	background: #fff;
+}
+
+.w10-win.w10-dark .w10-switch.w10-on {
+	background: var(--w10-accent, #0078d7);
+	border-color: var(--w10-accent, #0078d7);
+}
+
+/* ================= Radio buttons ================= */
+.w10-win .w10-radios {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.w10-win .w10-radio {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	border: none;
+	background: transparent;
+	color: inherit;
+	font-family: inherit;
+	text-align: left;
+	padding: 8px 4px;
+	cursor: pointer;
+}
+
+.w10-win .w10-radio-dot {
+	position: relative;
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	box-sizing: border-box;
+	border: 2px solid #333;
+	border-radius: 999px;
+	background: transparent;
+	margin-top: 1px;
+}
+
+.w10-win .w10-radio:hover .w10-radio-dot {
+	border-color: #000;
+}
+
+.w10-win .w10-radio.w10-on .w10-radio-dot {
+	border-color: var(--w10-accent, #0078d7);
+}
+
+.w10-win .w10-radio.w10-on .w10-radio-dot::after {
+	content: "";
+	position: absolute;
+	left: 4px;
+	top: 4px;
+	width: 8px;
+	height: 8px;
+	border-radius: 999px;
+	background: var(--w10-accent, #0078d7);
+}
+
+.w10-win .w10-radio-texts {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.w10-win.w10-dark .w10-radio {
+	color: #fff;
+}
+
+.w10-win.w10-dark .w10-radio-dot {
+	border-color: #fff;
+}
+
+.w10-win.w10-dark .w10-radio:hover .w10-radio-dot {
+	border-color: #fff;
+}
+
+/* ================= Progress bar ================= */
+.w10-win .w10-progress {
+	height: 4px;
+	background: #edebe9;
+	overflow: hidden;
+}
+
+.w10-win .w10-progress-fill {
+	height: 100%;
+	width: 0%;
+	background: var(--w10-accent, #0078d7);
+	transition: width 0.15s ease-out;
+}
+
+.w10-win .w10-progress.w10-indeterminate .w10-progress-fill {
+	width: 40% !important;
+	animation: w10-progress-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes w10-progress-slide {
+	0% {
+		margin-left: -40%;
+	}
+	100% {
+		margin-left: 100%;
+	}
+}
+
+.w10-win.w10-dark .w10-progress {
+	background: #3a3a3a;
+}
+
+/* ================= Slider ================= */
+.w10-win .w10-slider-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+}
+
+.w10-win .w10-slider-val {
+	font-size: 12px;
+	color: #605e5c;
+	font-variant-numeric: tabular-nums;
+}
+
+.w10-win.w10-dark .w10-slider-val {
+	color: #a19f9d;
+}
+
+.w10-win input[type="range"].w10-slider {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 100%;
+	height: 22px;
+	background: transparent;
+	cursor: pointer;
+	--w10-fill: 50%;
+}
+
+.w10-win input[type="range"].w10-slider::-webkit-slider-runnable-track {
+	height: 2px;
+	background: linear-gradient(to right, var(--w10-accent, #0078d7) var(--w10-fill), #767676 var(--w10-fill));
+}
+
+.w10-win input[type="range"].w10-slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 8px;
+	height: 22px;
+	margin-top: -10px;
+	background: var(--w10-accent, #0078d7);
+	border: none;
+	border-radius: 999px;
+}
+
+.w10-win input[type="range"].w10-slider::-moz-range-track {
+	height: 2px;
+	background: #767676;
+}
+
+.w10-win input[type="range"].w10-slider::-moz-range-progress {
+	height: 2px;
+	background: var(--w10-accent, #0078d7);
+}
+
+.w10-win input[type="range"].w10-slider::-moz-range-thumb {
+	width: 8px;
+	height: 22px;
+	background: var(--w10-accent, #0078d7);
+	border: none;
+	border-radius: 999px;
+}
+
+/* ================= ListView rows + divider ================= */
+.w10-win .w10-listitem {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	border: none;
+	border-left: 3px solid transparent;
+	background: transparent;
+	color: inherit;
+	font-family: inherit;
+	text-align: left;
+	padding: 9px 10px;
+	cursor: pointer;
+}
+
+.w10-win .w10-listitem:hover {
+	background: #f3f3f3;
+}
+
+.w10-win .w10-listitem.w10-selected {
+	background: #e5f1fb;
+	border-left-color: var(--w10-accent, #0078d7);
+}
+
+.w10-win .w10-listitem-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	color: var(--w10-accent, #0078d7);
+}
+
+.w10-win .w10-listitem-texts {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	min-width: 0;
+}
+
+.w10-win .w10-listitem-title {
+	font-size: 13px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.w10-win.w10-dark .w10-listitem:hover {
+	background: #2d2d2d;
+}
+
+.w10-win.w10-dark .w10-listitem.w10-selected {
+	background: rgba(0, 120, 215, 0.25);
+}
+
+.w10-win .w10-divider {
+	height: 1px;
+	background: #e1e1e1;
+	margin: 10px 0;
+}
+
+.w10-win.w10-dark .w10-divider {
+	background: #2c2c2c;
+}
+
+/* ================= Calendar ================= */
+.w10-cal {
+	font-family: "Segoe UI", system-ui, sans-serif;
+	color: #000;
+	background: #fff;
+	border: 1px solid #767676;
+	padding: 12px 14px 10px;
+	width: 300px;
+	box-sizing: border-box;
+}
+
+.w10-cal-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 8px;
+}
+
+.w10-cal-title {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.w10-cal-nav {
+	display: flex;
+	gap: 2px;
+}
+
+.w10-cal-navbtn {
+	width: 28px;
+	height: 24px;
+	border: none;
+	background: transparent;
+	color: #000;
+	font-size: 12px;
+	cursor: pointer;
+	font-family: inherit;
+}
+
+.w10-cal-navbtn:hover {
+	background: #e5e5e5;
+}
+
+.w10-cal-grid {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 1px;
+}
+
+.w10-cal-dow {
+	text-align: center;
+	font-size: 11px;
+	color: #605e5c;
+	padding: 4px 0;
+}
+
+.w10-cal-day {
+	border: 1px solid transparent;
+	background: transparent;
+	font-family: inherit;
+	font-size: 12px;
+	color: #000;
+	text-align: center;
+	padding: 5px 0;
+	cursor: pointer;
+}
+
+.w10-cal-day:hover {
+	background: #e5f1fb;
+	border-color: #cce8ff;
+}
+
+.w10-cal-day.w10-cal-other {
+	color: #a19f9d;
+}
+
+.w10-cal-day.w10-cal-today {
+	background: var(--w10-accent, #0078d7);
+	border-color: var(--w10-accent, #0078d7);
+	color: #fff;
+}
+
+.w10-cal-day.w10-cal-selected {
+	border-color: var(--w10-accent, #0078d7);
+}
+
+.w10-cal-day.w10-cal-today.w10-cal-selected {
+	box-shadow: inset 0 0 0 2px #fff;
+}
+
+.w10-cal-foot {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid #e1e1e1;
+	font-size: 12px;
+	color: #605e5c;
+}
+
+.w10-cal.w10-dark {
+	color: #fff;
+	background: #2b2b2b;
+	border-color: #444;
+}
+
+.w10-cal.w10-dark .w10-cal-navbtn {
+	color: #fff;
+}
+
+.w10-cal.w10-dark .w10-cal-navbtn:hover {
+	background: #3a3a3a;
+}
+
+.w10-cal.w10-dark .w10-cal-dow,
+.w10-cal.w10-dark .w10-cal-foot {
+	color: #a19f9d;
+}
+
+.w10-cal.w10-dark .w10-cal-day {
+	color: #fff;
+}
+
+.w10-cal.w10-dark .w10-cal-day:hover {
+	background: #3a3a3a;
+	border-color: #555;
+}
+
+.w10-cal.w10-dark .w10-cal-day.w10-cal-other {
+	color: #656565;
+}
+
+.w10-cal.w10-dark .w10-cal-foot {
+	border-top-color: #444;
+}
+
+/* ================= MessageBox ================= */
+.w10-msgbox-overlay {
+	position: fixed;
+	inset: 0;
+	background: transparent;
+}
+
+.w10-win.w10-dialog .w10-body.w10-msgbox-body {
+	padding: 16px 16px 14px;
+	overflow-y: visible;
+}
+
+.w10-msgbox-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+}
+
+.w10-msgbox-icon {
+	flex-shrink: 0;
+	line-height: 0;
+}
+
+.w10-msgbox-text {
+	flex: 1;
+	min-width: 0;
+	font-size: 12px;
+	line-height: 1.55;
+	white-space: pre-line;
+	padding-top: 6px;
+}
+
+.w10-msgbox-btns {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 18px;
+}
+
+.w10-win .w10-msgbox-btn {
+	min-width: 88px;
+}
+
+.w10-win .w10-msgbox-btn:focus {
+	outline: none;
+	border: 2px solid var(--w10-accent, #0078d7);
+	padding: 4px 19px;
 }

@@ -1,17 +1,16 @@
 {
-	"name": "@kisakay/win10-shell",
+	"name": "winml",
 	"version": "0.1.0",
-	"description": "Framework-agnostic Windows 10 desktop HUD for the web: draggable windows, taskbar with Start button and pinned apps, menus, controls and markdown. Zero dependencies, pure DOM.",
+	"description": "Framework-agnostic Windows 10 desktop HUD for the web (WinML): draggable windows, taskbar with Start button and pinned apps, menus, controls, calendar, message boxes and markdown. Zero dependencies, pure DOM.",
 	"license": "AGPL-3.0-only",
 	"author": {
 		"name": "Kisakay",
 		"url": "https://github.com/Kisakay"
 	},
-	"homepage": "https://github.com/Kisakay/luna-plugins",
+	"homepage": "https://github.com/Kisakay/winml",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Kisakay/luna-plugins.git",
-		"directory": "packages/win10-shell"
+		"url": "git@github.com:Kisakay/winml.git"
 	},
 	"keywords": [
 		"windows-10",
