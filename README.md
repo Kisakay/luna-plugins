@@ -32,10 +32,6 @@ Full overview: Downloader Manager downloading, About window, and both apps pinne
 
 ![Overview](guide/overview.png)
 
-Downloads queue with live per-track progress:
-
-![Downloads window](guide/downloads.png)
-
 Settings (quality, folders, lyrics, metadata, auto-download, appearance):
 
 ![Settings](guide/settings.png)
