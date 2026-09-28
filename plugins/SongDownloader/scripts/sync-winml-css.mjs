@@ -10,7 +10,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const pluginDir = join(here, "..");
 const require = createRequire(join(pluginDir, "package.json"));
 
-const src = require.resolve("winml/style.css");
+const src = require.resolve("win10ml/style.css");
 const destDir = join(pluginDir, "src", "vendor");
 mkdirSync(destDir, { recursive: true });
 copyFileSync(src, join(destDir, "win10-shell.css"));

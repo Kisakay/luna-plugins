@@ -11,7 +11,7 @@ import { settings } from "./Settings";
 import { saveLyricsForTrack } from "./trackLyrics";
 import { saveMetaForTrack } from "./trackMeta";
 import { msgTheme, repaintTaskbar, setAutoTaskbarStatus } from "./downloadIsland";
-import { showWin10MsgBox } from "winml";
+import { showWin10MsgBox } from "win10ml";
 import { t } from "./i18n";
 
 const { trace } = Tracer("[SongDownloader][Auto]");

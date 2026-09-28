@@ -1,4 +1,4 @@
-/* winml — Windows 10 desktop HUD stylesheet.
+/* win10ml — Windows 10 desktop HUD stylesheet.
    Self-contained: every rule is scoped to a `.w10-*` class.
    No global element selectors — safe to drop into any page or app.
    Accent color theming via `--w10-accent` (default #0078d7). */

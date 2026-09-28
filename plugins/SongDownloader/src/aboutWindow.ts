@@ -3,7 +3,7 @@
 // donc exactement la même DA que le manager, sans dépendance Tidal.
 import { unloads } from "./index.safe";
 import { DEFAULT_ACCENT, isValidAccent, settings } from "./Settings";
-import { INFO_ICON, Win10Window, renderMarkdown, w10Button, w10Desc, w10GroupTitle } from "winml";
+import { INFO_ICON, Win10Window, renderMarkdown, w10Button, w10Desc, w10GroupTitle } from "win10ml";
 import { onLanguageChange, t } from "./i18n";
 
 export const ABOUT_ID = "luna-songdownloader-about";

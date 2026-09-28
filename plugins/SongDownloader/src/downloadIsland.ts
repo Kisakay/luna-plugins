@@ -39,7 +39,7 @@ import {
 	w10TextRow,
 	w10TextareaRow,
 	w10Toggle,
-} from "winml";
+} from "win10ml";
 
 const TASKBAR_ID = "luna-songdownloader-taskbar";
 const WIN_ID = "luna-songdownloader-win";

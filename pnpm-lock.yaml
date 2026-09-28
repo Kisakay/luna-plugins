@@ -50,9 +50,9 @@ importers:
       sanitize-filename:
         specifier: ^1.6.3
         version: 1.6.3
-      winml:
-        specifier: github:Kisakay/winml#main
-        version: https://codeload.github.com/Kisakay/winml/tar.gz/bea0654e4745d7b46496f7cd4dfad4ffc2fc18d9
+      win10ml:
+        specifier: ^0.1.0
+        version: 0.1.0
 
 packages:
 
@@ -875,9 +875,8 @@ packages:
     engines: {node: '>=12'}
     deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
-  winml@https://codeload.github.com/Kisakay/winml/tar.gz/bea0654e4745d7b46496f7cd4dfad4ffc2fc18d9:
-    resolution: {tarball: https://codeload.github.com/Kisakay/winml/tar.gz/bea0654e4745d7b46496f7cd4dfad4ffc2fc18d9}
-    version: 0.1.0
+  win10ml@0.1.0:
+    resolution: {integrity: sha512-A+CT+7lyFCgOXHnDcz/B9WPe2LPAuYjO55QtBj739EUwcHR4vwp5QYfbPGJEI2CCTx0cYd1GbPe3V98o7cwwnQ==}
 
   wrap-ansi@7.0.0:
     resolution: {integrity: sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==}
@@ -1712,7 +1711,7 @@ snapshots:
     dependencies:
       iconv-lite: 0.6.3
 
-  winml@https://codeload.github.com/Kisakay/winml/tar.gz/bea0654e4745d7b46496f7cd4dfad4ffc2fc18d9: {}
+  win10ml@0.1.0: {}
 
   wrap-ansi@7.0.0:
     dependencies:
