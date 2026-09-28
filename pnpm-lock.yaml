@@ -45,20 +45,14 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/win10-shell:
-    devDependencies:
-      esbuild:
-        specifier: ^0.27.2
-        version: 0.27.2
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
   plugins/SongDownloader:
     dependencies:
       sanitize-filename:
         specifier: ^1.6.3
         version: 1.6.3
+      winml:
+        specifier: github:Kisakay/winml#main
+        version: https://codeload.github.com/Kisakay/winml/tar.gz/bea0654e4745d7b46496f7cd4dfad4ffc2fc18d9
 
 packages:
 
@@ -880,6 +874,10 @@ packages:
     resolution: {integrity: sha512-p41ogyeMUrw3jWclHWTQg1k05DSVXPLcVxRTYsXUk+ZooOCZLcoYgPZ/HL/D/N+uQPOtcp1me1WhBEaX02mhWg==}
     engines: {node: '>=12'}
     deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+
+  winml@https://codeload.github.com/Kisakay/winml/tar.gz/bea0654e4745d7b46496f7cd4dfad4ffc2fc18d9:
+    resolution: {tarball: https://codeload.github.com/Kisakay/winml/tar.gz/bea0654e4745d7b46496f7cd4dfad4ffc2fc18d9}
+    version: 0.1.0
 
   wrap-ansi@7.0.0:
     resolution: {integrity: sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==}
@@ -1713,6 +1711,8 @@ snapshots:
   whatwg-encoding@2.0.0:
     dependencies:
       iconv-lite: 0.6.3
+
+  winml@https://codeload.github.com/Kisakay/winml/tar.gz/bea0654e4745d7b46496f7cd4dfad4ffc2fc18d9: {}
 
   wrap-ansi@7.0.0:
     dependencies:

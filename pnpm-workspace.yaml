@@ -1,6 +1,5 @@
 packages:
   - plugins/*
-  - packages/*
 allowBuilds:
   electron: true
   esbuild: true

@@ -9,6 +9,7 @@
 	},
 	"main": "./src/index.ts",
 	"dependencies": {
-		"sanitize-filename": "^1.6.3"
+		"sanitize-filename": "^1.6.3",
+		"winml": "github:Kisakay/winml#main"
 	}
 }

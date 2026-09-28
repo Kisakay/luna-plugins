@@ -3,10 +3,7 @@
 // donc exactement la même DA que le manager, sans dépendance Tidal.
 import { unloads } from "./index.safe";
 import { DEFAULT_ACCENT, isValidAccent, settings } from "./Settings";
-import { Win10Window } from "./win10/window";
-import { INFO_ICON } from "./win10/icons";
-import { renderMarkdown } from "./win10/markdown";
-import { w10Button, w10Desc, w10GroupTitle } from "./win10/controls";
+import { INFO_ICON, Win10Window, renderMarkdown, w10Button, w10Desc, w10GroupTitle } from "winml";
 import { onLanguageChange, t } from "./i18n";
 
 export const ABOUT_ID = "luna-songdownloader-about";
@@ -154,7 +151,7 @@ export function mountAboutWindow() {
 	});
 	aboutWin = win;
 	// Icône info bleue officielle à gauche du titre (vraie fenêtre Win10)
-	const titleLeft = win.el.querySelector(".sd-win-titleleft");
+	const titleLeft = win.el.querySelector(".w10-title-left");
 	if (titleLeft) {
 		const icon = document.createElement("span");
 		icon.className = "sd-win-infoicon";

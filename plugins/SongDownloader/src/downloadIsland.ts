@@ -39,7 +39,7 @@ import {
 	w10TextRow,
 	w10TextareaRow,
 	w10Toggle,
-} from "./win10";
+} from "winml";
 
 const TASKBAR_ID = "luna-songdownloader-taskbar";
 const WIN_ID = "luna-songdownloader-win";
@@ -78,12 +78,12 @@ function currentAccent(): string {
 function applyAccent() {
 	const accent = currentAccent();
 	// Variable héritée par les fenêtres, la taskbar, le calendrier et les menus
-	document.documentElement.style.setProperty("--sd-accent", accent);
+	document.documentElement.style.setProperty("--w10-accent", accent);
 	managerWin?.setAccent(accent);
 	taskbar?.setAccent(accent);
 	refreshAboutTheme();
-	document.getElementById(CAL_ID)?.style.setProperty("--sd-accent", accent);
-	document.getElementById(JOBMENU_ID)?.style.setProperty("--sd-accent", accent);
+	document.getElementById(CAL_ID)?.style.setProperty("--w10-accent", accent);
+	document.getElementById(JOBMENU_ID)?.style.setProperty("--w10-accent", accent);
 }
 
 let taskbar: Win10Taskbar | null = null;
@@ -311,9 +311,9 @@ function paintTaskbar() {
 	if (active) {
 		const current = [...active.current.values()][0]?.label;
 		const extra = statusEtaExtra(jobs);
-		html = `<span class="sd-taskbar-status-icon">⬇</span><span>${active.done}/${active.total}${current ? ` · ${escapeHtml(current)}` : ""}${queued > 0 ? ` · ${t("sum.queued", { n: queued })}` : ""}${extra}</span>`;
+		html = `<span class="w10-status-icon">⬇</span><span>${active.done}/${active.total}${current ? ` · ${escapeHtml(current)}` : ""}${queued > 0 ? ` · ${t("sum.queued", { n: queued })}` : ""}${extra}</span>`;
 	} else if (queued > 0) {
-		html = `<span class="sd-taskbar-status-icon">⬇</span><span>${t("sum.queued", { n: queued })}</span>`;
+		html = `<span class="w10-status-icon">⬇</span><span>${t("sum.queued", { n: queued })}</span>`;
 	} else if (jobs.length > 0) {
 		html = `<span>${t("task.finished")}</span>`;
 	} else if (autoStatus !== null) {
@@ -356,7 +356,7 @@ function openCalendar() {
 	cal.id = CAL_ID;
 	cal.className = "sd-cal";
 	if (settings.winTheme === "dark") cal.classList.add("sd-cal-dark");
-	cal.style.setProperty("--sd-accent", currentAccent());
+	cal.style.setProperty("--w10-accent", currentAccent());
 
 	const head = document.createElement("div");
 	head.className = "sd-cal-head";
@@ -494,7 +494,7 @@ function render() {
 	paintTaskbar();
 	navSync?.(section);
 	// Libellés nav retraduits à chaque rendu (changement de langue instantané)
-	managerWin?.el.querySelectorAll(".sd-win-navitem").forEach((el) => {
+	managerWin?.el.querySelectorAll(".w10-navitem").forEach((el) => {
 		const id = (el as HTMLElement).dataset.section as Section | undefined;
 		const span = el.querySelector("span:last-child");
 		if (id && span) span.textContent = navLabel(id);
@@ -529,13 +529,13 @@ function showJobMenu(job: QueueJob, x: number, y: number) {
 				menu.appendChild(w10MenuHeader(t("jm.now", { n: now.length })));
 				if (now.length === 0) {
 					const none = document.createElement("div");
-					none.className = "sd-qm-item sd-qm-disabled";
-					none.innerHTML = `<span class="sd-qm-sub">${t("trk.starting")}</span>`;
+					none.className = "w10-menu-item w10-disabled";
+					none.innerHTML = `<span class="w10-menu-sub">${t("trk.starting")}</span>`;
 					menu.appendChild(none);
 				}
 				for (const track of now.slice(0, 5)) {
 					const trackEl = document.createElement("div");
-					trackEl.className = "sd-qm-item sd-qm-disabled sd-qm-track";
+					trackEl.className = "w10-menu-item w10-disabled w10-menu-track";
 					trackEl.title = track.label;
 					trackEl.textContent = `♫ ${track.label}`;
 					menu.appendChild(trackEl);
@@ -544,8 +544,8 @@ function showJobMenu(job: QueueJob, x: number, y: number) {
 			}
 
 			const folderItem = document.createElement("div");
-			folderItem.className = "sd-qm-item sd-qm-disabled";
-			folderItem.innerHTML = `<span class="sd-qm-sub">${t("jm.folder", { name: job.folderOverride ? shortFolder(job.folderOverride) : t("jm.folderDefault") })}</span>`;
+			folderItem.className = "w10-menu-item w10-disabled";
+			folderItem.innerHTML = `<span class="w10-menu-sub">${t("jm.folder", { name: job.folderOverride ? shortFolder(job.folderOverride) : t("jm.folderDefault") })}</span>`;
 			menu.appendChild(folderItem);
 
 			if (job.status === "queued" || job.status === "active") {
@@ -800,12 +800,12 @@ function buildSettingsPage(body: HTMLDivElement) {
 	searchRow.className = "sd-win-searchrow";
 	const searchInput = document.createElement("input");
 	searchInput.type = "text";
-	searchInput.className = "sd-win-textbox sd-win-search";
+	searchInput.className = "w10-textbox sd-win-search";
 	searchInput.placeholder = t("se.search");
 	searchInput.value = search;
 	searchInput.oninput = () => {
 		search = searchInput.value.toLowerCase();
-		body.querySelectorAll(".sd-win-setting").forEach((el) => {
+		body.querySelectorAll(".w10-setting").forEach((el) => {
 			const hay = (el as HTMLElement).dataset.search ?? "";
 			(el as HTMLElement).style.display = hay.includes(search) ? "" : "none";
 		});
@@ -835,15 +835,15 @@ function buildSettingsPage(body: HTMLDivElement) {
 	);
 
 	const folderRow = document.createElement("div");
-	folderRow.className = "sd-win-setting";
+	folderRow.className = "w10-setting";
 	folderRow.dataset.search = `${t("se.defFolder")} folder path directory`.toLowerCase();
 	const folderTexts = document.createElement("div");
-	folderTexts.className = "sd-win-setting-texts";
+	folderTexts.className = "w10-setting-texts";
 	const folderTitle = document.createElement("div");
-	folderTitle.className = "sd-win-setting-title";
+	folderTitle.className = "w10-setting-title";
 	folderTitle.textContent = t("se.defFolder");
 	const folderSub = document.createElement("div");
-	folderSub.className = "sd-win-setting-desc";
+	folderSub.className = "w10-desc";
 	folderSub.textContent = settings.defaultPath ?? t("se.noFolder");
 	folderTexts.appendChild(folderTitle);
 	folderTexts.appendChild(folderSub);
@@ -895,13 +895,13 @@ function buildSettingsPage(body: HTMLDivElement) {
 
 	body.appendChild(w10GroupTitle(t("se.tags")));
 	const tagsRow = document.createElement("div");
-	tagsRow.className = "sd-win-setting sd-win-setting-col";
+	tagsRow.className = "w10-setting w10-setting-col";
 	tagsRow.dataset.search = `${t("se.availTags")} tags filename`.toLowerCase();
 	const tagsTitle = document.createElement("div");
-	tagsTitle.className = "sd-win-setting-title";
+	tagsTitle.className = "w10-setting-title";
 	tagsTitle.textContent = t("se.availTags");
 	const tagsList = document.createElement("div");
-	tagsList.className = "sd-win-setting-desc";
+	tagsList.className = "w10-desc";
 	tagsList.textContent = MediaItem.availableTags.map((t) => `{${t}}`).join(" ");
 	tagsRow.appendChild(tagsTitle);
 	tagsRow.appendChild(tagsList);
@@ -969,15 +969,15 @@ function buildThemePage(body: HTMLDivElement) {
 	paintSwatches();
 
 	const customRow = document.createElement("div");
-	customRow.className = "sd-win-setting";
+	customRow.className = "w10-setting";
 	const customTexts = document.createElement("div");
-	customTexts.className = "sd-win-setting-texts";
+	customTexts.className = "w10-setting-texts";
 	const customTitle = document.createElement("div");
-	customTitle.className = "sd-win-setting-title";
+	customTitle.className = "w10-setting-title";
 	customTitle.textContent = t("th.custom");
 	const customColor = document.createElement("input");
 	customColor.type = "color";
-	customColor.className = "sd-win-color";
+	customColor.className = "w10-color";
 	customColor.value = accent;
 	customColor.title = t("th.pick");
 	customColor.oninput = () => {
@@ -992,13 +992,13 @@ function buildThemePage(body: HTMLDivElement) {
 	body.appendChild(customRow);
 
 	const hexRow = document.createElement("div");
-	hexRow.className = "sd-win-setting sd-win-setting-col";
+	hexRow.className = "w10-setting w10-setting-col";
 	const hexTitle = document.createElement("div");
-	hexTitle.className = "sd-win-setting-title";
+	hexTitle.className = "w10-setting-title";
 	hexTitle.textContent = t("th.hex");
 	const hexInput = document.createElement("input");
 	hexInput.type = "text";
-	hexInput.className = "sd-win-textbox sd-win-hex";
+	hexInput.className = "w10-textbox w10-hex";
 	hexInput.value = accent;
 	hexInput.spellcheck = false;
 	hexInput.placeholder = "#0078d7";
@@ -1042,7 +1042,7 @@ function buildHistoryPage(body: HTMLDivElement) {
 function buildDownloadsPage(body: HTMLDivElement) {
 	body.innerHTML = "";
 	const toolbar = document.createElement("div");
-	toolbar.className = "sd-win-toolbar";
+	toolbar.className = "w10-toolbar";
 	toolbar.appendChild(w10Button(t("dl.stopAll"), () => cancelAll()));
 	toolbar.appendChild(w10Button(t("dl.clearFinished"), () => clearFinished()));
 	body.appendChild(toolbar);
@@ -1125,7 +1125,7 @@ export function mountIsland() {
 	// Fenêtre manager via le mini-framework (même DA qu'avant)
 	managerWin = new Win10Window({
 		id: WIN_ID,
-		titleHTML: `Downloader Manager <span class="sd-win-credit">by Kisakay</span>`,
+		titleHTML: `Downloader Manager <span class="w10-credit">by Kisakay</span>`,
 		avatarUrl: "https://github.com/Kisakay.png",
 		width: 520,
 		height: 560,
@@ -1224,7 +1224,7 @@ function buildLanguagesPage(body: HTMLDivElement) {
 		btn.style.padding = "10px 12px";
 		const mark = document.createElement("span");
 		mark.textContent = active ? "●" : "○";
-		mark.style.color = "var(--sd-accent, #0078d7)";
+		mark.style.color = "var(--w10-accent, #0078d7)";
 		mark.style.width = "18px";
 		const label = document.createElement("span");
 		label.textContent = opt.label;

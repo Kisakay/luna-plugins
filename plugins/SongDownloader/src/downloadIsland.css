@@ -1,297 +1,20 @@
-/* ============ Layout : la taskbar ne mange pas le player ============ */
+/* ============ SongDownloaderV2 : styles spécifiques au plugin ============ */
+/* La DA framework (fenêtres, taskbar, nav, contrôles, menus, msgbox,
+   markdown) vient de winml (src/vendor/win10-shell.css). Ici uniquement :
+   layout Tidal, liste des jobs, About, calendrier custom, contrôles
+   spécifiques (modes, swatches, recherche, output) et scrollbars Win10. */
 body {
 	padding-bottom: 41px !important;
 }
-
-#footerPlayer,
 [data-test="footer-player"] {
 	bottom: 51px !important;
 }
-
-/* ============ Taskbar Windows 10 ============ */
-#luna-songdownloader-taskbar.sd-taskbar {
-	position: fixed;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	height: 40px;
-	z-index: 99995;
-	display: flex;
-	align-items: stretch;
-	/* Air autour du logo Start et de l'icône Downloader */
-	gap: 4px;
-	padding: 0 6px;
-	background: #101010;
-	border-top: 1px solid rgba(255, 255, 255, 0.08);
-	font-family: "Segoe UI", system-ui, sans-serif;
-}
-
-#luna-songdownloader-taskbar .sd-taskbar-app,
-#luna-songdownloader-taskbar .sd-taskbar-start {
-	position: relative;
-	width: 52px;
-	border: none;
-	background: transparent;
-	color: #fff;
-	font-size: 18px;
-	cursor: pointer;
-	padding: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-}
-
-#luna-songdownloader-taskbar .sd-taskbar-app:hover,
-#luna-songdownloader-taskbar .sd-taskbar-start:hover {
-	background: rgba(255, 255, 255, 0.1);
-}
-
-#luna-songdownloader-taskbar .sd-taskbar-app-icon {
-	color: #fff;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-}
-
-#luna-songdownloader-taskbar .sd-taskbar-app-icon svg {
-	display: block;
-}
-
-/* (Les apps larges + la barre accent sont stylées dans win10extra.css :
-   .sd-taskbar-wide / .sd-taskbar-running, même DA.) */
-
-#luna-songdownloader-taskbar .sd-taskbar-spacer {
-	flex: 1;
-}
-
-#luna-songdownloader-taskbar .sd-taskbar-status {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 0 12px;
-	color: #fff;
-	font-size: 12px;
-	white-space: nowrap;
-	overflow: hidden;
-	max-width: 380px;
-	min-width: 0;
-	flex-shrink: 1;
-	user-select: none;
-	-webkit-user-select: none;
-}
-
-/* Le texte tronque à gauche de l'horloge, l'horloge ne bouge jamais */
-#luna-songdownloader-taskbar .sd-taskbar-status > span:last-child {
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-#luna-songdownloader-taskbar .sd-taskbar-status-icon {
-	flex-shrink: 0;
-	color: var(--sd-accent, #0078d7);
-	font-size: 12px;
-}
-
-#luna-songdownloader-taskbar .sd-taskbar-clock {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	padding: 0 12px;
-	color: #fff;
-	font-size: 12px;
-	line-height: 1.3;
-	user-select: none;
-	-webkit-user-select: none;
-}
-
-/* ============ Fenêtre Windows 10 21H2 (thème clair) ============ */
-/* Couleur d'accent Win10 (surchargée en JS via --sd-accent) */
-:root {
-	--sd-accent: #0078d7;
-}
-div.sd-win.sd-win {
-	position: fixed;
-	top: 80px;
-	left: 50%;
-	transform: translateX(-50%);
-	z-index: 99990;
-	width: 520px;
-	max-width: calc(100vw - 32px);
-	height: 560px;
-	max-height: calc(100vh - 60px);
-	display: flex;
-	flex-direction: column;
-	font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-	font-size: 12px;
-	color: #000;
-	background: #fff;
-	border: 1px solid var(--sd-accent, #0078d7);
-	box-shadow:
-		0 0 0 1px rgba(0, 0, 0, 0.4),
-		0 12px 48px rgba(0, 0, 0, 0.55);
-}
-
-div.sd-win.sd-win.sd-win-max {
-	top: 8px !important;
-	left: 8px !important;
-	transform: none !important;
-	width: calc(100vw - 16px) !important;
-	height: calc(100vh - 56px) !important;
-	max-width: none;
-	max-height: none;
-}
-
-div.sd-win .sd-win-titlebar {
-	display: flex;
-	align-items: stretch;
-	justify-content: space-between;
-	height: 32px;
-	flex-shrink: 0;
-	background: #fff;
-	user-select: none;
-	-webkit-user-select: none;
-	touch-action: none;
-	cursor: default;
-}
-
-div.sd-win .sd-win-titleleft {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding-left: 10px;
-	flex: 1;
-	min-width: 0;
-}
-
-div.sd-win .sd-win-avatar {
-	width: 16px;
-	height: 16px;
-	flex-shrink: 0;
-}
-
-div.sd-win .sd-win-titletxt {
-	font-size: 12px;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-div.sd-win .sd-win-credit {
-	font-size: 11px;
-	color: #605e5c;
-	font-weight: 400;
-}
-
-div.sd-win .sd-win-caption {
-	display: flex;
-	align-items: stretch;
-}
-
-div.sd-win .sd-win-capbtn {
-	width: 46px;
-	border: none;
-	background: transparent;
-	color: #000;
-	font-size: 10px;
-	line-height: 1;
-	cursor: pointer;
-	padding: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-family: "Segoe UI", system-ui, sans-serif;
-}
-
-div.sd-win .sd-win-capbtn svg {
-	display: block;
-}
-
-div.sd-win .sd-win-capbtn:hover {
-	background: #e5e5e5;
-}
-
-div.sd-win .sd-win-capbtn:active {
-	background: #cacacd;
-}
-
-div.sd-win .sd-win-capbtn.sd-win-close:hover {
-	background: #e81123;
-	color: #fff;
-}
-
-div.sd-win .sd-win-capbtn.sd-win-close:active {
-	background: #f1707a;
-	color: #fff;
-}
-
-div.sd-win .sd-win-content {
-	display: flex;
-	flex: 1;
-	min-height: 0;
-	border-top: 1px solid #e6e6e6;
-}
-
-div.sd-win .sd-win-nav {
-	width: 160px;
-	flex-shrink: 0;
-	background: #f3f3f3;
-	padding: 8px 0;
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-	border-right: 1px solid #e6e6e6;
-}
-
-div.sd-win .sd-win-navitem {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	border: none;
-	background: transparent;
-	border-left: 3px solid transparent;
-	color: #000;
-	font-family: inherit;
-	font-size: 12px;
-	text-align: left;
-	padding: 9px 12px 9px 9px;
-	cursor: pointer;
-}
-
-div.sd-win .sd-win-navitem:hover {
-	background: #e9e9e9;
-}
-
-div.sd-win .sd-win-navitem-active {
-	background: #e6e6e6;
-	border-left-color: var(--sd-accent, #0078d7);
-}
-
-div.sd-win .sd-win-navglyph {
-	width: 18px;
-	text-align: center;
-	font-size: 13px;
-	color: var(--sd-accent, #0078d7);
-}
-
-/* Icônes SVG dans la nav : centrées, teintées accent comme les glyphes */
-div.sd-win .sd-win-navglyph svg {
-	display: block;
-	margin: 0 auto;
-}
-
-/* ============ Page Thème (mode + accent Win10, tout carré) ============ */
-div.sd-win .sd-win-modes {
+.w10-win .sd-win-modes {
 	display: flex;
 	gap: 8px;
 	margin-bottom: 4px;
 }
-
-div.sd-win .sd-win-modebtn {
+.w10-win .sd-win-modebtn {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
@@ -306,41 +29,34 @@ div.sd-win .sd-win-modebtn {
 	border-radius: 0;
 	cursor: pointer;
 }
-
-div.sd-win .sd-win-modebtn:hover {
+.w10-win .sd-win-modebtn:hover {
 	border-color: #333;
 }
-
-div.sd-win .sd-win-modebtn-active {
-	border: 2px solid var(--sd-accent, #0078d7);
+.w10-win .sd-win-modebtn-active {
+	border: 2px solid var(--w10-accent, #0078d7);
 	padding: 15px 0 11px;
 }
-
-div.sd-win .sd-win-modeswatch {
+.w10-win .sd-win-modeswatch {
 	display: block;
 	width: 48px;
 	height: 32px;
 	border: 1px solid #767676;
 	border-radius: 0;
 }
-
-div.sd-win .sd-win-modeswatch-light {
+.w10-win .sd-win-modeswatch-light {
 	background: #fff;
 }
-
-div.sd-win .sd-win-modeswatch-dark {
+.w10-win .sd-win-modeswatch-dark {
 	background: #202020;
 	border-color: #767676;
 }
-
-div.sd-win .sd-win-swatches {
+.w10-win .sd-win-swatches {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 6px;
 	margin: 10px 0 4px;
 }
-
-div.sd-win .sd-win-swatch {
+.w10-win .sd-win-swatch {
 	width: 32px;
 	height: 32px;
 	padding: 0;
@@ -348,28 +64,23 @@ div.sd-win .sd-win-swatch {
 	border-radius: 0;
 	cursor: pointer;
 }
-
-div.sd-win .sd-win-swatch:hover {
+.w10-win .sd-win-swatch:hover {
 	border-color: #767676;
 }
-
-div.sd-win .sd-win-swatch-active {
+.w10-win .sd-win-swatch-active {
 	border-color: #000;
 	box-shadow: inset 0 0 0 2px #fff;
 }
-
-div.sd-win.sd-win-dark .sd-win-modebtn {
+.w10-win.sd-win-dark .sd-win-modebtn {
 	color: #fff;
 	background: #2b2b2b;
 	border-color: #8a8a8a;
 }
-
-div.sd-win.sd-win-dark .sd-win-swatch-active {
+.w10-win.sd-win-dark .sd-win-swatch-active {
 	border-color: #fff;
 	box-shadow: inset 0 0 0 2px #000;
 }
-
-div.sd-win .sd-win-color {
+.w10-win .sd-win-color {
 	width: 48px;
 	height: 32px;
 	padding: 0;
@@ -378,283 +89,67 @@ div.sd-win .sd-win-color {
 	border-radius: 0;
 	cursor: pointer;
 }
-
-div.sd-win .sd-win-color::-webkit-color-swatch-wrapper {
+.w10-win .sd-win-color::-webkit-color-swatch-wrapper {
 	padding: 2px;
 }
-
-div.sd-win .sd-win-color::-webkit-color-swatch {
+.w10-win .sd-win-color::-webkit-color-swatch {
 	border: none;
 	border-radius: 0;
 }
-
-div.sd-win .sd-win-color::-moz-color-swatch {
+.w10-win .sd-win-color::-moz-color-swatch {
 	border: none;
 	border-radius: 0;
 }
-
-div.sd-win .sd-win-hex {
+.w10-win .sd-win-hex {
 	max-width: 140px;
 	text-transform: lowercase;
 }
-
-div.sd-win .sd-win-body {
-	flex: 1;
-	min-width: 0;
-	overflow-y: auto;
-	padding: 20px 24px;
-	background: #fff;
-	scrollbar-width: auto;
-	scrollbar-color: #c1c1c1 #f0f0f0;
-	-ms-overflow-style: scrollbar;
-}
-
-/* Scrollbar vraiment carrée façon Windows 10 : 17px, angles droits, pas de boutons */
-div.sd-win .sd-win-body::-webkit-scrollbar {
+.w10-win .sd-win-body::-webkit-scrollbar {
 	width: 17px;
 	height: 17px;
 }
-
-div.sd-win .sd-win-body::-webkit-scrollbar-track {
+.w10-win .sd-win-body::-webkit-scrollbar-track {
 	background: #f0f0f0;
 	border: none;
 	border-radius: 0 !important;
 }
-
-div.sd-win .sd-win-body::-webkit-scrollbar-thumb {
+.w10-win .sd-win-body::-webkit-scrollbar-thumb {
 	background: #c1c1c1;
 	border: none;
 	border-radius: 0 !important;
 	min-height: 32px;
 }
-
-div.sd-win .sd-win-body::-webkit-scrollbar-thumb:hover {
+.w10-win .sd-win-body::-webkit-scrollbar-thumb:hover {
 	background: #767676;
 	border-radius: 0 !important;
 }
-
-div.sd-win .sd-win-body::-webkit-scrollbar-thumb:active {
+.w10-win .sd-win-body::-webkit-scrollbar-thumb:active {
 	background: #555555;
 	border-radius: 0 !important;
 }
-
-div.sd-win .sd-win-body::-webkit-scrollbar-button {
+.w10-win .sd-win-body::-webkit-scrollbar-button {
 	display: none;
 	width: 0;
 	height: 0;
 }
-
-div.sd-win .sd-win-body::-webkit-scrollbar-corner,
-div.sd-win .sd-win-body::-webkit-resizer {
-	background: #f0f0f0;
-	border: none;
-	border-radius: 0 !important;
-}
-
-div.sd-win.sd-win-dark .sd-win-body {
-	scrollbar-color: #4d4d4d #171717;
-}
-
-div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-track,
-div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-corner,
-div.sd-win.sd-win-dark .sd-win-body::-webkit-resizer {
-	background: #171717;
-}
-
-div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
+.w10-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
 	background: #4d4d4d;
 	border-radius: 0 !important;
 }
-
-div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb:hover {
+.w10-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb:hover {
 	background: #767676;
 }
-
-div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb:active {
+.w10-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb:active {
 	background: #a6a6a6;
 }
-
-div.sd-win .sd-win-grouptitle {
-	font-size: 14px;
-	font-weight: 600;
-	margin: 18px 0 8px;
-}
-
-div.sd-win .sd-win-grouptitle:first-child {
-	margin-top: 0;
-}
-
-div.sd-win .sd-win-setting {
-	display: flex;
-	align-items: center;
-	gap: 16px;
-	padding: 10px 0;
-	border-bottom: 1px solid #f0f0f0;
-}
-
-div.sd-win .sd-win-setting-col {
-	flex-direction: column;
-	align-items: stretch;
-	gap: 6px;
-}
-
-div.sd-win .sd-win-setting-texts {
-	flex: 1;
-	min-width: 0;
-}
-
-div.sd-win .sd-win-setting-title {
-	font-size: 13px;
-}
-
-div.sd-win .sd-win-setting-desc {
-	font-size: 12px;
-	color: #605e5c;
-	margin-top: 2px;
-	line-height: 1.45;
-}
-
-/* Checkbox Win10 (carree) */
-div.sd-win .sd-win-checkbox {
-	position: relative;
-	width: 20px;
-	height: 20px;
-	flex-shrink: 0;
-	box-sizing: border-box;
-	background: #fff;
-	border: 2px solid #333;
-	border-radius: 0;
-	cursor: pointer;
-	padding: 0;
-}
-
-div.sd-win .sd-win-checkbox:hover {
-	border-color: #000;
-}
-
-div.sd-win .sd-win-checkbox-on {
-	background: var(--sd-accent, #0078d7);
-	border-color: var(--sd-accent, #0078d7);
-}
-
-div.sd-win .sd-win-checkbox-on::after {
-	content: "";
-	position: absolute;
-	left: 6px;
-	top: 1px;
-	width: 6px;
-	height: 11px;
-	box-sizing: border-box;
-	border: solid #fff;
-	border-width: 0 3px 3px 0;
-	transform: rotate(45deg);
-}
-
-div.sd-win.sd-win-dark .sd-win-checkbox {
-	background: transparent;
-	border-color: #fff;
-}
-
-div.sd-win.sd-win-dark .sd-win-checkbox-on {
-	background: var(--sd-accent, #0078d7);
-	border-color: var(--sd-accent, #0078d7);
-}
-
-div.sd-win .sd-win-btn {
-	min-width: 88px;
-	padding: 5px 20px;
-	font-family: inherit;
-	font-size: 12px;
-	color: #000;
-	background: #e1e1e1;
-	border: 1px solid #adadad;
-	border-radius: 0;
-	cursor: pointer;
-}
-
-div.sd-win .sd-win-btn:hover {
-	border-color: var(--sd-accent, #0078d7);
-	background: #e5f1fb;
-}
-
-div.sd-win .sd-win-btn:active {
-	background: #cce4f7;
-}
-
-div.sd-win .sd-win-textbox,
-div.sd-win .sd-win-combo {
-	font-family: inherit;
-	font-size: 12px;
-	color: #000;
-	background: #fff;
-	border: 1px solid #767676;
-	border-radius: 0;
-	padding: 0 8px;
-	height: 30px;
-	width: 100%;
-	box-sizing: border-box;
-}
-
-div.sd-win .sd-win-textbox:hover,
-div.sd-win .sd-win-combo:hover {
-	border-color: #333;
-}
-
-div.sd-win .sd-win-textbox:focus,
-div.sd-win .sd-win-combo:focus {
-	outline: none;
-	border: 2px solid var(--sd-accent, #0078d7);
-	padding: 0 7px;
-}
-
-div.sd-win .sd-win-textbox.sd-win-textarea {
-	height: auto;
-	min-height: 120px;
-	padding: 6px 8px;
-	font-family: Consolas, "Courier New", monospace;
-	font-size: 12px;
-	line-height: 1.5;
-	resize: vertical;
-	white-space: pre;
-}
-
-div.sd-win .sd-win-textbox.sd-win-textarea:focus {
-	padding: 5px 7px;
-}
-
-div.sd-win .sd-win-searchrow {
+.w10-win .sd-win-searchrow {
 	position: sticky;
 	top: -20px;
 	padding: 0 0 10px;
 	background: #fff;
 	z-index: 1;
 }
-
-div.sd-win .sd-win-hero {
-	text-align: center;
-	padding: 28px 0 12px;
-}
-
-div.sd-win .sd-win-hero-num {
-	font-size: 52px;
-	font-weight: 300;
-	color: var(--sd-accent, #0078d7);
-	line-height: 1;
-}
-
-div.sd-win .sd-win-hero-label {
-	font-size: 13px;
-	color: #605e5c;
-	margin-top: 4px;
-}
-
-div.sd-win .sd-win-toolbar {
-	display: flex;
-	gap: 8px;
-	margin-bottom: 12px;
-}
-
-div.sd-win .sd-win-outrow {
+.w10-win .sd-win-outrow {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -663,8 +158,7 @@ div.sd-win .sd-win-outrow {
 	background: #f3f3f3;
 	border: 1px solid #e6e6e6;
 }
-
-div.sd-win .sd-win-folderval {
+.w10-win .sd-win-folderval {
 	flex: 1;
 	min-width: 0;
 	font-size: 12px;
@@ -672,37 +166,27 @@ div.sd-win .sd-win-folderval {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
-
-div.sd-win .sd-win-btn-small {
-	min-width: 0;
-	padding: 3px 12px;
-}
-
-div.sd-win.sd-win-dark .sd-win-outrow {
+.w10-win.sd-win-dark .sd-win-outrow {
 	background: #191919;
 	border-color: #2c2c2c;
 }
-
-div.sd-win .sd-win-empty {
+.w10-win .sd-win-empty {
 	color: #605e5c;
 	font-size: 12px;
 	line-height: 1.5;
 	padding: 24px 8px;
 	text-align: center;
 }
-
-div.sd-win .sd-island-list {
+.w10-win .sd-island-list {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
 }
-
-div.sd-win .sd-island-jobwrap {
+.w10-win .sd-island-jobwrap {
 	display: flex;
 	flex-direction: column;
 }
-
-div.sd-win .sd-island-exp {
+.w10-win .sd-island-exp {
 	flex-shrink: 0;
 	width: 14px;
 	text-align: center;
@@ -711,8 +195,7 @@ div.sd-win .sd-island-exp {
 	user-select: none;
 	-webkit-user-select: none;
 }
-
-div.sd-win .sd-island-row {
+.w10-win .sd-island-row {
 	display: flex;
 	align-items: center;
 	gap: 10px;
@@ -723,25 +206,20 @@ div.sd-win .sd-island-row {
 	transition: background 0.12s ease;
 	cursor: pointer;
 }
-
-div.sd-win .sd-island-row:hover {
+.w10-win .sd-island-row:hover {
 	background: #f3f3f3;
 }
-
-div.sd-win .sd-island-row.sd-island-active {
+.w10-win .sd-island-row.sd-island-active {
 	background: #e5f1fb;
-	border-left-color: var(--sd-accent, #0078d7);
+	border-left-color: var(--w10-accent, #0078d7);
 }
-
-div.sd-win .sd-island-row.sd-island-dragging {
+.w10-win .sd-island-row.sd-island-dragging {
 	opacity: 0.4;
 }
-
-div.sd-win .sd-island-row.sd-island-dragover {
-	border-top: 2px solid var(--sd-accent, #0078d7);
+.w10-win .sd-island-row.sd-island-dragover {
+	border-top: 2px solid var(--w10-accent, #0078d7);
 }
-
-div.sd-win .sd-island-handle {
+.w10-win .sd-island-handle {
 	cursor: grab;
 	color: #767676;
 	font-size: 12px;
@@ -751,24 +229,20 @@ div.sd-win .sd-island-handle {
 	width: 16px;
 	text-align: center;
 }
-
-div.sd-win .sd-island-handle:active {
+.w10-win .sd-island-handle:active {
 	cursor: grabbing;
 }
-
-div.sd-win .sd-island-dot {
+.w10-win .sd-island-dot {
 	width: 8px;
 	height: 8px;
 	border-radius: 999px;
 	flex-shrink: 0;
 	background: #a6a6a6;
 }
-
-div.sd-win .sd-island-row.sd-island-active .sd-island-dot {
-	background: var(--sd-accent, #0078d7);
+.w10-win .sd-island-row.sd-island-active .sd-island-dot {
+	background: var(--w10-accent, #0078d7);
 	animation: sd-island-pulse 1.2s ease-in-out infinite;
 }
-
 @keyframes sd-island-pulse {
 	0%,
 	100% {
@@ -780,49 +254,41 @@ div.sd-win .sd-island-row.sd-island-active .sd-island-dot {
 		opacity: 0.7;
 	}
 }
-
-div.sd-win .sd-island-row.sd-island-done .sd-island-dot {
+.w10-win .sd-island-row.sd-island-done .sd-island-dot {
 	background: #107c10;
 }
-
-div.sd-win .sd-island-row.sd-island-stopped .sd-island-dot {
+.w10-win .sd-island-row.sd-island-stopped .sd-island-dot {
 	background: #d83b01;
 }
-
-div.sd-win .sd-island-main {
+.w10-win .sd-island-main {
 	flex: 1;
 	min-width: 0;
 }
-
-div.sd-win .sd-island-title {
+.w10-win .sd-island-title {
 	font-size: 13px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
-
-div.sd-win .sd-island-sub {
+.w10-win .sd-island-sub {
 	font-size: 12px;
 	color: #605e5c;
 	margin-top: 1px;
 	font-variant-numeric: tabular-nums;
 }
-
-div.sd-win .sd-island-bar {
+.w10-win .sd-island-bar {
 	height: 4px;
 	margin-top: 6px;
 	background: #edebe9;
 	overflow: hidden;
 }
-
-div.sd-win .sd-island-bar-fill {
+.w10-win .sd-island-bar-fill {
 	height: 100%;
 	width: 0%;
-	background: var(--sd-accent, #0078d7);
+	background: var(--w10-accent, #0078d7);
 	transition: width 0.15s ease-out;
 }
-
-div.sd-win .sd-island-action {
+.w10-win .sd-island-action {
 	flex-shrink: 0;
 	width: 28px;
 	height: 28px;
@@ -834,363 +300,115 @@ div.sd-win .sd-island-action {
 	cursor: pointer;
 	font-family: inherit;
 }
-
-div.sd-win .sd-island-action:hover {
+.w10-win .sd-island-action:hover {
 	background: #e81123;
 	color: #fff;
 }
-
-/* Tracks dépliées (thumbnails + progression live) */
-div.sd-win .sd-island-tracks {
+.w10-win .sd-island-tracks {
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
 	padding: 2px 0 6px 34px;
 }
-
-div.sd-win .sd-island-track {
+.w10-win .sd-island-track {
 	display: flex;
 	align-items: center;
 	gap: 10px;
 	padding: 6px 8px;
 	background: rgba(0, 0, 0, 0.03);
-	border-left: 2px solid var(--sd-accent, #0078d7);
+	border-left: 2px solid var(--w10-accent, #0078d7);
 }
-
-div.sd-win .sd-island-thumb {
+.w10-win .sd-island-thumb {
 	width: 40px;
 	height: 40px;
 	flex-shrink: 0;
 	object-fit: cover;
 	background: #edebe9;
 }
-
-div.sd-win .sd-island-trackmain {
+.w10-win .sd-island-trackmain {
 	flex: 1;
 	min-width: 0;
 }
-
-div.sd-win .sd-island-tracktitle {
+.w10-win .sd-island-tracktitle {
 	font-size: 12px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
-
-div.sd-win .sd-island-tracksub {
+.w10-win .sd-island-tracksub {
 	font-size: 11px;
 	color: #605e5c;
 	margin-top: 1px;
 	font-variant-numeric: tabular-nums;
 }
-
-div.sd-win .sd-island-trackbar {
+.w10-win .sd-island-trackbar {
 	height: 3px;
 	margin-top: 5px;
 	background: #edebe9;
 	overflow: hidden;
 }
-
-div.sd-win .sd-island-trackfill {
+.w10-win .sd-island-trackfill {
 	height: 100%;
 	width: 0%;
-	background: var(--sd-accent, #0078d7);
+	background: var(--w10-accent, #0078d7);
 	transition: width 0.15s ease-out;
 }
-
-div.sd-win .sd-island-wait {
+.w10-win .sd-island-wait {
 	font-size: 11px;
 	color: #a19f9d;
 	font-style: italic;
 	padding: 4px 8px;
 }
-
-div.sd-win.sd-win-dark .sd-island-track {
+.w10-win.sd-win-dark .sd-island-track {
 	background: rgba(255, 255, 255, 0.04);
 }
-
-div.sd-win.sd-win-dark .sd-island-thumb {
+.w10-win.sd-win-dark .sd-island-thumb {
 	background: #3a3a3a;
 }
-
-div.sd-win.sd-win-dark .sd-island-tracksub {
+.w10-win.sd-win-dark .sd-island-tracksub {
 	color: #a19f9d;
 }
-
-div.sd-win.sd-win-dark .sd-island-trackbar {
+.w10-win.sd-win-dark .sd-island-trackbar {
 	background: #3a3a3a;
 }
-
-div.sd-win.sd-win-dark .sd-island-exp {
+.w10-win.sd-win-dark .sd-island-exp {
 	color: #a19f9d;
 }
-
-div.sd-win .sd-win-resize {
-	position: absolute;
-	right: 0;
-	bottom: 0;
-	width: 16px;
-	height: 16px;
-	cursor: nwse-resize;
-	touch-action: none;
-	background: linear-gradient(135deg, transparent 50%, #767676 50%);
-}
-
-div.sd-win.sd-win-max .sd-win-resize {
-	display: none;
-}
-
-/* ============ Thème sombre Windows 10 ============ */
-div.sd-win.sd-win.sd-win-dark {
-	color: #fff;
-	background: #202020;
-	border-color: var(--sd-accent, #0078d7);
-}
-
-div.sd-win.sd-win-dark .sd-win-titlebar {
-	background: #111;
-}
-
-div.sd-win.sd-win-dark .sd-win-credit {
-	color: #a19f9d;
-}
-
-div.sd-win.sd-win-dark .sd-win-capbtn {
-	color: #fff;
-}
-
-div.sd-win.sd-win-dark .sd-win-capbtn:hover {
-	background: rgba(255, 255, 255, 0.1);
-}
-
-div.sd-win.sd-win-dark .sd-win-capbtn:active {
-	background: rgba(255, 255, 255, 0.18);
-}
-
-div.sd-win.sd-win-dark .sd-win-capbtn.sd-win-close:hover {
-	background: #e81123;
-	color: #fff;
-}
-
-div.sd-win.sd-win-dark .sd-win-content {
-	border-top-color: #2c2c2c;
-}
-
-div.sd-win.sd-win-dark .sd-win-nav {
-	background: #191919;
-	border-right-color: #2c2c2c;
-}
-
-div.sd-win.sd-win-dark .sd-win-navitem {
-	color: #fff;
-}
-
-div.sd-win.sd-win-dark .sd-win-navitem:hover {
-	background: #2d2d2d;
-}
-
-div.sd-win.sd-win-dark .sd-win-navitem-active {
-	background: #2d2d2d;
-	border-left-color: var(--sd-accent, #0078d7);
-}
-
-div.sd-win.sd-win-dark .sd-win-body {
-	background: #202020;
-	scrollbar-color: #4d4d4d transparent;
-}
-
-div.sd-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
+.w10-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
 	background: #4d4d4d;
 	border: none;
 }
-
-div.sd-win.sd-win-dark .sd-win-setting {
-	border-bottom-color: #2c2c2c;
-}
-
-div.sd-win.sd-win-dark .sd-win-setting-desc,
-div.sd-win.sd-win-dark .sd-win-hero-label,
-div.sd-win.sd-win-dark .sd-win-empty,
-div.sd-win.sd-win-dark .sd-island-sub {
+.w10-win.sd-win-dark .sd-island-sub {
 	color: #a19f9d;
 }
-
-
-
-div.sd-win.sd-win-dark .sd-win-btn {
-	color: #fff;
-	background: #333;
-	border-color: #8a8a8a;
-}
-
-div.sd-win.sd-win-dark .sd-win-btn:hover {
-	border-color: var(--sd-accent, #0078d7);
-	background: #3a3a3a;
-}
-
-div.sd-win.sd-win-dark .sd-win-textbox,
-div.sd-win.sd-win-dark .sd-win-combo {
-	color: #fff;
-	background: #2b2b2b;
-	border-color: #8a8a8a;
-}
-
-div.sd-win.sd-win-dark .sd-win-textbox:hover,
-div.sd-win.sd-win-dark .sd-win-combo:hover {
-	border-color: #fff;
-}
-
-div.sd-win.sd-win-dark .sd-win-searchrow {
+.w10-win.sd-win-dark .sd-win-searchrow {
 	background: #202020;
 }
-
-div.sd-win.sd-win-dark .sd-island-row {
+.w10-win.sd-win-dark .sd-island-row {
 	background: #202020;
 }
-
-div.sd-win.sd-win-dark .sd-island-row:hover {
+.w10-win.sd-win-dark .sd-island-row:hover {
 	background: #2d2d2d;
 }
-
-div.sd-win.sd-win-dark .sd-island-row.sd-island-active {
+.w10-win.sd-win-dark .sd-island-row.sd-island-active {
 	background: rgba(0, 120, 215, 0.25);
 }
-
-div.sd-win.sd-win-dark .sd-island-bar {
+.w10-win.sd-win-dark .sd-island-bar {
 	background: #3a3a3a;
 }
-
-div.sd-win.sd-win-dark .sd-island-action {
+.w10-win.sd-win-dark .sd-island-action {
 	color: #a19f9d;
 }
-
-div.sd-win.sd-win-dark .sd-island-action:hover {
+.w10-win.sd-win-dark .sd-island-action:hover {
 	background: #e81123;
 	color: #fff;
 }
-
-div.sd-win.sd-win-dark .sd-win-combo option {
-	background: #2b2b2b;
-	color: #fff;
-}
-
-div.sd-win.sd-win-dark .sd-win-resize {
-	background: linear-gradient(135deg, transparent 50%, #8a8a8a 50%);
-}
-
-/* ============ Mini-menu Tracks (style Win10) ============ */
-.sd-quickmenu {
-	position: fixed;
-	z-index: 99998;
-	min-width: 250px;
-	max-width: calc(100vw - 32px);
-	background: #fff;
-	color: #000;
-	border: 1px solid #767676;
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-	padding: 4px;
-	font-family: "Segoe UI", system-ui, sans-serif;
-}
-
-.sd-quickmenu .sd-qm-item {
-	display: block;
-	width: 100%;
-	text-align: left;
-	background: transparent;
-	border: 1px solid transparent;
-	color: #000;
-	padding: 8px 12px;
-	font-family: inherit;
-	font-size: 12px;
-	cursor: pointer;
-}
-
-.sd-quickmenu .sd-qm-item:hover {
-	background: #e5f1fb;
-	border-color: #cce8ff;
-}
-
-.sd-quickmenu .sd-qm-sub {
-	display: block;
-	font-size: 11px;
-	color: #605e5c;
-	margin-top: 2px;
-}
-
-.sd-quickmenu .sd-qm-item.sd-qm-disabled {
-	opacity: 0.8;
-	cursor: default;
-}
-
-.sd-quickmenu .sd-qm-item.sd-qm-disabled:hover {
-	background: transparent;
-	border-color: transparent;
-}
-
-.sd-quickmenu .sd-qm-sep {
-	height: 1px;
-	background: #e1e1e1;
-	margin: 4px 2px;
-}
-
-.sd-quickmenu .sd-qm-track {
-	padding-left: 22px;
-	font-size: 11px;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	max-width: 300px;
-}
-
-.sd-quickmenu.sd-qm-dark .sd-qm-sep {
-	background: #444;
-}
-
-.sd-quickmenu.sd-qm-dark {
-	background: #2b2b2b;
-	color: #fff;
-	border-color: #444;
-}
-
-.sd-quickmenu.sd-qm-dark .sd-qm-item {
-	color: #fff;
-}
-
-.sd-quickmenu.sd-qm-dark .sd-qm-item:hover {
-	background: #3a3a3a;
-	border-color: #555;
-}
-
-.sd-quickmenu.sd-qm-dark .sd-qm-sub {
-	color: #a19f9d;
-}
-
-/* Bouton header Tracks (conservé) */
 button[data-luna-songdownloader="tracks-download-all"] {
 	cursor: pointer;
 }
-
 button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 	opacity: 0.8;
 }
-
-/* ============ Calendrier façon Win10 (clic horloge) ============ */
-#luna-songdownloader-cal.sd-cal {
-	position: fixed;
-	right: 8px;
-	bottom: 48px;
-	z-index: 99996;
-	width: 300px;
-	padding: 12px 14px 10px;
-	font-family: "Segoe UI", system-ui, sans-serif;
-	color: #000;
-	background: #fff;
-	border: 1px solid #767676;
-	border-radius: 0;
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-	animation: sd-cal-in 0.15s ease-out;
-}
-
 @keyframes sd-cal-in {
 	from {
 		opacity: 0;
@@ -1201,24 +419,20 @@ button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 		transform: translateX(0);
 	}
 }
-
 #luna-songdownloader-cal .sd-cal-head {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	margin-bottom: 8px;
 }
-
 #luna-songdownloader-cal .sd-cal-title {
 	font-size: 13px;
 	font-weight: 600;
 }
-
 #luna-songdownloader-cal .sd-cal-nav {
 	display: flex;
 	gap: 2px;
 }
-
 #luna-songdownloader-cal .sd-cal-navbtn {
 	width: 28px;
 	height: 24px;
@@ -1230,24 +444,20 @@ button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 	cursor: pointer;
 	font-family: inherit;
 }
-
 #luna-songdownloader-cal .sd-cal-navbtn:hover {
 	background: #e5e5e5;
 }
-
 #luna-songdownloader-cal .sd-cal-grid {
 	display: grid;
 	grid-template-columns: repeat(7, 1fr);
 	gap: 1px;
 }
-
 #luna-songdownloader-cal .sd-cal-dow {
 	text-align: center;
 	font-size: 11px;
 	color: #605e5c;
 	padding: 4px 0;
 }
-
 #luna-songdownloader-cal .sd-cal-day {
 	border: 1px solid transparent;
 	border-radius: 0;
@@ -1259,24 +469,20 @@ button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 	padding: 5px 0;
 	cursor: pointer;
 }
-
 #luna-songdownloader-cal .sd-cal-day:hover {
 	background: #e5f1fb;
 	border-color: #cce8ff;
 	border-radius: 0;
 }
-
 #luna-songdownloader-cal .sd-cal-day.sd-cal-other {
 	color: #a19f9d;
 }
-
 #luna-songdownloader-cal .sd-cal-day.sd-cal-today {
-	background: var(--sd-accent, #0078d7);
-	border-color: var(--sd-accent, #0078d7);
+	background: var(--w10-accent, #0078d7);
+	border-color: var(--w10-accent, #0078d7);
 	color: #fff;
 	border-radius: 0;
 }
-
 #luna-songdownloader-cal .sd-cal-foot {
 	margin-top: 8px;
 	padding-top: 8px;
@@ -1284,43 +490,147 @@ button[data-luna-songdownloader="tracks-download-all"].sd-busy {
 	font-size: 12px;
 	color: #605e5c;
 }
-
 #luna-songdownloader-cal.sd-cal-dark {
 	color: #fff;
 	background: #2b2b2b;
 	border-color: #444;
 }
-
 #luna-songdownloader-cal.sd-cal-dark .sd-cal-navbtn {
 	color: #fff;
 }
-
 #luna-songdownloader-cal.sd-cal-dark .sd-cal-navbtn:hover {
 	background: #3a3a3a;
 }
-
-#luna-songdownloader-cal.sd-cal-dark .sd-cal-dow,
 #luna-songdownloader-cal.sd-cal-dark .sd-cal-foot {
 	color: #a19f9d;
 }
-
 #luna-songdownloader-cal.sd-cal-dark .sd-cal-day {
 	color: #fff;
 }
-
 #luna-songdownloader-cal.sd-cal-dark .sd-cal-day:hover {
 	background: #3a3a3a;
 	border-color: #555;
 }
-
 #luna-songdownloader-cal.sd-cal-dark .sd-cal-day.sd-cal-other {
 	color: #656565;
 }
-
 #luna-songdownloader-cal.sd-cal-dark .sd-cal-foot {
 	border-top-color: #444;
 }
+/* ============ About (déplacé depuis win10extra.css) ============ */
+#luna-songdownloader-about .sd-win-infoicon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+#luna-songdownloader-about .sd-win-infoicon svg {
+	display: block;
+}
+.sd-about-hero {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin-bottom: 6px;
+}
+.sd-about-avatar {
+	width: 56px;
+	height: 56px;
+	flex-shrink: 0;
+	border: 1px solid #e1e1e1;
+	background: #f3f3f3;
+}
+.sd-win-dark .sd-about-avatar {
+	border-color: #444;
+	background: #191919;
+}
+.sd-about-name {
+	font-size: 17px;
+	font-weight: 600;
+	line-height: 1.25;
+}
+.sd-about-sub {
+	font-size: 12px;
+	color: #605e5c;
+	margin-top: 2px;
+}
+.sd-win-dark .sd-about-sub {
+	color: #a19f9d;
+}
+.sd-about-badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 10px 0 2px;
+}
+.sd-about-badge {
+	font-size: 11px;
+	padding: 2px 8px;
+	background: #f3f3f3;
+	border: 1px solid #e1e1e1;
+	color: #323130;
+	user-select: none;
+	-webkit-user-select: none;
+}
+.sd-win-dark .sd-about-badge {
+	background: #191919;
+	border-color: #333;
+	color: #d2d0ce;
+}
+.sd-about-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 12px 0 4px;
+}
+/* ============ Compléments winml spécifiques au plugin ============ */
+/* Icône SVG dans la nav (globe Languages) : centrée, teintée accent */
+.w10-win .w10-navglyph svg {
+	display: block;
+	margin: 0 auto;
+}
 
-/* (La fenêtre About + le markdown sont stylés dans win10extra.css :
-   .sd-about-* / .w10-md-*, même DA. La généralisation `div.sd-win`
-   ci-dessus leur donne toute la base du manager.) */
+/* Lignes de tracks dans le menu job : indentées façon Win10 */
+.w10-menu .w10-menu-track {
+	padding-left: 22px;
+	font-size: 11px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 300px;
+}
+
+/* Code hex de l'accent (page Theme) */
+.w10-win .w10-hex {
+	max-width: 140px;
+	text-transform: lowercase;
+}
+
+/* Sélecteur de couleur custom (page Theme) */
+.w10-win .w10-color {
+	width: 48px;
+	height: 32px;
+	padding: 0;
+	background: transparent;
+	border: 1px solid #767676;
+	border-radius: 0;
+	cursor: pointer;
+}
+
+.w10-win .w10-color::-webkit-color-swatch-wrapper {
+	padding: 2px;
+}
+
+.w10-win .w10-color::-webkit-color-swatch {
+	border: none;
+	border-radius: 0;
+}
+
+.w10-win .w10-color::-moz-color-swatch {
+	border: none;
+	border-radius: 0;
+}
+
+.w10-win.w10-dark .w10-color {
+	border-color: #8a8a8a;
+}

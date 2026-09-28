@@ -14,7 +14,8 @@ import { onLanguageChange, t } from "./i18n";
 
 import styles from "file://downloadButton.css?minify";
 import islandStyles from "file://downloadIsland.css?minify";
-import win10ExtraStyles from "file://win10extra.css?minify";
+// DA framework winml, synchronisée depuis node_modules via prebuild (voir scripts/sync-winml-css.mjs)
+import winmlStyles from "file://vendor/win10-shell.css?minify";
 
 export const { errSignal, trace } = Tracer("[SongDownloader]");
 export { Settings } from "./Settings";
@@ -22,7 +23,7 @@ export { unloads };
 
 new StyleTag("SongDownloader", unloads, styles);
 new StyleTag("SongDownloaderIsland", unloads, islandStyles);
-new StyleTag("SongDownloaderWin10", unloads, win10ExtraStyles);
+new StyleTag("WinmlShell", unloads, winmlStyles);
 
 // Fenêtre de gestion des downloads (style Windows 10) + taskbar
 mountIsland();
@@ -213,12 +214,12 @@ const showTracksQuickMenu = (x: number, y: number) => {
 	const count = FavoriteTracks.ids().length;
 	const menu = document.createElement("div");
 	menu.id = QUICKMENU_ID;
-	menu.className = "sd-quickmenu";
-	if (settings.winTheme === "dark") menu.classList.add("sd-qm-dark");
+	menu.className = "w10-menu";
+	if (settings.winTheme === "dark") menu.classList.add("w10-dark");
 	const item = document.createElement("button");
 	item.type = "button";
-	item.className = "sd-qm-item";
-	item.innerHTML = `<span>${count > 0 ? t("sd.side", { n: count }) : t("sd.sideNone")}</span><span class="sd-qm-sub">${t("qm.sub")}</span>`;
+	item.className = "w10-menu-item";
+	item.innerHTML = `<span>${count > 0 ? t("sd.side", { n: count }) : t("sd.sideNone")}</span><span class="w10-menu-sub">${t("qm.sub")}</span>`;
 	item.onclick = async (e) => {
 		e.preventDefault();
 		e.stopPropagation();

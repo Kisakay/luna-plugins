@@ -11,7 +11,7 @@ import { settings } from "./Settings";
 import { saveLyricsForTrack } from "./trackLyrics";
 import { saveMetaForTrack } from "./trackMeta";
 import { msgTheme, repaintTaskbar, setAutoTaskbarStatus } from "./downloadIsland";
-import { showWin10MsgBox } from "./win10";
+import { showWin10MsgBox } from "winml";
 import { t } from "./i18n";
 
 const { trace } = Tracer("[SongDownloader][Auto]");
@@ -27,7 +27,7 @@ function esc(text: string): string {
 }
 
 function autoHtml(text: string): string {
-	return `<span class="sd-taskbar-status-icon">⬇</span><span>${esc(text)}</span>`;
+	return `<span class="w10-status-icon">⬇</span><span>${esc(text)}</span>`;
 }
 
 /** Petit flash dans la taskbar (4s), sans écraser un download auto en cours. */
