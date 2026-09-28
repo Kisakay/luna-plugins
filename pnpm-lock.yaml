@@ -45,7 +45,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  plugins/SongDownloader:
+  plugins/DownloadManager:
     dependencies:
       sanitize-filename:
         specifier: ^1.6.3
