@@ -22,10 +22,9 @@ import { dateLocaleTag, LOCALES, LOCALE_NAMES, onLanguageChange, setLocaleOverri
 import {
 	DOWNLOAD_ICON,
 	GLOBE_ICON,
-	ICON_POWER,
-	ICON_SETTINGS,
 	INFO_ICON,
 	WIN10_LOGO,
+	Win10StartMenu,
 	Win10Taskbar,
 	Win10Window,
 	closeAllWin10Menus,
@@ -48,7 +47,6 @@ const TASKBAR_ID = "luna-songdownloader-taskbar";
 const WIN_ID = "luna-songdownloader-win";
 const CAL_ID = "luna-songdownloader-cal";
 const JOBMENU_ID = "luna-songdownloader-jobmenu";
-const STARTMENU_ID = "luna-songdownloader-startmenu";
 const APP_ID = "downloader";
 
 type Section = "downloads" | "history" | "settings" | "theme" | "languages";
@@ -88,10 +86,9 @@ function applyAccent() {
 	refreshAboutTheme();
 	document.getElementById(CAL_ID)?.style.setProperty("--w10-accent", accent);
 	document.getElementById(JOBMENU_ID)?.style.setProperty("--w10-accent", accent);
-	// Menu Démarrer ouvert : suit l'accent ET le thème en direct
-	const startMenu = document.getElementById(STARTMENU_ID);
-	startMenu?.style.setProperty("--w10-accent", accent);
-	startMenu?.classList.toggle("sd-startmenu-dark", settings.winTheme === "dark");
+	// Menu Démarrer framework : suit l'accent ET le thème en direct
+	startMenu?.setAccent(accent);
+	startMenu?.setTheme(settings.winTheme);
 }
 
 let taskbar: Win10Taskbar | null = null;
@@ -352,7 +349,7 @@ function openManager() {
 	render();
 }
 
-// #region Menu Démarrer façon Win10 (liste d'apps + tuiles, extensible)
+// #region Menu Démarrer via le framework winml (liste + tuiles + recherche)
 export interface StartAppEntry {
 	id: string;
 	label: string;
@@ -360,26 +357,56 @@ export interface StartAppEntry {
 	onOpen: () => void;
 }
 
-const startApps: StartAppEntry[] = [];
+const startAppEntries: StartAppEntry[] = [];
+let startMenu: Win10StartMenu | null = null;
 
 /** Enregistre une app dans le menu Démarrer (les suivantes s'ajoutent ici). */
 export function registerStartApp(entry: StartAppEntry): void {
-	const i = startApps.findIndex((a) => a.id === entry.id);
-	if (i >= 0) startApps[i] = entry;
-	else startApps.push(entry);
+	const i = startAppEntries.findIndex((a) => a.id === entry.id);
+	if (i >= 0) startAppEntries[i] = entry;
+	else startAppEntries.push(entry);
+	startMenu?.registerApp(entry);
+}
+
+function ensureStartMenu(): Win10StartMenu {
+	if (!startMenu) {
+		startMenu = new Win10StartMenu({
+			searchPlaceholder: t("sm.search"),
+			theme: settings.winTheme,
+			accent: currentAccent(),
+			footer: {
+				user: {
+					avatarUrl: "https://github.com/Kisakay.png",
+					name: "Kisakay",
+					onClick: () => {
+						if (!isAboutOpen()) toggleAbout();
+					},
+				},
+				settings: {
+					title: t("nav.settings"),
+					onClick: () => {
+						section = "settings";
+						openManager();
+					},
+				},
+				power: { title: t("sm.sleep"), onClick: () => sleepAll() },
+			},
+		});
+		for (const entry of startAppEntries) startMenu.registerApp(entry);
+		unloads.add(() => {
+			startMenu?.destroy();
+			startMenu = null;
+		});
+	}
+	return startMenu;
 }
 
 export function isStartMenuOpen(): boolean {
-	return document.getElementById(STARTMENU_ID) !== null;
+	return startMenu?.isOpen() ?? false;
 }
 
 export function closeStartMenu(): void {
-	document.getElementById(STARTMENU_ID)?.remove();
-}
-
-function launchStartApp(entry: StartAppEntry): void {
-	closeStartMenu();
-	entry.onOpen();
+	startMenu?.close();
 }
 
 function sleepAll(): void {
@@ -388,144 +415,13 @@ function sleepAll(): void {
 	closeAbout();
 	closeCalendar();
 	closeAllWin10Menus();
-	closeStartMenu();
+	startMenu?.close();
 	render();
 }
 
 export function toggleStartMenu(): void {
-	if (isStartMenuOpen()) {
-		closeStartMenu();
-		return;
-	}
 	closeCalendar();
-	const menu = document.createElement("div");
-	menu.id = STARTMENU_ID;
-	menu.className = "sd-startmenu";
-	if (settings.winTheme === "dark") menu.classList.add("sd-startmenu-dark");
-	menu.style.setProperty("--w10-accent", currentAccent());
-
-	// Recherche
-	const searchRow = document.createElement("div");
-	searchRow.className = "sd-sm-search";
-	const searchInput = document.createElement("input");
-	searchInput.type = "text";
-	searchInput.className = "w10-textbox";
-	searchInput.placeholder = t("sm.search");
-	searchInput.setAttribute("aria-label", t("sm.search"));
-	searchRow.appendChild(searchInput);
-	menu.appendChild(searchRow);
-
-	const body = document.createElement("div");
-	body.className = "sd-sm-body";
-
-	// Colonne gauche : liste d'apps + pied (user, settings, power)
-	const list = document.createElement("div");
-	list.className = "sd-sm-list";
-	const appsBox = document.createElement("div");
-	appsBox.className = "sd-sm-apps";
-	list.appendChild(appsBox);
-	const foot = document.createElement("div");
-	foot.className = "sd-sm-foot";
-	const userBtn = document.createElement("button");
-	userBtn.type = "button";
-	userBtn.className = "sd-sm-footbtn";
-	userBtn.title = "Kisakay";
-	const avatar = document.createElement("img");
-	avatar.className = "sd-sm-avatar";
-	avatar.src = "https://github.com/Kisakay.png";
-	avatar.alt = "Kisakay";
-	avatar.draggable = false;
-	avatar.onerror = () => avatar.remove();
-	userBtn.appendChild(avatar);
-	userBtn.onclick = () => {
-		closeStartMenu();
-		if (!isAboutOpen()) toggleAbout();
-	};
-	const settingsBtn = document.createElement("button");
-	settingsBtn.type = "button";
-	settingsBtn.className = "sd-sm-footbtn";
-	settingsBtn.title = t("nav.settings");
-	settingsBtn.innerHTML = `<span class="sd-sm-footicon">${ICON_SETTINGS}</span>`;
-	settingsBtn.onclick = () => {
-		closeStartMenu();
-		section = "settings";
-		openManager();
-	};
-	const powerBtn = document.createElement("button");
-	powerBtn.type = "button";
-	powerBtn.className = "sd-sm-footbtn";
-	powerBtn.title = t("sm.sleep");
-	powerBtn.innerHTML = `<span class="sd-sm-footicon">${ICON_POWER}</span>`;
-	powerBtn.onclick = () => sleepAll();
-	foot.appendChild(userBtn);
-	foot.appendChild(settingsBtn);
-	foot.appendChild(powerBtn);
-	list.appendChild(foot);
-	body.appendChild(list);
-
-	// Colonne droite : tuiles
-	const tiles = document.createElement("div");
-	tiles.className = "sd-sm-tiles";
-	body.appendChild(tiles);
-	menu.appendChild(body);
-
-	const paintApps = (query: string) => {
-		const q = query.trim().toLowerCase();
-		appsBox.innerHTML = "";
-		tiles.innerHTML = "";
-		for (const entry of startApps) {
-			if (q && !entry.label.toLowerCase().includes(q)) continue;
-			const row = document.createElement("button");
-			row.type = "button";
-			row.className = "sd-sm-app";
-			row.innerHTML = `<span class="sd-sm-appicon"></span><span class="sd-sm-applabel"></span>`;
-			(row.querySelector(".sd-sm-appicon") as HTMLSpanElement).innerHTML = entry.iconHTML;
-			(row.querySelector(".sd-sm-applabel") as HTMLSpanElement).textContent = entry.label;
-			row.onclick = () => launchStartApp(entry);
-			appsBox.appendChild(row);
-
-			const tile = document.createElement("button");
-			tile.type = "button";
-			tile.className = "sd-sm-tile";
-			tile.title = entry.label;
-			tile.innerHTML = `<span class="sd-sm-tileicon"></span><span class="sd-sm-tilelabel"></span>`;
-			(tile.querySelector(".sd-sm-tileicon") as HTMLSpanElement).innerHTML = entry.iconHTML;
-			(tile.querySelector(".sd-sm-tilelabel") as HTMLSpanElement).textContent = entry.label;
-			tile.onclick = () => launchStartApp(entry);
-			tiles.appendChild(tile);
-		}
-	};
-	searchInput.oninput = () => paintApps(searchInput.value);
-	paintApps("");
-
-	document.body.appendChild(menu);
-	searchInput.focus();
-
-	const onPointerDown = (ev: PointerEvent) => {
-		const target = ev.target as HTMLElement;
-		// Le clic sur Démarrer toggle via son propre onclick
-		if (target.closest(".w10-start")) return;
-		if (!menu.contains(target)) closeStartMenu();
-	};
-	const onKey = (ev: KeyboardEvent) => {
-		if (ev.key === "Escape") closeStartMenu();
-	};
-	document.addEventListener("pointerdown", onPointerDown);
-	document.addEventListener("keydown", onKey);
-	unloads.add(() => {
-		document.removeEventListener("pointerdown", onPointerDown);
-		document.removeEventListener("keydown", onKey);
-	});
-	// Nettoyage des listeners à la fermeture (le menu est reconstruit à chaque ouverture)
-	const cleanupObserver = new MutationObserver(() => {
-		if (!document.body.contains(menu)) {
-			document.removeEventListener("pointerdown", onPointerDown);
-			document.removeEventListener("keydown", onKey);
-			cleanupObserver.disconnect();
-		}
-	});
-	cleanupObserver.observe(document.body, { childList: true });
-	unloads.add(() => cleanupObserver.disconnect());
+	ensureStartMenu().toggle();
 }
 // #endregion
 
@@ -1388,6 +1284,9 @@ export function mountIsland() {
 	unloads.add(
 		onLanguageChange(() => {
 			builtSection = null;
+			// Le menu framework est reconstruit avec les nouveaux libellés
+			startMenu?.destroy();
+			startMenu = null;
 			render();
 		}),
 	);

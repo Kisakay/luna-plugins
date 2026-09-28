@@ -1176,6 +1176,256 @@ hr.w10-md-hr {
 	border-top-color: #444;
 }
 
+/* ================= Start menu (app list + tiles + footer) ================= */
+.w10-startmenu {
+	position: fixed;
+	left: 8px;
+	bottom: 48px;
+	z-index: 99996;
+	width: 400px;
+	max-width: calc(100vw - 16px);
+	height: 540px;
+	max-height: calc(100vh - 120px);
+	display: flex;
+	flex-direction: column;
+	background: #f2f2f2;
+	color: #000;
+	border: 1px solid #767676;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+	font-family: "Segoe UI", system-ui, sans-serif;
+	animation: w10-sm-in 0.12s ease-out;
+}
+
+@keyframes w10-sm-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.w10-startmenu .w10-sm-search {
+	padding: 8px;
+	flex-shrink: 0;
+}
+
+.w10-startmenu .w10-sm-search .w10-textbox {
+	font-family: inherit;
+	font-size: 12px;
+	color: #000;
+	background: #fff;
+	border: 1px solid #767676;
+	border-radius: 0;
+	padding: 0 8px;
+	height: 30px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.w10-startmenu .w10-sm-search .w10-textbox:focus {
+	outline: none;
+	border: 2px solid var(--w10-accent, #0078d7);
+	padding: 0 7px;
+}
+
+.w10-startmenu .w10-sm-body {
+	display: flex;
+	flex: 1;
+	min-height: 0;
+}
+
+.w10-startmenu .w10-sm-list {
+	width: 190px;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	border-right: 1px solid #e1e1e1;
+	min-height: 0;
+}
+
+.w10-startmenu .w10-sm-apps {
+	flex: 1;
+	overflow-y: auto;
+	padding: 4px;
+	min-height: 0;
+}
+
+.w10-startmenu .w10-sm-app {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	box-sizing: border-box;
+	background: transparent;
+	border: 1px solid transparent;
+	color: #000;
+	padding: 8px 10px;
+	font-family: inherit;
+	font-size: 12px;
+	text-align: left;
+	cursor: pointer;
+}
+
+.w10-startmenu .w10-sm-app:hover {
+	background: #e5e5e5;
+}
+
+.w10-startmenu .w10-sm-appicon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	color: var(--w10-accent, #0078d7);
+}
+
+.w10-startmenu .w10-sm-appicon svg {
+	display: block;
+}
+
+.w10-startmenu .w10-sm-applabel {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.w10-startmenu .w10-sm-foot {
+	display: flex;
+	border-top: 1px solid #e1e1e1;
+	padding: 2px;
+	flex-shrink: 0;
+}
+
+.w10-startmenu .w10-sm-footbtn {
+	flex: 1;
+	background: transparent;
+	border: 1px solid transparent;
+	color: #000;
+	padding: 6px 4px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: inherit;
+	font-size: 12px;
+}
+
+.w10-startmenu .w10-sm-footbtn:hover {
+	background: #e5e5e5;
+}
+
+.w10-startmenu .w10-sm-avatar {
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	object-fit: cover;
+}
+
+.w10-startmenu .w10-sm-footicon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.w10-startmenu .w10-sm-footicon svg {
+	display: block;
+}
+
+.w10-startmenu .w10-sm-tiles {
+	flex: 1;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-content: flex-start;
+	padding: 10px;
+	overflow-y: auto;
+	min-width: 0;
+}
+
+.w10-startmenu .w10-sm-tile {
+	width: 104px;
+	height: 104px;
+	box-sizing: border-box;
+	background: var(--w10-accent, #0078d7);
+	color: #fff;
+	border: 1px solid transparent;
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	font-family: inherit;
+	position: relative;
+	padding: 0 0 18px;
+}
+
+.w10-startmenu .w10-sm-tile:hover {
+	filter: brightness(1.12);
+	outline: 2px solid rgba(255, 255, 255, 0.6);
+	outline-offset: -2px;
+}
+
+.w10-startmenu .w10-sm-tileicon {
+	display: inline-flex;
+	line-height: 0;
+}
+
+.w10-startmenu .w10-sm-tileicon svg {
+	width: 30px;
+	height: 30px;
+}
+
+.w10-startmenu .w10-sm-tilelabel {
+	position: absolute;
+	left: 8px;
+	bottom: 6px;
+	right: 8px;
+	font-size: 11px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-align: left;
+}
+
+.w10-startmenu.w10-dark {
+	background: #1f1f1f;
+	color: #fff;
+	border-color: #333;
+}
+
+.w10-startmenu.w10-dark .w10-sm-search .w10-textbox {
+	color: #fff;
+	background: #2b2b2b;
+	border-color: #8a8a8a;
+}
+
+.w10-startmenu.w10-dark .w10-sm-list {
+	border-right-color: #333;
+}
+
+.w10-startmenu.w10-dark .w10-sm-app {
+	color: #fff;
+}
+
+.w10-startmenu.w10-dark .w10-sm-app:hover {
+	background: #2d2d2d;
+}
+
+.w10-startmenu.w10-dark .w10-sm-foot {
+	border-top-color: #333;
+}
+
+.w10-startmenu.w10-dark .w10-sm-footbtn {
+	color: #fff;
+}
+
+.w10-startmenu.w10-dark .w10-sm-footbtn:hover {
+	background: #2d2d2d;
+}
+
 /* ================= MessageBox ================= */
 .w10-msgbox-overlay {
 	position: fixed;
