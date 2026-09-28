@@ -3,3 +3,12 @@ packages:
 allowBuilds:
   electron: true
   esbuild: true
+
+# Supply-chain policy tuning.
+#
+# win10ml is a first-party package (github:Kisakay, used by
+# plugins/SongDownloader). Fresh publishes would otherwise trip pnpm's
+# minimum-release-age gate (24h) in CI on every release day, so it is
+# exempted here. Everything else keeps the default protection.
+minimumReleaseAgeExclude:
+  - win10ml
