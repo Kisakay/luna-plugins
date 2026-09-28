@@ -24,6 +24,7 @@ import {
 	WIN10_LOGO,
 	Win10Taskbar,
 	Win10Window,
+	confirmWin10,
 	showWin10Menu,
 	w10Button,
 	w10ComboRow,
@@ -93,6 +94,32 @@ let section: Section = "downloads";
 let builtSection: Section | null = null;
 let search = "";
 let dragId: number | null = null;
+/** Garde anti double-confirm (Close spammé pendant le dialog). */
+let msgOpen = false;
+/** Statut taskbar de l'auto-download (visible quand aucun job manuel). */
+let autoStatus: string | null = null;
+
+/** Thème courant pour les dialogs framework. */
+export function msgTheme(): { theme: "light" | "dark"; accent: string } {
+	return { theme: settings.winTheme, accent: currentAccent() };
+}
+
+function closeManager(): void {
+	expanded = false;
+	minimized = false;
+	forceOpen = false;
+	render();
+}
+
+/** Statut taskbar piloté par l'auto-download (autoDownload.ts). */
+export function setAutoTaskbarStatus(html: string | null): void {
+	autoStatus = html;
+	repaintTaskbar();
+}
+
+export function repaintTaskbar(): void {
+	paintTaskbar();
+}
 
 const statusLabel = (job: QueueJob): string => {
 	switch (job.status) {
@@ -269,7 +296,7 @@ function paintTaskbar() {
 	const open = isWinShown();
 	// Comme le vrai Win10 : la barre accent est là dès que l'app est
 	// ouverte (fenêtre visible), pas seulement pendant un download.
-	const running = jobs.length > 0 || open;
+	const running = jobs.length > 0 || open || autoStatus !== null;
 	taskbar.setAppState(APP_ID, { running, open });
 	taskbar.setAppTitle(APP_ID, jobs.length > 0 ? `Downloader Manager — ${summaryText()}` : "Downloader Manager");
 	const active = jobs.find((j) => j.status === "active");
@@ -279,12 +306,14 @@ function paintTaskbar() {
 	if (active) {
 		const current = [...active.current.values()][0]?.label;
 		const extra = statusEtaExtra(jobs);
-		html = `<span class="sd-taskbar-status-icon">⬇</span><span>${active.done}/${active.total}${current ? ` · ${escapeHtml(current)}` : ""}${queued > 0 ? ` · ${queued} queued` : ""}${extra}</span>`;
+		html = `<span class="sd-taskbar-status-icon">⬇</span><span>${active.done}/${active.total}${current ? ` · ${escapeHtml(current)}` : ""}${queued > 0 ? ` · ${t("sum.queued", { n: queued })}` : ""}${extra}</span>`;
 	} else if (queued > 0) {
-		html = `<span class="sd-taskbar-status-icon">⬇</span><span>${queued} queued</span>`;
-		} else if (jobs.length > 0) {
-			html = `<span>${t("task.finished")}</span>`;
-		}
+		html = `<span class="sd-taskbar-status-icon">⬇</span><span>${t("sum.queued", { n: queued })}</span>`;
+	} else if (jobs.length > 0) {
+		html = `<span>${t("task.finished")}</span>`;
+	} else if (autoStatus !== null) {
+		html = autoStatus;
+	}
 	taskbar.setStatus(html);
 }
 
@@ -1095,10 +1124,19 @@ export function mountIsland() {
 			resize: t("cap.resize"),
 		},
 		onClose: () => {
-			expanded = false;
-			minimized = false;
-			forceOpen = false;
-			render();
+			// Download en cours -> confirm façon VBS avant de fermer.
+			// Oui = stoppe tout puis ferme, Non = ferme et laisse tourner en fond.
+			const hasActive = getJobs().some((j) => j.status === "active");
+			if (hasActive && !msgOpen) {
+				msgOpen = true;
+				void confirmWin10(t("mb.stopTitle"), t("mb.stopText"), { yes: t("mb.yes"), no: t("mb.no") }, msgTheme()).then((yes) => {
+					msgOpen = false;
+					if (yes) cancelAll();
+					closeManager();
+				});
+				return;
+			}
+			closeManager();
 		},
 		onMinimize: () => {
 			minimized = true;

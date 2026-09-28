@@ -1,7 +1,7 @@
 import { Tracer } from "@luna/core";
-import { MediaItem, safeInterval } from "@luna/lib";
+import { MediaItem, safeInterval, safeTimeout } from "@luna/lib";
 
-import { downloadState, setBannerFileProgress, setBannerStatus, showBanner } from "./downloadBanner";
+import { downloadState } from "./downloadBanner";
 import { isDownloaded, markDownloaded } from "./downloadHistory";
 import { fileExists } from "./fs.native";
 import { isQueueBusy } from "./downloadQueue";
@@ -10,12 +10,47 @@ import { unloads } from "./index.safe";
 import { settings } from "./Settings";
 import { saveLyricsForTrack } from "./trackLyrics";
 import { saveMetaForTrack } from "./trackMeta";
+import { msgTheme, repaintTaskbar, setAutoTaskbarStatus } from "./downloadIsland";
+import { showWin10MsgBox } from "./win10";
+import { t } from "./i18n";
 
 const { trace } = Tracer("[SongDownloader][Auto]");
 
 let autoBusy = false;
 let pending: MediaItem | null = null;
+/** Vrai si c'est l'auto-download (et pas un job manuel) qui a levé downloadState.active. */
+let ownedActive = false;
 let lastNoFolderWarn = 0;
+
+function esc(text: string): string {
+	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function autoHtml(text: string): string {
+	return `<span class="sd-taskbar-status-icon">⬇</span><span>${esc(text)}</span>`;
+}
+
+/** Petit flash dans la taskbar (4s), sans écraser un download auto en cours. */
+function flashAuto(text: string): void {
+	setAutoTaskbarStatus(autoHtml(text));
+	safeTimeout(unloads, () => {
+		setAutoTaskbarStatus(null);
+		repaintTaskbar();
+	}, 4000);
+}
+
+function claimActive(): void {
+	if (!downloadState.active) {
+		downloadState.active = true;
+		ownedActive = true;
+	}
+}
+
+function releaseActive(): void {
+	if (!ownedActive) return;
+	ownedActive = false;
+	if (!isQueueBusy()) downloadState.active = false;
+}
 
 /**
  * Watcher : à chaque transition de lecture (nouveau son joué),
@@ -23,14 +58,15 @@ let lastNoFolderWarn = 0;
  * - Sans prompt (le dossier par défaut est obligatoire).
  * - Les fichiers déjà présents sont skippés (côté natif).
  * - Si l'utilisateur zappe vite, seule la dernière track en attente est gardée.
- * - Pause pendant un download manuel (downloadState.active).
+ * - Pause pendant un download manuel (downloadState.active levé par la queue).
  */
 export function watchPlayedTracks() {
 	MediaItem.onMediaTransition(unloads, (mediaItem) => {
 		if (!settings.autoDownloadPlayed) return;
 		if (mediaItem.contentType !== "track") return;
-		// Un download manuel est prioritaire
-		if (downloadState.active && !autoBusy) return;
+		// Un download manuel est prioritaire : la queue a du travail -> on ignore
+		if (isQueueBusy()) return;
+		if (downloadState.active && !ownedActive) return;
 		pending = mediaItem;
 		void pumpAutoQueue();
 	});
@@ -41,9 +77,10 @@ async function pumpAutoQueue() {
 	autoBusy = true;
 	try {
 		while (pending !== null) {
+			// Annulation queue manuelle -> on rend la main (le pending restant sera repris)
 			if (downloadState.cancel) break;
 			// Un download manuel a démarré entre-temps -> on lui laisse la main
-			if (downloadState.active) {
+			if (isQueueBusy() || (downloadState.active && !ownedActive)) {
 				pending = null;
 				break;
 			}
@@ -53,31 +90,41 @@ async function pumpAutoQueue() {
 		}
 	} finally {
 		autoBusy = false;
-		if (pending === null && !isQueueBusy()) downloadState.active = false;
-		downloadState.cancel = false;
+		// Un pending a survécu au break (cancel) -> on repompe au lieu de le perdre
+		if (pending !== null) void pumpAutoQueue();
 	}
 }
 
+function warnNoFolder(): void {
+	// Throttle : une fois toutes les 30s max (vrai dialog Win10, la bannière est morte)
+	if (Date.now() - lastNoFolderWarn < 30000) return;
+	lastNoFolderWarn = Date.now();
+	void showWin10MsgBox({
+		title: t("auto.noFolderT"),
+		text: t("auto.noFolder"),
+		icon: "warning",
+		buttons: [{ id: "ok", label: t("mb.ok"), isDefault: true }],
+		...msgTheme(),
+	});
+}
+
 async function autoDownloadOne(mediaItem: MediaItem) {
-	// Déjà dans l'historique -> skip direct
-	if (isDownloaded(mediaItem.id)) return;
+	// Déjà dans l'historique -> skip visible (avant c'était totalement silencieux)
+	if (isDownloaded(mediaItem.id)) {
+		flashAuto(t("auto.skipped"));
+		return;
+	}
 	const folder = settings.defaultPath;
 	if (folder === undefined) {
-		// Throttle le warning : une fois toutes les 30s max
-		if (Date.now() - lastNoFolderWarn > 30000) {
-			lastNoFolderWarn = Date.now();
-			setBannerStatus("Auto-download: set a default save folder in settings first");
-			showBanner();
-		}
+		warnNoFolder();
 		return;
 	}
 
-	downloadState.active = true;
+	claimActive();
 	try {
 		const originalId = mediaItem.id;
 		let item = mediaItem;
 		if (settings.useRealMAX) {
-			setBannerStatus("Auto: checking RealMax...");
 			item = (await item.max()) ?? item;
 		}
 
@@ -89,11 +136,12 @@ async function autoDownloadOne(mediaItem: MediaItem) {
 		// Double sécurité : fichier déjà sur disque -> skip + synchro historique
 		if (await fileExists(path)) {
 			markDownloaded(originalId, item.id);
+			flashAuto(t("auto.skipped"));
 			return;
 		}
 
-		setBannerStatus(`Auto-saving... ${label}`);
-		setBannerFileProgress(0);
+		setAutoTaskbarStatus(autoHtml(t("auto.saving", { label })));
+		repaintTaskbar();
 		const clearInterval = safeInterval(
 			unloads,
 			async () => {
@@ -101,25 +149,27 @@ async function autoDownloadOne(mediaItem: MediaItem) {
 				if (progress === undefined) return;
 				const { total, downloaded } = progress;
 				if (total === undefined || downloaded === undefined || total === 0) return;
-				setBannerFileProgress((downloaded / total) * 100, (downloaded / 1048576).toFixed(0), (total / 1048576).toFixed(0));
+				const pct = ((downloaded / total) * 100).toFixed(0);
+				setAutoTaskbarStatus(autoHtml(`${t("auto.saving", { label })} · ${pct}%`));
+				repaintTaskbar();
 			},
-			200,
+			500,
 		);
 		try {
 			await item.download(path, settings.downloadQuality);
 			markDownloaded(originalId, item.id);
 			await saveLyricsForTrack(item, path, label, tags.title);
 			await saveMetaForTrack(item, path, label, tags.title);
-			setBannerStatus(`Auto-saved: ${label}`);
 		} catch (err) {
 			trace.msg.warn.withContext(`Auto-download failed for ${label}`)(err);
-			setBannerStatus(`Auto-download failed: ${label}`);
 		} finally {
 			clearInterval();
 		}
 	} catch (err) {
 		trace.msg.warn.withContext(`Auto-download failed for id ${mediaItem.id}`)(err);
 	} finally {
-		if (pending === null && !isQueueBusy()) downloadState.active = false;
+		releaseActive();
+		setAutoTaskbarStatus(null);
+		repaintTaskbar();
 	}
 }

@@ -209,3 +209,52 @@ hr.w10-md-hr {
 .sd-win-dark hr.w10-md-hr {
 	border-top-color: #333;
 }
+
+/* ============ Mini-framework Win10 : MessageBox façon VBS ============ */
+.sd-msgbox-overlay {
+	position: fixed;
+	inset: 0;
+	background: transparent;
+}
+
+.sd-win.sd-win-dialog .sd-win-body.sd-msgbox-body {
+	padding: 16px 16px 14px;
+	overflow-y: visible;
+}
+
+.sd-msgbox-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+}
+
+.sd-msgbox-icon {
+	flex-shrink: 0;
+	line-height: 0;
+}
+
+.sd-msgbox-text {
+	flex: 1;
+	min-width: 0;
+	font-size: 12px;
+	line-height: 1.55;
+	white-space: pre-line;
+	padding-top: 6px;
+}
+
+.sd-msgbox-btns {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 18px;
+}
+
+.sd-win .sd-msgbox-btn {
+	min-width: 88px;
+}
+
+.sd-win .sd-msgbox-btn:focus {
+	outline: none;
+	border: 2px solid var(--sd-accent, #0078d7);
+	padding: 4px 19px;
+}
