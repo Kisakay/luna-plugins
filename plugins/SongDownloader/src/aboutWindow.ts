@@ -6,6 +6,7 @@ import { DEFAULT_ACCENT, isValidAccent, settings } from "./Settings";
 import { Win10Window } from "./win10/window";
 import { renderMarkdown } from "./win10/markdown";
 import { w10Button, w10Desc, w10GroupTitle } from "./win10/controls";
+import { onLanguageChange, t } from "./i18n";
 
 export const ABOUT_ID = "luna-songdownloader-about";
 
@@ -15,16 +16,18 @@ const AUTHOR_AVATAR = "https://github.com/Kisakay.png";
 const REPO_URL = "https://github.com/Kisakay/luna-plugins";
 const ISSUES_URL = "https://github.com/Kisakay/luna-plugins/issues";
 
-const ABOUT_MD = `# SongDownloaderV2
+function aboutMarkdown(): string {
+	return `# SongDownloaderV2
 
-**Download-only TidaLuna plugin** — save Tidal tracks, albums and playlists as **FLAC**, with lyrics and metadata files.
+${t("ab.mdDesc")}
 
-- ⬇ Manual queue, liked-Tracks queue and **auto-download** of played tracks
-- ⚙ Quality picker (**RealMAX**), path templates with tags like \`{artist}/{album}/{title}\`
-- 🪟 Native-feel **Windows 10** manager, theme + accent color, history & calendar
+- ${t("ab.mdB1")}
+- ${t("ab.mdB2")}
+- ${t("ab.mdB3")}
 
 ---
-Built with the Win10 mini-framework in this codebase (windows, taskbar apps, buttons, toggles, text fields, menus, markdown) — no Tidal UI dependency.`;
+${t("ab.mdFoot", { repo: REPO_URL, author: AUTHOR_URL })}`;
+}
 
 let aboutWin: Win10Window | null = null;
 let visible = false;
@@ -97,7 +100,7 @@ function buildContent(win: Win10Window) {
 
 	const badges = document.createElement("div");
 	badges.className = "sd-about-badges";
-	for (const b of ["FLAC", "Lyrics + metadata", "Win10 UI"]) {
+	for (const b of ["FLAC", t("ab.badges2"), "Win10 UI"]) {
 		const badge = document.createElement("span");
 		badge.className = "sd-about-badge";
 		badge.textContent = b;
@@ -106,19 +109,19 @@ function buildContent(win: Win10Window) {
 	body.appendChild(badges);
 
 	// Corps markdown
-	body.appendChild(renderMarkdown(ABOUT_MD));
+	body.appendChild(renderMarkdown(aboutMarkdown()));
 
 	// Liens : auteur / repo / issue
-	body.appendChild(w10GroupTitle("Links"));
+	body.appendChild(w10GroupTitle(t("ab.links")));
 	const links = document.createElement("div");
 	links.className = "sd-about-links";
 	const open = (url: string) => () => window.open(url, "_blank", "noopener,noreferrer");
 	links.appendChild(w10Button(`Author — ${AUTHOR_NAME}`, open(AUTHOR_URL)));
-	links.appendChild(w10Button("GitHub repository", open(REPO_URL)));
-	links.appendChild(w10Button("Report an issue", open(ISSUES_URL)));
+	links.appendChild(w10Button(t("ab.repoBtn"), open(REPO_URL)));
+	links.appendChild(w10Button(t("ab.issueBtn"), open(ISSUES_URL)));
 	body.appendChild(links);
 
-	const hint = w10Desc("Tip: the Downloader Manager app lives next to the Start button in the taskbar.");
+	const hint = w10Desc(t("ab.tip"));
 	body.appendChild(hint);
 }
 
@@ -132,6 +135,13 @@ export function mountAboutWindow() {
 		titleHTML: `About`,
 		width: 440,
 		height: 540,
+		chrome: {
+			minimize: t("cap.min"),
+			maximize: t("cap.max"),
+			restore: t("cap.restore"),
+			close: t("cap.close"),
+			resize: t("cap.resize"),
+		},
 		onClose: () => {
 			visible = false;
 			minimized = false;
@@ -163,6 +173,7 @@ export function mountAboutWindow() {
 		aboutWin = null;
 		visible = minimized = false;
 	});
+	unloads.add(onLanguageChange(() => buildContent(win)));
 }
 
 /** Positionne la mini-fenêtre au-dessus du bouton Démarrer (façon menu Start). */

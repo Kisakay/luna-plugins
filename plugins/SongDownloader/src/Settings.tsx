@@ -6,6 +6,7 @@ import { store as obyStore } from "oby";
 import React from "react";
 import { clearDownloaded, countDownloaded } from "./downloadHistory";
 import { getDownloadFolder } from "./helpers";
+import { LOCALES, LOCALE_NAMES, setLocaleOverride, t, type LangSetting } from "./i18n";
 
 const defaultFilenameFormat = "{artist} - {album} - {title}";
 
@@ -25,6 +26,7 @@ type Settings = {
 	winSize: { w: number; h: number } | null;
 	winTheme: "light" | "dark";
 	accent: string;
+	language: LangSetting;
 };
 export const DEFAULT_ACCENT = "#0078d7";
 export const isValidAccent = (v: string) => /^#[0-9a-fA-F]{6}$/.test(v);
@@ -43,7 +45,11 @@ export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDown
 	winSize: null,
 	winTheme: "light",
 	accent: DEFAULT_ACCENT,
+	language: "auto",
 });
+
+// L'i18n suit le réglage persisté (et notifie fenêtres/taskbar/menus)
+setLocaleOverride(settings.language);
 
 // Sanitize accent (hex) + download quality
 if (!isValidAccent(settings.accent)) settings.accent = DEFAULT_ACCENT;
@@ -63,6 +69,7 @@ export const Settings = () => {
 	const [autoDownloadPlayed, setAutoDownloadPlayed] = React.useState(settings.autoDownloadPlayed);
 	const [winTheme, setWinTheme] = React.useState(settings.winTheme);
 	const [accent, setAccent] = React.useState(settings.accent);
+	const [language, setLanguage] = React.useState(settings.language);
 
 	// Reste synchronisé avec les valeurs persistées (reload, fenêtre Win10, etc.)
 	React.useEffect(
@@ -80,6 +87,7 @@ export const Settings = () => {
 					void settings.autoDownloadPlayed;
 					void settings.winTheme;
 					void settings.accent;
+					void settings.language;
 				},
 				() => {
 					setDownloadQuality(settings.downloadQuality);
@@ -93,6 +101,7 @@ export const Settings = () => {
 					setAutoDownloadPlayed(settings.autoDownloadPlayed);
 					setWinTheme(settings.winTheme);
 					setAccent(settings.accent);
+					setLanguage(settings.language);
 				},
 			),
 		[],
@@ -101,7 +110,23 @@ export const Settings = () => {
 	return (
 		<LunaSettings>
 			<LunaSelectSetting
-				title="Download quality"
+				title={t("ls.lang")}
+				desc={t("ls.langD")}
+				value={language}
+				onChange={(e) => {
+					const v = e.target.value as LangSetting;
+					setLanguage(v);
+					settings.language = v;
+					setLocaleOverride(v);
+				}}
+			>
+				<LunaSelectItem key="auto" value="auto" children={t("lg.auto")} />
+				{LOCALES.map((l) => (
+					<LunaSelectItem key={l} value={l} children={LOCALE_NAMES[l]} />
+				))}
+			</LunaSelectSetting>
+			<LunaSelectSetting
+				title={t("ls.quality")}
 				value={downloadQuality}
 				onChange={(e) => setDownloadQuality((settings.downloadQuality = e.target.value))}
 			>
@@ -110,101 +135,51 @@ export const Settings = () => {
 						return <LunaSelectItem key={quality.name} value={quality.audioQuality} children={quality.name} />;
 				})}
 			</LunaSelectSetting>
+			<LunaSwitchSetting title={t("ls.realmax")} value={useRealMAX} onChange={(_, checked) => setUseRealMAX((settings.useRealMAX = checked))} />
+			<LunaSwitchSetting title={t("ls.lyrics")} desc={<>{t("ls.lyricsD")}</>} value={downloadLyrics} onChange={(_, checked) => setDownloadLyrics((settings.downloadLyrics = checked))} />
+			<LunaTextSetting title={t("ls.lyricsSfx")} desc={<>{t("ls.lyricsSfxD")}</>} value={lyricsSuffix} onChange={(e) => setLyricsSuffix((settings.lyricsSuffix = e.target.value))} />
 			<LunaSwitchSetting
-				title="Use RealMAX to find the highest quality"
-				value={useRealMAX}
-				onChange={(_, checked) => setUseRealMAX((settings.useRealMAX = checked))}
-			/>
-			<LunaSwitchSetting
-				title="Download lyrics file next to track"
-				desc={<>Saves a text file with the lyrics next to each downloaded track</>}
-				value={downloadLyrics}
-				onChange={(_, checked) => setDownloadLyrics((settings.downloadLyrics = checked))}
-			/>
-			<LunaTextSetting
-				title="Lyrics file suffix"
-				desc={
-					<>
-						Appended to the audio filename.
-						<br />
-						For example with <b>.lyrics</b>: <b>Title.flac</b> → <b>Title.flac.lyrics</b> (plain text).
-					</>
-				}
-				value={lyricsSuffix}
-				onChange={(e) => setLyricsSuffix((settings.lyricsSuffix = e.target.value))}
-			/>
-			<LunaSwitchSetting
-				title="Download metadata file next to track"
-				desc={
-					<>
-						Saves a customizable text file next to each track (edit the template in the download window → Settings).
-						<br />
-						For example with <b>.meta</b>: <b>Title.flac</b> → <b>Title.flac.meta</b>.
-					</>
-				}
+				title={t("ls.meta")}
+				desc={<>{t("ls.metaD")}</>}
 				value={downloadMeta}
 				onChange={(_, checked) => setDownloadMeta((settings.downloadMeta = checked))}
 			/>
-			<LunaTextSetting
-				title="Metadata file suffix"
-				desc={<>Appended to the audio filename.</>}
-				value={metaSuffix}
-				onChange={(e) => setMetaSuffix((settings.metaSuffix = e.target.value))}
-			/>
+			<LunaTextSetting title={t("ls.metaSfx")} desc={<>{t("ls.metaSfxD")}</>} value={metaSuffix} onChange={(e) => setMetaSuffix((settings.metaSuffix = e.target.value))} />
 			<LunaButtonSetting
-				title="Default save path"
+				title={t("ls.folder")}
 				desc={
 					<>
-						Set a default folder to save files to (will disable prompting for path on download)
-						<br />
-						Required for auto-download of played tracks.
+						{t("ls.folderD")}
 						{defaultPath && (
 							<>
 								<br />
-								Using {defaultPath}
+								{t("ls.using", { p: defaultPath })}
 							</>
 						)}
 					</>
 				}
-				children={defaultPath === undefined ? "Set default folder" : "Clear default folder"}
+				children={defaultPath === undefined ? t("ls.setFolder") : t("ls.clearFolder")}
 				onClick={async () => {
 					if (defaultPath !== undefined) return setDefaultPath((settings.defaultPath = undefined));
 					setDefaultPath((settings.defaultPath = await getDownloadFolder()));
 				}}
 			/>
-			<LunaSwitchSetting
-				title="Auto-download every played track"
-				desc={
-					<>
-						Watches playback and automatically saves each played track (+ lyrics) to the default folder.
-						<br />
-						Already-downloaded files are skipped. No prompt, no click needed.
-					</>
-				}
-				value={autoDownloadPlayed}
-				onChange={(_, checked) => setAutoDownloadPlayed((settings.autoDownloadPlayed = checked))}
-			/>
+			<LunaSwitchSetting title={t("ls.auto")} desc={<>{t("ls.autoD")}</>} value={autoDownloadPlayed} onChange={(_, checked) => setAutoDownloadPlayed((settings.autoDownloadPlayed = checked))} />
 			<LunaButtonSetting
-				title="Downloaded history"
-				desc={<>Remembered tracks are skipped automatically. {countDownloaded()} tracks remembered.</>}
-				children="Clear history"
+				title={t("ls.hist")}
+				desc={<>{t("ls.histD", { n: countDownloaded() })}</>}
+				children={t("ls.clearHist")}
 				onClick={() => clearDownloaded()}
 			/>
 			<LunaSwitchSetting
-				title="Dark window theme"
-				desc={<>Dark mode for the download manager window (light by default, like Windows 10).</>}
+				title={t("ls.dark")}
+				desc={<>{t("ls.darkD")}</>}
 				value={winTheme === "dark"}
 				onChange={(_, checked) => setWinTheme((settings.winTheme = checked ? "dark" : "light"))}
 			/>
 			<LunaTextSetting
-				title="Accent color"
-				desc={
-					<>
-						Windows 10 accent color used by the download window and taskbar (hex, e.g. <b>#0078d7</b>).
-						<br />
-						You can also change it in the download window → Theme.
-					</>
-				}
+				title={t("ls.accent")}
+				desc={<>{t("ls.accentD")}</>}
 				value={accent}
 				onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 					const v = e.target.value.trim();
@@ -213,17 +188,11 @@ export const Settings = () => {
 				}}
 			/>
 			<LunaTextSetting
-				title="Path format"
+				title={t("ls.path")}
 				desc={
 					<>
-						Define subfolders using <b>/</b>.
-						<br />
-						For example: {"{artist}/{album}/{title}"}
-						<br />
-						Saves in subfolder artist/album/ named <b>title.flac</b>.
+						{t("ls.pathD")}
 						<div style={{ marginTop: 8 }} />
-						You can use the following tags (one per line):
-						<div style={{ marginTop: 4 }} />
 						{MediaItem.availableTags.map((tag, i, arr) => (
 							<span key={tag}>
 								{`{${tag}}`}

@@ -18,6 +18,7 @@ import { getDownloadFolder } from "./helpers";
 import { unloads } from "./index.safe";
 import { DEFAULT_ACCENT, isValidAccent, settings } from "./Settings";
 import { mountAboutWindow, onAboutChange, refreshAboutTheme, toggleAbout } from "./aboutWindow";
+import { dateLocaleTag, LOCALES, LOCALE_NAMES, onLanguageChange, setLocaleOverride, t, type LangSetting } from "./i18n";
 import {
 	DOWNLOAD_ICON,
 	WIN10_LOGO,
@@ -43,7 +44,7 @@ const CAL_ID = "luna-songdownloader-cal";
 const JOBMENU_ID = "luna-songdownloader-jobmenu";
 const APP_ID = "downloader";
 
-type Section = "downloads" | "history" | "settings" | "theme";
+type Section = "downloads" | "history" | "settings" | "theme" | "languages";
 
 // Palette officielle Windows 10 (Paramètres > Personnalisation > Couleurs)
 const THEME_ACCENTS = [
@@ -96,13 +97,13 @@ let dragId: number | null = null;
 const statusLabel = (job: QueueJob): string => {
 	switch (job.status) {
 		case "active":
-			return "Downloading";
+			return t("st.downloading");
 		case "queued":
-			return "Queued";
+			return t("st.queued");
 		case "done":
-			return job.failed > 0 ? `Done · ${job.failed} failed` : "Done";
+			return job.failed > 0 ? t("st.doneFailed", { n: job.failed }) : t("st.done");
 		case "stopped":
-			return "Stopped";
+			return t("st.stopped");
 	}
 };
 
@@ -110,10 +111,13 @@ function summaryText(): string {
 	const jobs = getJobs();
 	const active = jobs.find((j) => j.status === "active");
 	const queued = jobs.filter((j) => j.status === "queued").length;
-	if (active) return `${active.done}/${active.total}${queued > 0 ? ` · ${queued} queued` : ""}`;
-	if (queued > 0) return `${queued} queued`;
+	if (active) {
+		const base = t("sum.active", { done: active.done, total: active.total });
+		return queued > 0 ? t("sum.activeQ", { done: active.done, total: active.total, n: queued }) : base;
+	}
+	if (queued > 0) return t("sum.queued", { n: queued });
 	const done = jobs.filter((j) => j.status === "done").length;
-	return done > 0 ? `${done} finished` : "Queue is empty";
+	return done > 0 ? t("sum.finished", { n: done }) : t("sum.empty");
 }
 
 function isWinShown(): boolean {
@@ -151,7 +155,7 @@ function paintJob(job: QueueJob) {
 			if (job.current.size === 0) {
 				const wait = document.createElement("div");
 				wait.className = "sd-island-wait";
-				wait.textContent = job.status === "active" ? "Waiting for next tracks…" : "No track in progress.";
+				wait.textContent = job.status === "active" ? t("trk.waiting") : t("trk.none");
 				tracks.appendChild(wait);
 			}
 		}
@@ -190,10 +194,10 @@ function formatSpeed(bps: number): string {
 function formatEta(sec: number): string {
 	if (!isFinite(sec) || sec < 0) return "";
 	const s = Math.round(sec);
-	if (s < 60) return `~${Math.max(1, s)} s left`;
+	if (s < 60) return t("eta.s", { n: Math.max(1, s) });
 	const m = Math.floor(s / 60);
-	if (m < 60) return `~${m} min left`;
-	return `~${Math.floor(m / 60)} h ${m % 60} min left`;
+	if (m < 60) return t("eta.m", { n: m });
+	return t("eta.hm", { h: Math.floor(m / 60), m: m % 60 });
 }
 
 /**
@@ -278,9 +282,9 @@ function paintTaskbar() {
 		html = `<span class="sd-taskbar-status-icon">⬇</span><span>${active.done}/${active.total}${current ? ` · ${escapeHtml(current)}` : ""}${queued > 0 ? ` · ${queued} queued` : ""}${extra}</span>`;
 	} else if (queued > 0) {
 		html = `<span class="sd-taskbar-status-icon">⬇</span><span>${queued} queued</span>`;
-	} else if (jobs.length > 0) {
-		html = `<span>✓ finished</span>`;
-	}
+		} else if (jobs.length > 0) {
+			html = `<span>${t("task.finished")}</span>`;
+		}
 	taskbar.setStatus(html);
 }
 
@@ -331,7 +335,7 @@ function openCalendar() {
 	prev.type = "button";
 	prev.className = "sd-cal-navbtn";
 	prev.textContent = "‹";
-	prev.title = "Previous month";
+	prev.title = t("cal.prev");
 	prev.onclick = (e) => {
 		e.stopPropagation();
 		calMonth--;
@@ -345,7 +349,7 @@ function openCalendar() {
 	next.type = "button";
 	next.className = "sd-cal-navbtn";
 	next.textContent = "›";
-	next.title = "Next month";
+	next.title = t("cal.next");
 	next.onclick = (e) => {
 		e.stopPropagation();
 		calMonth++;
@@ -366,7 +370,7 @@ function openCalendar() {
 
 	const foot = document.createElement("div");
 	foot.className = "sd-cal-foot";
-	foot.textContent = `Today: ${today.toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+	foot.textContent = t("cal.today", { date: today.toLocaleDateString(dateLocaleTag(), { day: "2-digit", month: "2-digit", year: "numeric" }) });
 	foot.style.cursor = "pointer";
 	foot.onclick = () => {
 		calYear = today.getFullYear();
@@ -402,7 +406,7 @@ function paintCalendar(cal: HTMLDivElement, title: HTMLSpanElement, grid: HTMLDi
 		const d = new Date(2024, 0, 1 + i);
 		const dow = document.createElement("div");
 		dow.className = "sd-cal-dow";
-		dow.textContent = d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "");
+		dow.textContent = d.toLocaleDateString(dateLocaleTag(), { weekday: "short" }).replace(".", "");
 		grid.appendChild(dow);
 	}
 	// 1er janvier 2024 = lundi -> décalage mois
@@ -455,6 +459,12 @@ function render() {
 	applyTheme();
 	paintTaskbar();
 	navSync?.(section);
+	// Libellés nav retraduits à chaque rendu (changement de langue instantané)
+	managerWin?.el.querySelectorAll(".sd-win-navitem").forEach((el) => {
+		const id = (el as HTMLElement).dataset.section as Section | undefined;
+		const span = el.querySelector("span:last-child");
+		if (id && span) span.textContent = navLabel(id);
+	});
 	if (builtSection !== section) {
 		buildBody();
 		builtSection = section;
@@ -482,11 +492,11 @@ function showJobMenu(job: QueueJob, x: number, y: number) {
 
 			if (job.status === "active") {
 				const now = [...job.current.values()];
-				menu.appendChild(w10MenuHeader(`Downloading now (${now.length})`));
+				menu.appendChild(w10MenuHeader(t("jm.now", { n: now.length })));
 				if (now.length === 0) {
 					const none = document.createElement("div");
 					none.className = "sd-qm-item sd-qm-disabled";
-					none.innerHTML = `<span class="sd-qm-sub">starting…</span>`;
+					none.innerHTML = `<span class="sd-qm-sub">${t("trk.starting")}</span>`;
 					menu.appendChild(none);
 				}
 				for (const track of now.slice(0, 5)) {
@@ -501,11 +511,11 @@ function showJobMenu(job: QueueJob, x: number, y: number) {
 
 			const folderItem = document.createElement("div");
 			folderItem.className = "sd-qm-item sd-qm-disabled";
-			folderItem.innerHTML = `<span class="sd-qm-sub">Folder: ${job.folderOverride ? shortFolder(job.folderOverride) : "default"}</span>`;
+			folderItem.innerHTML = `<span class="sd-qm-sub">${t("jm.folder", { name: job.folderOverride ? shortFolder(job.folderOverride) : t("jm.folderDefault") })}</span>`;
 			menu.appendChild(folderItem);
 
 			if (job.status === "queued" || job.status === "active") {
-				const folderBtn = w10MenuItem("Save to another folder…");
+				const folderBtn = w10MenuItem(t("jm.saveOther"));
 				folderBtn.onclick = async (e) => {
 					e.stopPropagation();
 					document.getElementById(JOBMENU_ID)?.remove();
@@ -517,7 +527,7 @@ function showJobMenu(job: QueueJob, x: number, y: number) {
 			}
 
 			const actBtn = w10MenuItem(
-				job.status === "active" ? "Stop this download" : job.status === "queued" ? "Remove from queue" : "Dismiss",
+				job.status === "active" ? t("jm.stop") : job.status === "queued" ? t("jm.remove") : t("jm.dismiss"),
 			);
 			actBtn.onclick = (e) => {
 				e.stopPropagation();
@@ -544,7 +554,7 @@ function renderList() {
 	if (jobs.length === 0) {
 		const empty = document.createElement("div");
 		empty.className = "sd-win-empty";
-		empty.textContent = "Queue is empty. Right-click tracks, albums or playlists and hit Download.";
+		empty.textContent = t("dl.empty");
 		list.appendChild(empty);
 		return;
 	}
@@ -555,7 +565,7 @@ function renderList() {
 		const row = document.createElement("div");
 		row.className = `sd-island-row sd-island-${job.status}`;
 		row.dataset.jobId = String(job.id);
-		row.title = "Click to expand tracks";
+		row.title = t("dl.expand");
 		const isQueued = job.status === "queued";
 		if (isQueued) {
 			row.dataset.qindex = String(qindex++);
@@ -565,7 +575,7 @@ function renderList() {
 		const handle = document.createElement("span");
 		handle.className = "sd-island-handle";
 		handle.textContent = isQueued ? "⋮⋮" : "";
-		handle.title = isQueued ? "Drag to reorder" : "";
+		handle.title = isQueued ? t("dl.reorder") : "";
 		row.appendChild(handle);
 
 		const dot = document.createElement("span");
@@ -575,7 +585,7 @@ function renderList() {
 		const exp = document.createElement("span");
 		exp.className = "sd-island-exp";
 		exp.textContent = job.tracksOpen ? "▾" : "▸";
-		exp.title = "Show tracks";
+		exp.title = t("dl.tracks");
 		row.appendChild(exp);
 
 		const main = document.createElement("div");
@@ -586,7 +596,7 @@ function renderList() {
 		title.title = job.title;
 		const sub = document.createElement("div");
 		sub.className = "sd-island-sub";
-		const skippedTxt = job.skipped > 0 ? ` · ${job.skipped} skipped` : "";
+		const skippedTxt = job.skipped > 0 ? t("job.skipped", { n: job.skipped }) : "";
 		sub.innerHTML = `<span class="sd-island-count">${job.done}/${job.total}</span> · ${statusLabel(job)}${skippedTxt}`;
 		main.appendChild(title);
 		main.appendChild(sub);
@@ -606,14 +616,14 @@ function renderList() {
 		action.className = "sd-island-action";
 		if (job.status === "active") {
 			action.textContent = "■";
-			action.title = "Stop this download";
+			action.title = t("jm.stop");
 			action.onclick = (e) => {
 				e.stopPropagation();
 				cancelJob(job.id);
 			};
 		} else {
 			action.textContent = "✕";
-			action.title = job.status === "queued" ? "Remove from queue" : "Dismiss";
+			action.title = job.status === "queued" ? t("jm.remove") : t("jm.dismiss");
 			action.onclick = (e) => {
 				e.stopPropagation();
 				if (job.status === "queued") cancelJob(job.id);
@@ -681,7 +691,7 @@ function renderList() {
 			if (job.current.size === 0) {
 				const wait = document.createElement("div");
 				wait.className = "sd-island-wait";
-				wait.textContent = job.status === "active" ? "Waiting for next tracks…" : "No track in progress.";
+				wait.textContent = job.status === "active" ? t("trk.waiting") : t("trk.none");
 				tracks.appendChild(wait);
 			}
 			for (const entry of job.current.values()) tracks.appendChild(buildTrackEl(entry));
@@ -701,7 +711,7 @@ function setTrackProgress(t: Element, entry: ActiveTrack) {
 	const fill = t.querySelector(".sd-island-trackfill") as HTMLDivElement | null;
 	const sub = t.querySelector(".sd-island-trackpct") as HTMLSpanElement | null;
 	if (fill) fill.style.width = `${pct}%`;
-	if (sub) sub.textContent = entry.total ? `${formatMB(entry.downloaded)}/${formatMB(entry.total)} · ${pct.toFixed(0)}%` : "starting…";
+	if (sub) sub.textContent = entry.total ? `${formatMB(entry.downloaded)}/${formatMB(entry.total)} · ${pct.toFixed(0)}%` : t("trk.starting");
 }
 
 function buildTrackEl(entry: ActiveTrack): HTMLDivElement {
@@ -757,7 +767,7 @@ function buildSettingsPage(body: HTMLDivElement) {
 	const searchInput = document.createElement("input");
 	searchInput.type = "text";
 	searchInput.className = "sd-win-textbox sd-win-search";
-	searchInput.placeholder = "Find a setting";
+	searchInput.placeholder = t("se.search");
 	searchInput.value = search;
 	searchInput.oninput = () => {
 		search = searchInput.value.toLowerCase();
@@ -768,23 +778,23 @@ function buildSettingsPage(body: HTMLDivElement) {
 	};
 	searchRow.appendChild(searchInput);
 	body.appendChild(searchRow);
+	body.appendChild(w10GroupTitle(t("se.appearance")));
 
-	body.appendChild(w10GroupTitle("Appearance"));
 	body.appendChild(
-		w10Toggle("Dark theme", "Dark mode for this window (light by default, like Windows 10)", () => settings.winTheme === "dark", (v) => {
+		w10Toggle(t("se.dark"), t("se.darkD"), () => settings.winTheme === "dark", (v) => {
 			settings.winTheme = v ? "dark" : "light";
 			applyTheme();
 		}),
 	);
 
-	body.appendChild(w10GroupTitle("Quality"));
+	body.appendChild(w10GroupTitle(t("se.quality")));
 	const qualities: { value: string; label: string }[] = [];
 	for (const quality of Object.values(Quality.lookups.audioQuality)) {
 		if (typeof quality === "string" || quality.audioQuality === Quality.MQA.audioQuality) continue;
 		qualities.push({ value: quality.audioQuality, label: quality.name });
 	}
 	body.appendChild(
-		w10ComboRow("Download quality", "", qualities, () => settings.downloadQuality, (v) => {
+		w10ComboRow(t("se.dlQuality"), "", qualities, () => settings.downloadQuality, (v) => {
 			const q = v as redux.AudioQuality;
 			if (Quality.fromAudioQuality(q) !== undefined) settings.downloadQuality = q;
 		}),
@@ -792,70 +802,70 @@ function buildSettingsPage(body: HTMLDivElement) {
 
 	const folderRow = document.createElement("div");
 	folderRow.className = "sd-win-setting";
-	folderRow.dataset.search = "default save folder path directory";
+	folderRow.dataset.search = `${t("se.defFolder")} folder path directory`.toLowerCase();
 	const folderTexts = document.createElement("div");
 	folderTexts.className = "sd-win-setting-texts";
 	const folderTitle = document.createElement("div");
 	folderTitle.className = "sd-win-setting-title";
-	folderTitle.textContent = "Default save folder";
+	folderTitle.textContent = t("se.defFolder");
 	const folderSub = document.createElement("div");
 	folderSub.className = "sd-win-setting-desc";
-	folderSub.textContent = settings.defaultPath ?? "Not set (you will be asked each time)";
+	folderSub.textContent = settings.defaultPath ?? t("se.noFolder");
 	folderTexts.appendChild(folderTitle);
 	folderTexts.appendChild(folderSub);
-	const folderBtn = w10Button(settings.defaultPath ? "Clear" : "Browse", async () => {
+	const folderBtn = w10Button(settings.defaultPath ? t("se.clear") : t("se.browse"), async () => {
 		if (settings.defaultPath !== undefined) {
 			settings.defaultPath = undefined;
 		} else {
 			settings.defaultPath = await getDownloadFolder();
 		}
-		folderSub.textContent = settings.defaultPath ?? "Not set (you will be asked each time)";
-		folderBtn.textContent = settings.defaultPath ? "Clear" : "Browse";
+		folderSub.textContent = settings.defaultPath ?? t("se.noFolder");
+		folderBtn.textContent = settings.defaultPath ? t("se.clear") : t("se.browse");
 	});
 	folderRow.appendChild(folderTexts);
 	folderRow.appendChild(folderBtn);
 	body.appendChild(folderRow);
 
 	body.appendChild(
-		w10TextRow("Path format", "Subfolders with /. Example: {artist}/{album}/{title}", () => settings.pathFormat, (v) => (settings.pathFormat = v)),
+		w10TextRow(t("se.pathFmt"), t("se.pathFmtD"), () => settings.pathFormat, (v) => (settings.pathFormat = v)),
 	);
 
-	body.appendChild(w10GroupTitle("Content"));
+	body.appendChild(w10GroupTitle(t("se.content")));
 	body.appendChild(
-		w10Toggle("Use RealMAX", "Find the highest available quality per track", () => settings.useRealMAX, (v) => (settings.useRealMAX = v)),
+		w10Toggle(t("se.realmax"), t("se.realmaxD"), () => settings.useRealMAX, (v) => (settings.useRealMAX = v)),
 	);
 	body.appendChild(
-		w10Toggle("Download lyrics", "Save a .lyrics text file next to each track", () => settings.downloadLyrics, (v) => (settings.downloadLyrics = v)),
+		w10Toggle(t("se.lyrics"), t("se.lyricsD"), () => settings.downloadLyrics, (v) => (settings.downloadLyrics = v)),
 	);
-	body.appendChild(w10TextRow("Lyrics suffix", "Appended to the audio filename", () => settings.lyricsSuffix, (v) => (settings.lyricsSuffix = v)));
+	body.appendChild(w10TextRow(t("se.lyricsSfx"), t("se.sfxD"), () => settings.lyricsSuffix, (v) => (settings.lyricsSuffix = v)));
 	body.appendChild(
-		w10Toggle("Download metadata file", "Save a customizable text file next to each track", () => settings.downloadMeta, (v) => (settings.downloadMeta = v)),
+		w10Toggle(t("se.meta"), t("se.metaD"), () => settings.downloadMeta, (v) => (settings.downloadMeta = v)),
 	);
-	body.appendChild(w10TextRow("Metadata suffix", "Appended to the audio filename", () => settings.metaSuffix, (v) => (settings.metaSuffix = v)));
+	body.appendChild(w10TextRow(t("se.metaSfx"), t("se.sfxD"), () => settings.metaSuffix, (v) => (settings.metaSuffix = v)));
 	body.appendChild(
 		w10TextareaRow(
-			"Metadata template",
-			"One {tag} per line is replaced by its value. Available: {title} {trackNumber} {discNumber} {bpm} {year} {date} {copyright} {comment} {isrc} {upc} {artist} {album} {albumArtist} {genres}",
+			t("se.metaTpl"),
+			t("se.metaTplD"),
 			() => settings.metaTemplate,
 			(v) => (settings.metaTemplate = v),
 		),
 	);
 	body.appendChild(
 		w10Toggle(
-			"Auto-download played tracks",
-			"Requires a default save folder. Already downloaded files are skipped.",
+			t("se.auto"),
+			t("se.autoD"),
 			() => settings.autoDownloadPlayed,
 			(v) => (settings.autoDownloadPlayed = v),
 		),
 	);
 
-	body.appendChild(w10GroupTitle("Tags"));
+	body.appendChild(w10GroupTitle(t("se.tags")));
 	const tagsRow = document.createElement("div");
 	tagsRow.className = "sd-win-setting sd-win-setting-col";
-	tagsRow.dataset.search = "tags filename format artist album title";
+	tagsRow.dataset.search = `${t("se.availTags")} tags filename`.toLowerCase();
 	const tagsTitle = document.createElement("div");
 	tagsTitle.className = "sd-win-setting-title";
-	tagsTitle.textContent = "Available filename tags";
+	tagsTitle.textContent = t("se.availTags");
 	const tagsList = document.createElement("div");
 	tagsList.className = "sd-win-setting-desc";
 	tagsList.textContent = MediaItem.availableTags.map((t) => `{${t}}`).join(" ");
@@ -869,13 +879,13 @@ function buildThemePage(body: HTMLDivElement) {
 	body.innerHTML = "";
 	const accent = currentAccent();
 
-	body.appendChild(w10GroupTitle("Mode"));
+	body.appendChild(w10GroupTitle(t("th.mode")));
 	const modes = document.createElement("div");
 	modes.className = "sd-win-modes";
 	const lightBtn = document.createElement("button");
 	lightBtn.type = "button";
 	lightBtn.className = "sd-win-modebtn" + (settings.winTheme === "light" ? " sd-win-modebtn-active" : "");
-	lightBtn.innerHTML = `<span class="sd-win-modeswatch sd-win-modeswatch-light"></span><span>Light</span>`;
+	lightBtn.innerHTML = `<span class="sd-win-modeswatch sd-win-modeswatch-light"></span><span>${t("th.light")}</span>`;
 	lightBtn.onclick = () => {
 		settings.winTheme = "light";
 		applyTheme();
@@ -884,7 +894,7 @@ function buildThemePage(body: HTMLDivElement) {
 	const darkBtn = document.createElement("button");
 	darkBtn.type = "button";
 	darkBtn.className = "sd-win-modebtn" + (settings.winTheme === "dark" ? " sd-win-modebtn-active" : "");
-	darkBtn.innerHTML = `<span class="sd-win-modeswatch sd-win-modeswatch-dark"></span><span>Dark</span>`;
+	darkBtn.innerHTML = `<span class="sd-win-modeswatch sd-win-modeswatch-dark"></span><span>${t("th.dark")}</span>`;
 	darkBtn.onclick = () => {
 		settings.winTheme = "dark";
 		applyTheme();
@@ -894,8 +904,8 @@ function buildThemePage(body: HTMLDivElement) {
 	modes.appendChild(darkBtn);
 	body.appendChild(modes);
 
-	body.appendChild(w10GroupTitle("Accent color"));
-	body.appendChild(w10Desc("Windows 10 accent color, applied to windows and the taskbar."));
+	body.appendChild(w10GroupTitle(t("th.accent")));
+	body.appendChild(w10Desc(t("th.accentD")));
 
 	const grid = document.createElement("div");
 	grid.className = "sd-win-swatches";
@@ -930,12 +940,12 @@ function buildThemePage(body: HTMLDivElement) {
 	customTexts.className = "sd-win-setting-texts";
 	const customTitle = document.createElement("div");
 	customTitle.className = "sd-win-setting-title";
-	customTitle.textContent = "Custom color";
+	customTitle.textContent = t("th.custom");
 	const customColor = document.createElement("input");
 	customColor.type = "color";
 	customColor.className = "sd-win-color";
 	customColor.value = accent;
-	customColor.title = "Pick a custom accent color";
+	customColor.title = t("th.pick");
 	customColor.oninput = () => {
 		settings.accent = customColor.value;
 		applyAccent();
@@ -951,7 +961,7 @@ function buildThemePage(body: HTMLDivElement) {
 	hexRow.className = "sd-win-setting sd-win-setting-col";
 	const hexTitle = document.createElement("div");
 	hexTitle.className = "sd-win-setting-title";
-	hexTitle.textContent = "Color code (hex)";
+	hexTitle.textContent = t("th.hex");
 	const hexInput = document.createElement("input");
 	hexInput.type = "text";
 	hexInput.className = "sd-win-textbox sd-win-hex";
@@ -974,7 +984,7 @@ function buildThemePage(body: HTMLDivElement) {
 	body.appendChild(hexRow);
 
 	body.appendChild(
-		w10Button("Reset to default blue", () => {
+		w10Button(t("th.reset"), () => {
 			settings.accent = DEFAULT_ACCENT;
 			applyAccent();
 			buildThemePage(body);
@@ -985,12 +995,10 @@ function buildThemePage(body: HTMLDivElement) {
 
 function buildHistoryPage(body: HTMLDivElement) {
 	body.innerHTML = "";
-	body.appendChild(w10Hero(String(countDownloaded()), "tracks remembered", "sd-win-hist-count"));
+	body.appendChild(w10Hero(String(countDownloaded()), t("hi.tracks"), "sd-win-hist-count"));
+	body.appendChild(w10Desc(t("hi.desc")));
 	body.appendChild(
-		w10Desc("Remembered tracks are skipped automatically (manual, queue and auto-download). Forgetting them will download them again."),
-	);
-	body.appendChild(
-		w10Button("Forget all", () => {
+		w10Button(t("hi.forget"), () => {
 			clearDownloaded();
 			renderHistory();
 		}),
@@ -1001,8 +1009,8 @@ function buildDownloadsPage(body: HTMLDivElement) {
 	body.innerHTML = "";
 	const toolbar = document.createElement("div");
 	toolbar.className = "sd-win-toolbar";
-	toolbar.appendChild(w10Button("Stop all", () => cancelAll()));
-	toolbar.appendChild(w10Button("Clear finished", () => clearFinished()));
+	toolbar.appendChild(w10Button(t("dl.stopAll"), () => cancelAll()));
+	toolbar.appendChild(w10Button(t("dl.clearFinished"), () => clearFinished()));
 	body.appendChild(toolbar);
 
 	// Dossier de sortie + path picker (appliqué aux nouveaux downloads)
@@ -1018,9 +1026,9 @@ function buildDownloadsPage(body: HTMLDivElement) {
 	}, true);
 	const paintFolder = () => {
 		const full = settings.defaultPath;
-		folderVal.textContent = full ? `Output: ${shortFolder(full)}` : "Output: (asked each time)";
-		folderVal.title = full ?? "No default folder";
-		folderBtn.textContent = full ? "Change…" : "Choose…";
+		folderVal.textContent = full ? t("dl.output", { name: shortFolder(full) }) : t("dl.outputNone");
+		folderVal.title = full ?? t("dl.noFolder");
+		folderBtn.textContent = full ? t("dl.change") : t("dl.choose");
 	};
 	paintFolder();
 	folderRow.appendChild(folderVal);
@@ -1035,12 +1043,17 @@ function buildDownloadsPage(body: HTMLDivElement) {
 // #endregion
 
 // #region Montage
-const NAV: { id: Section; label: string; glyph: string }[] = [
-	{ id: "downloads", label: "Downloads", glyph: "⬇" },
-	{ id: "history", label: "History", glyph: "✓" },
-	{ id: "settings", label: "Settings", glyph: "⚙" },
-	{ id: "theme", label: "Theme", glyph: "◐" },
+const NAV: { id: Section; glyph: string }[] = [
+	{ id: "downloads", glyph: "⬇" },
+	{ id: "history", glyph: "✓" },
+	{ id: "settings", glyph: "⚙" },
+	{ id: "theme", glyph: "◐" },
+	{ id: "languages", glyph: "🌐" },
 ];
+
+function navLabel(id: Section): string {
+	return t(`nav.${id}`);
+}
 
 export function mountIsland() {
 	if (document.getElementById(TASKBAR_ID)) return;
@@ -1074,6 +1087,13 @@ export function mountIsland() {
 		avatarUrl: "https://github.com/Kisakay.png",
 		width: 520,
 		height: 560,
+		chrome: {
+			minimize: t("cap.min"),
+			maximize: t("cap.max"),
+			restore: t("cap.restore"),
+			close: t("cap.close"),
+			resize: t("cap.resize"),
+		},
 		onClose: () => {
 			expanded = false;
 			minimized = false;
@@ -1092,10 +1112,14 @@ export function mountIsland() {
 	const pos = settings.winPos;
 	const size = settings.winSize;
 	managerWin.applyGeometry(pos?.x ?? null, pos?.y ?? null, size?.w ?? 520, size?.h ?? 560);
-	const nav = managerWin.addNav(NAV, section, (id) => {
-		section = id;
-		render();
-	});
+	const nav = managerWin.addNav(
+		NAV.map((n) => ({ ...n, label: navLabel(n.id) })),
+		section,
+		(id) => {
+			section = id;
+			render();
+		},
+	);
 	navSync = nav.sync;
 	document.body.appendChild(managerWin.el);
 
@@ -1113,7 +1137,56 @@ export function mountIsland() {
 	onQueueChange(render);
 	onAboutChange(() => paintTaskbar());
 	setQueueProgressPainter(paintJob);
+	// Changement de langue : rebuild complet (pages + nav + taskbar)
+	unloads.add(
+		onLanguageChange(() => {
+			builtSection = null;
+			render();
+		}),
+	);
 	render();
+}
+
+/** Section custom "Languages" : centrum de sélection de la langue d'interface. */
+function buildLanguagesPage(body: HTMLDivElement) {
+	body.innerHTML = "";
+	body.appendChild(w10GroupTitle(t("lg.group")));
+	body.appendChild(w10Desc(t("lg.desc")));
+
+	const list = document.createElement("div");
+	list.style.display = "flex";
+	list.style.flexDirection = "column";
+	list.style.gap = "8px";
+	list.style.marginTop = "12px";
+
+	const options: { value: LangSetting; label: string }[] = [
+		{ value: "auto", label: `${t("lg.auto")}` },
+		...LOCALES.map((l) => ({ value: l as LangSetting, label: LOCALE_NAMES[l] })),
+	];
+	for (const opt of options) {
+		const active = settings.language === opt.value;
+		const btn = document.createElement("button");
+		btn.type = "button";
+		btn.className = "sd-win-modebtn" + (active ? " sd-win-modebtn-active" : "");
+		btn.style.flexDirection = "row";
+		btn.style.justifyContent = "flex-start";
+		btn.style.padding = "10px 12px";
+		const mark = document.createElement("span");
+		mark.textContent = active ? "●" : "○";
+		mark.style.color = "var(--sd-accent, #0078d7)";
+		mark.style.width = "18px";
+		const label = document.createElement("span");
+		label.textContent = opt.label;
+		btn.appendChild(mark);
+		btn.appendChild(label);
+		btn.onclick = () => {
+			settings.language = opt.value;
+			setLocaleOverride(opt.value);
+			// notifyLanguageChanged() repeint tout (dont cette page) via l'abonnement
+		};
+		list.appendChild(btn);
+	}
+	body.appendChild(list);
 }
 
 function buildBody() {
@@ -1121,6 +1194,7 @@ function buildBody() {
 	if (section === "downloads") buildDownloadsPage(managerWin.body);
 	else if (section === "history") buildHistoryPage(managerWin.body);
 	else if (section === "theme") buildThemePage(managerWin.body);
+	else if (section === "languages") buildLanguagesPage(managerWin.body);
 	else buildSettingsPage(managerWin.body);
 }
 // #endregion

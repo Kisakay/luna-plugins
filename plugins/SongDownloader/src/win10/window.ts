@@ -17,6 +17,8 @@ export interface Win10WindowOptions {
 	/** Position initiale (sinon centrée). */
 	x?: number | null;
 	y?: number | null;
+	/** Libellés localisés des boutons de la titlebar + resize. */
+	chrome?: { minimize?: string; maximize?: string; restore?: string; close?: string; resize?: string };
 	onClose?: () => void;
 	onMinimize?: () => void;
 	onGeometry?: (geom: { x: number; y: number; w: number; h: number }) => void;
@@ -65,26 +67,27 @@ export class Win10Window {
 
 		const capBtns = document.createElement("div");
 		capBtns.className = "sd-win-caption";
+		const chrome = opts.chrome ?? {};
 		const minBtn = document.createElement("button");
 		minBtn.type = "button";
 		minBtn.className = "sd-win-capbtn";
 		minBtn.innerHTML = GLYPH_MIN;
-		minBtn.title = "Minimize";
-		minBtn.setAttribute("aria-label", "Minimize");
+		minBtn.title = chrome.minimize ?? "Minimize";
+		minBtn.setAttribute("aria-label", chrome.minimize ?? "Minimize");
 		minBtn.onclick = () => opts.onMinimize?.();
 		const maxBtn = document.createElement("button");
 		maxBtn.type = "button";
 		maxBtn.className = "sd-win-capbtn sd-win-maxbtn";
 		maxBtn.innerHTML = GLYPH_MAX;
-		maxBtn.title = "Maximize";
-		maxBtn.setAttribute("aria-label", "Maximize");
+		maxBtn.title = chrome.maximize ?? "Maximize";
+		maxBtn.setAttribute("aria-label", chrome.maximize ?? "Maximize");
 		maxBtn.onclick = () => this.toggleMaximize();
 		const closeBtn = document.createElement("button");
 		closeBtn.type = "button";
 		closeBtn.className = "sd-win-capbtn sd-win-close";
 		closeBtn.innerHTML = GLYPH_CLOSE;
-		closeBtn.title = "Close";
-		closeBtn.setAttribute("aria-label", "Close");
+		closeBtn.title = chrome.close ?? "Close";
+		closeBtn.setAttribute("aria-label", chrome.close ?? "Close");
 		closeBtn.onclick = () => opts.onClose?.();
 		capBtns.appendChild(minBtn);
 		capBtns.appendChild(maxBtn);
@@ -100,7 +103,7 @@ export class Win10Window {
 
 		const grip = document.createElement("div");
 		grip.className = "sd-win-resize";
-		grip.title = "Resize";
+		grip.title = this.opts.chrome?.resize ?? "Resize";
 
 		win.appendChild(titlebar);
 		win.appendChild(content);
@@ -148,8 +151,8 @@ export class Win10Window {
 		this.maximized = !this.maximized;
 		this.el.classList.toggle("sd-win-max", this.maximized);
 		this.maxBtn.innerHTML = this.maximized ? GLYPH_RESTORE : GLYPH_MAX;
-		this.maxBtn.title = this.maximized ? "Restore" : "Maximize";
-		this.maxBtn.setAttribute("aria-label", this.maximized ? "Restore" : "Maximize");
+		this.maxBtn.title = this.maximized ? (this.opts.chrome?.restore ?? "Restore") : (this.opts.chrome?.maximize ?? "Maximize");
+		this.maxBtn.setAttribute("aria-label", this.maximized ? (this.opts.chrome?.restore ?? "Restore") : (this.opts.chrome?.maximize ?? "Maximize"));
 		if (!this.maximized) this.clamp();
 	}
 
