@@ -50,6 +50,18 @@
 	background: rgba(255, 255, 255, 0.12);
 }
 
+/* --- About : icône info officielle dans la titlebar --- */
+#luna-songdownloader-about .sd-win-infoicon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+#luna-songdownloader-about .sd-win-infoicon svg {
+	display: block;
+}
+
 /* --- Fenêtre sans nav (About) : le body prend toute la largeur --- */
 #luna-songdownloader-about.sd-win .sd-win-content-nonav,
 .sd-win .sd-win-content-nonav {

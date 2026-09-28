@@ -122,12 +122,14 @@ function buildContent(win: Win10Window) {
 	body.appendChild(hint);
 }
 
+/** Icône "Information" officielle façon Windows (cercle bleu + "i" blanc). */
+const INFO_ICON = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7.5" fill="#0078D7"/><circle cx="8" cy="8" r="7" fill="none" stroke="#005A9E" stroke-width="1"/><rect x="7.1" y="7.2" width="1.8" height="5" fill="#fff"/><circle cx="8" cy="4.9" r="1.2" fill="#fff"/></svg>`;
+
 export function mountAboutWindow() {
 	if (aboutWin) return;
 	const win = new Win10Window({
 		id: ABOUT_ID,
-		titleHTML: `About — SongDownloaderV2 <span class="sd-win-credit">by ${AUTHOR_NAME}</span>`,
-		avatarUrl: AUTHOR_AVATAR,
+		titleHTML: `About`,
 		width: 440,
 		height: 540,
 		onClose: () => {
@@ -143,6 +145,14 @@ export function mountAboutWindow() {
 		},
 	});
 	aboutWin = win;
+	// Icône info bleue officielle à gauche du titre (vraie fenêtre Win10)
+	const titleLeft = win.el.querySelector(".sd-win-titleleft");
+	if (titleLeft) {
+		const icon = document.createElement("span");
+		icon.className = "sd-win-infoicon";
+		icon.innerHTML = INFO_ICON;
+		titleLeft.prepend(icon);
+	}
 	document.body.appendChild(win.el);
 	buildContent(win);
 	refreshAboutTheme();
