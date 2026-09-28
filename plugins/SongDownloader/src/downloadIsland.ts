@@ -88,7 +88,10 @@ function applyAccent() {
 	refreshAboutTheme();
 	document.getElementById(CAL_ID)?.style.setProperty("--w10-accent", accent);
 	document.getElementById(JOBMENU_ID)?.style.setProperty("--w10-accent", accent);
-	document.getElementById(STARTMENU_ID)?.style.setProperty("--w10-accent", accent);
+	// Menu Démarrer ouvert : suit l'accent ET le thème en direct
+	const startMenu = document.getElementById(STARTMENU_ID);
+	startMenu?.style.setProperty("--w10-accent", accent);
+	startMenu?.classList.toggle("sd-startmenu-dark", settings.winTheme === "dark");
 }
 
 let taskbar: Win10Taskbar | null = null;
