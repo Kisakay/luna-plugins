@@ -4,6 +4,7 @@
 import { unloads } from "./index.safe";
 import { DEFAULT_ACCENT, isValidAccent, settings } from "./Settings";
 import { Win10Window } from "./win10/window";
+import { INFO_ICON } from "./win10/icons";
 import { renderMarkdown } from "./win10/markdown";
 import { w10Button, w10Desc, w10GroupTitle } from "./win10/controls";
 import { onLanguageChange, t } from "./i18n";
@@ -124,9 +125,6 @@ function buildContent(win: Win10Window) {
 	const hint = w10Desc(t("ab.tip"));
 	body.appendChild(hint);
 }
-
-/** Icône "Information" officielle façon Windows (cercle bleu + "i" blanc). */
-const INFO_ICON = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7.5" fill="#0078D7"/><circle cx="8" cy="8" r="7" fill="none" stroke="#005A9E" stroke-width="1"/><rect x="7.1" y="7.2" width="1.8" height="5" fill="#fff"/><circle cx="8" cy="4.9" r="1.2" fill="#fff"/></svg>`;
 
 export function mountAboutWindow() {
 	if (aboutWin) return;

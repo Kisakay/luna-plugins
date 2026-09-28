@@ -278,6 +278,12 @@ div.sd-win .sd-win-navglyph {
 	color: var(--sd-accent, #0078d7);
 }
 
+/* Icônes SVG dans la nav : centrées, teintées accent comme les glyphes */
+div.sd-win .sd-win-navglyph svg {
+	display: block;
+	margin: 0 auto;
+}
+
 /* ============ Page Thème (mode + accent Win10, tout carré) ============ */
 div.sd-win .sd-win-modes {
 	display: flex;

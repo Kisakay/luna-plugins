@@ -17,10 +17,12 @@ import {
 import { getDownloadFolder } from "./helpers";
 import { unloads } from "./index.safe";
 import { DEFAULT_ACCENT, isValidAccent, settings } from "./Settings";
-import { mountAboutWindow, onAboutChange, refreshAboutTheme, toggleAbout } from "./aboutWindow";
+import { ABOUT_ID, isAboutOpen, mountAboutWindow, onAboutChange, refreshAboutTheme, toggleAbout } from "./aboutWindow";
 import { dateLocaleTag, LOCALES, LOCALE_NAMES, onLanguageChange, setLocaleOverride, t, type LangSetting } from "./i18n";
 import {
 	DOWNLOAD_ICON,
+	GLOBE_ICON,
+	INFO_ICON,
 	WIN10_LOGO,
 	Win10Taskbar,
 	Win10Window,
@@ -298,6 +300,9 @@ function paintTaskbar() {
 	// ouverte (fenêtre visible), pas seulement pendant un download.
 	const running = jobs.length > 0 || open || autoStatus !== null;
 	taskbar.setAppState(APP_ID, { running, open });
+	// L'app About suit sa fenêtre (ouverte = soulignée + surlignée)
+	const aboutOpen = isAboutOpen();
+	taskbar.setAppState(ABOUT_ID, { running: aboutOpen, open: aboutOpen });
 	taskbar.setAppTitle(APP_ID, jobs.length > 0 ? `Downloader Manager — ${summaryText()}` : "Downloader Manager");
 	const active = jobs.find((j) => j.status === "active");
 	const queued = jobs.filter((j) => j.status === "queued").length;
@@ -1077,7 +1082,7 @@ const NAV: { id: Section; glyph: string }[] = [
 	{ id: "history", glyph: "✓" },
 	{ id: "settings", glyph: "⚙" },
 	{ id: "theme", glyph: "◐" },
-	{ id: "languages", glyph: "🌐" },
+	{ id: "languages", glyph: GLOBE_ICON },
 ];
 
 function navLabel(id: Section): string {
@@ -1100,6 +1105,14 @@ export function mountIsland() {
 		label: "Downloader Manager",
 		title: "Downloader Manager",
 		onClick: () => toggleManager(),
+	});
+	// About épinglé aussi dans la taskbar (icône info officielle)
+	taskbar.addApp({
+		id: ABOUT_ID,
+		iconHTML: INFO_ICON,
+		label: "About",
+		title: "About — SongDownloaderV2",
+		onClick: () => toggleAbout(),
 	});
 	taskbar.onClockClick(() => {
 		if (document.getElementById(CAL_ID)) closeCalendar();

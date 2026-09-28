@@ -16,6 +16,18 @@ export const GLYPH_MAX = `<svg width="10" height="10" viewBox="0 0 10 10"><rect 
 export const GLYPH_RESTORE = `<svg width="10" height="10" viewBox="0 0 10 10"><rect x="4" y="1" width="5" height="5" fill="none" stroke="currentColor"/><rect x="1" y="4" width="5" height="5" fill="none" stroke="currentColor"/></svg>`;
 export const GLYPH_CLOSE = `<svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" stroke-width="1"/></svg>`;
 
+/**
+ * Icône "Information" officielle façon Windows (cercle bleu + "i" blanc),
+ * en 16px pour titlebars et taskbar. Même DA que MSGBOX_INFO (32px).
+ */
+export const INFO_ICON = `<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7.5" fill="#0078D7"/><circle cx="8" cy="8" r="7" fill="none" stroke="#005A9E" stroke-width="1"/><rect x="7.1" y="7.2" width="1.8" height="5" fill="#fff"/><circle cx="8" cy="4.9" r="1.2" fill="#fff"/></svg>`;
+
+/**
+ * Globe façon Segoe MDL2 (langues) : suit currentColor, donc la couleur
+ * d'accent via .sd-win-navglyph — DA Win10 conservée, zéro emoji.
+ */
+export const GLOBE_ICON = `<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><ellipse cx="8" cy="8" rx="3" ry="6.5" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 8h13M2.8 4.8h10.4M2.8 11.2h10.4" stroke="currentColor" stroke-width="1.2"/></svg>`;
+
 // #region Icônes officielles des MessageBox Win32 (info / avertissement / erreur / question)
 // Tracés fidèles aux icônes système : cercle bleu + "i" blanc, triangle
 // jaune + "!" noir, cercle rouge + croix blanche, cercle bleu + "?" blanc.
