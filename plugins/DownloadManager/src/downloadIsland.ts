@@ -47,7 +47,6 @@ const TASKBAR_ID = "luna-downloadmanager-taskbar";
 const WIN_ID = "luna-downloadmanager-win";
 const CAL_ID = "luna-downloadmanager-cal";
 const JOBMENU_ID = "luna-downloadmanager-jobmenu";
-const APPMENU_ID = "luna-downloadmanager-appmenu";
 const APP_ID = "downloader";
 
 type Section = "downloads" | "history" | "settings" | "theme" | "languages";
@@ -300,16 +299,16 @@ function statusEtaExtra(jobs: QueueJob[]): string {
 
 function paintTaskbar() {
 	if (!taskbar) return;
-	syncTaskbarApps();
 	const jobs = getJobs();
 	const open = isWinShown();
 	// Comme le vrai Win10 : la barre accent est là dès que l'app est
 	// ouverte (fenêtre visible), pas seulement pendant un download.
+	// La visibilité (pin/minimized) est gérée par le framework (win10ml).
 	const running = jobs.length > 0 || open || autoStatus !== null;
-	taskbar.setAppState(APP_ID, { running, open });
+	taskbar.setAppState(APP_ID, { running, open, minimized });
 	// L'app About suit sa fenêtre (ouverte = soulignée + surlignée)
 	const aboutOpen = isAboutOpen();
-	taskbar.setAppState(ABOUT_ID, { running: aboutOpen, open: aboutOpen });
+	taskbar.setAppState(ABOUT_ID, { running: aboutOpen, open: aboutOpen, minimized: isAboutAlive() && !aboutOpen });
 	taskbar.setAppTitle(APP_ID, jobs.length > 0 ? `Downloader Manager — ${summaryText()}` : "Downloader Manager");
 	const active = jobs.find((j) => j.status === "active");
 	const queued = jobs.filter((j) => j.status === "queued").length;
@@ -1212,84 +1211,16 @@ function navLabel(id: Section): string {
 	return t(`nav.${id}`);
 }
 
-// #region Pin taskbar façon Win10 (clic droit sur l'icône : épingler / désépingler)
-interface PinnableApp {
-	id: string;
-	iconHTML: string;
-	label: string;
-	title: string;
-	onClick: () => void;
-}
-
-const PINNABLE_APPS: PinnableApp[] = [
-	{ id: APP_ID, iconHTML: DOWNLOAD_ICON, label: "Downloader Manager", title: "Downloader Manager", onClick: () => toggleManager() },
-	{ id: ABOUT_ID, iconHTML: INFO_ICON, label: "About", title: "About — DownloadManager", onClick: () => toggleAbout() },
-];
-
-/** Boutons réellement présents dans la taskbar (addApp du framework ne déduplique pas). */
-const taskbarApps = new Set<string>();
-
-function isPinned(id: string): boolean {
+// #region Pin taskbar façon Win10 : la politique d'affichage vit dans le
+// framework (win10ml@0.4.0+). Ici uniquement la persistance du pin.
+// L'état initial vient du storage, les toggles utilisateur reviennent via onPinChange.
+function isPinnedSetting(id: string): boolean {
 	return (settings.pinnedApps ?? []).includes(id);
 }
 
-function setPinned(id: string, pinned: boolean): void {
+function persistPin(id: string, pinned: boolean): void {
 	const arr = settings.pinnedApps ?? [];
-	if (pinned && !arr.includes(id)) settings.pinnedApps = [...arr, id];
-	else if (!pinned) settings.pinnedApps = arr.filter((x) => x !== id);
-	syncTaskbarApps();
-}
-
-/** Clic droit sur une icône : menu contextuel Win10 avec Pin/Unpin (via le framework). */
-function showAppMenu(app: PinnableApp, x: number, y: number) {
-	showWin10Menu({
-		id: APPMENU_ID,
-		x,
-		y,
-		dark: settings.winTheme === "dark",
-		accent: currentAccent(),
-		build: (menu) => {
-			menu.appendChild(w10MenuHeader(app.label));
-			const pinBtn = w10MenuItem(isPinned(app.id) ? t("tb.unpin") : t("tb.pin"));
-			pinBtn.onclick = (e) => {
-				e.stopPropagation();
-				document.getElementById(APPMENU_ID)?.remove();
-				setPinned(app.id, !isPinned(app.id));
-			};
-			menu.appendChild(pinBtn);
-		},
-	});
-}
-
-function ensureAppButton(app: PinnableApp): void {
-	if (!taskbar || taskbarApps.has(app.id)) return;
-	const btn = taskbar.addApp(app);
-	taskbarApps.add(app.id);
-	btn.addEventListener("contextmenu", (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		showAppMenu(app, (e as MouseEvent).clientX, (e as MouseEvent).clientY);
-	});
-}
-
-function removeAppButton(id: string): void {
-	if (!taskbar || !taskbarApps.has(id)) return;
-	taskbar.removeApp(id);
-	taskbarApps.delete(id);
-}
-
-/** Épinglée = le carré reste même fermée ; minimisée = reste aussi (clic = restaurer, comme Win10).
- * Seule une fenêtre fermée (X) et désépinglée, sans activité, est retirée. */
-function syncTaskbarApps(): void {
-	if (!taskbar) return;
-	const jobs = getJobs();
-	const open = isWinShown();
-	const running = jobs.length > 0 || open || autoStatus !== null;
-	// expanded reste vrai quand minimisée (minimized=true) : le bouton doit rester.
-	if (isPinned(APP_ID) || expanded || running || open) ensureAppButton(PINNABLE_APPS[0]);
-	else removeAppButton(APP_ID);
-	if (isPinned(ABOUT_ID) || isAboutAlive()) ensureAppButton(PINNABLE_APPS[1]);
-	else removeAppButton(ABOUT_ID);
+	settings.pinnedApps = pinned ? [...new Set([...arr, id])] : arr.filter((x) => x !== id);
 }
 // #endregion
 
@@ -1300,13 +1231,36 @@ export function mountIsland() {
 	registerStartApp({ id: APP_ID, label: "Downloader Manager", iconHTML: DOWNLOAD_ICON, onOpen: () => openManager() });
 	registerStartApp({ id: ABOUT_ID, label: "About", iconHTML: INFO_ICON, onOpen: () => toggleAbout() });
 
-	// Taskbar Win10 : [Démarrer] [apps épinglées/ouvertes] ……… status horloge
-	// (les boutons sont posés par syncTaskbarApps via paintTaskbar : épinglée = reste même fermée)
+	// Taskbar Win10 : [Démarrer] [Downloader Manager] [About] ……… status horloge
+	// (affichage pin/minimized géré par le framework, cf. TaskbarAppOptions)
 	taskbar = new Win10Taskbar(TASKBAR_ID);
 	taskbar.addStartButton({
 		iconHTML: WIN10_LOGO,
 		title: t("sm.start"),
 		onClick: () => toggleStartMenu(),
+	});
+	taskbar.addApp({
+		id: APP_ID,
+		iconHTML: DOWNLOAD_ICON,
+		label: "Downloader Manager",
+		title: "Downloader Manager",
+		onClick: () => toggleManager(),
+		pinned: isPinnedSetting(APP_ID),
+		pinTitle: t("tb.pin"),
+		unpinTitle: t("tb.unpin"),
+		onPinChange: (_id, pinned) => persistPin(APP_ID, pinned),
+	});
+	// About épinglé aussi dans la taskbar (icône info officielle)
+	taskbar.addApp({
+		id: ABOUT_ID,
+		iconHTML: INFO_ICON,
+		label: "About",
+		title: "About — DownloadManager",
+		onClick: () => toggleAbout(),
+		pinned: isPinnedSetting(ABOUT_ID),
+		pinTitle: t("tb.pin"),
+		unpinTitle: t("tb.unpin"),
+		onPinChange: (_id, pinned) => persistPin(ABOUT_ID, pinned),
 	});
 	taskbar.onClockClick(() => {
 		if (document.getElementById(CAL_ID)) closeCalendar();
@@ -1365,13 +1319,6 @@ export function mountIsland() {
 			render();
 		},
 	);
-	// win10ml@0.3.0 rend le glyph via textContent : un SVG (GLOBE_ICON)
-	// s'affiche en texte brut au lieu d'être parsé. On réinjecte en HTML.
-	for (const n of NAV) {
-		if (!n.glyph.startsWith("<")) continue;
-		const glyphEl = nav.nav.querySelector(`[data-section="${n.id}"] .w10-navglyph`);
-		if (glyphEl) glyphEl.innerHTML = n.glyph;
-	}
 	navSync = nav.sync;
 	document.body.appendChild(managerWin.el);
 
@@ -1382,8 +1329,6 @@ export function mountIsland() {
 		taskbar?.destroy();
 		managerWin?.destroy();
 		closeCalendar();
-		document.getElementById(APPMENU_ID)?.remove();
-		taskbarApps.clear();
 		taskbar = managerWin = null;
 		navSync = null;
 	});

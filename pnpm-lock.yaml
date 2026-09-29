@@ -31,7 +31,7 @@ importers:
         version: 14.1.1
       luna:
         specifier: github:Inrixia/TidaLuna
-        version: https://codeload.github.com/Inrixia/TidaLuna/tar.gz/d8cd6bc29b5edc30dd8ec28861b88d3519560126
+        version: https://codeload.github.com/Inrixia/TidaLuna/tar.gz/e1971122cf5db90c1e0b2bc98402ddcc9aa97e23
       oby:
         specifier: ^15.1.2
         version: 15.1.2
@@ -52,7 +52,7 @@ importers:
         version: 1.6.3
       win10ml:
         specifier: github:Kisakay/winml#main
-        version: https://codeload.github.com/Kisakay/winml/tar.gz/d4bf8348465bf2cf1aa924275d50718a5eafe4dd
+        version: https://codeload.github.com/Kisakay/winml/tar.gz/e2a74ed3bcfb2dfeab74c6a693649071f89083fc
 
 packages:
 
@@ -775,9 +775,9 @@ packages:
     resolution: {integrity: sha512-B5Y16Jr9LB9dHVkh6ZevG+vAbOsNOYCX+sXvFWFu7B3Iz5mijW3zdbMyhsh8ANd2mSWBYdJgnqi+mL7/LrOPYg==}
     engines: {node: 20 || >=22}
 
-  luna@https://codeload.github.com/Inrixia/TidaLuna/tar.gz/d8cd6bc29b5edc30dd8ec28861b88d3519560126:
-    resolution: {tarball: https://codeload.github.com/Inrixia/TidaLuna/tar.gz/d8cd6bc29b5edc30dd8ec28861b88d3519560126}
-    version: 1.16.6-beta
+  luna@https://codeload.github.com/Inrixia/TidaLuna/tar.gz/e1971122cf5db90c1e0b2bc98402ddcc9aa97e23:
+    resolution: {tarball: https://codeload.github.com/Inrixia/TidaLuna/tar.gz/e1971122cf5db90c1e0b2bc98402ddcc9aa97e23}
+    version: 1.17.0-beta
 
   matcher@3.0.0:
     resolution: {integrity: sha512-OkeDaAZ/bQCxeFAozM55PKcKU0yJMPGifLwV4Qgjitu+5MoAfSQN4lsLJeXZ1b8w0x+/Emda6MZgXS1jvsapng==}
@@ -1042,9 +1042,9 @@ packages:
     engines: {node: '>=12'}
     deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
-  win10ml@https://codeload.github.com/Kisakay/winml/tar.gz/d4bf8348465bf2cf1aa924275d50718a5eafe4dd:
-    resolution: {tarball: https://codeload.github.com/Kisakay/winml/tar.gz/d4bf8348465bf2cf1aa924275d50718a5eafe4dd}
-    version: 0.3.0
+  win10ml@https://codeload.github.com/Kisakay/winml/tar.gz/e2a74ed3bcfb2dfeab74c6a693649071f89083fc:
+    resolution: {tarball: https://codeload.github.com/Kisakay/winml/tar.gz/e2a74ed3bcfb2dfeab74c6a693649071f89083fc}
+    version: 0.4.0
 
   wrap-ansi@7.0.0:
     resolution: {integrity: sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==}
@@ -1733,7 +1733,7 @@ snapshots:
 
   lru-cache@11.2.4: {}
 
-  luna@https://codeload.github.com/Inrixia/TidaLuna/tar.gz/d8cd6bc29b5edc30dd8ec28861b88d3519560126:
+  luna@https://codeload.github.com/Inrixia/TidaLuna/tar.gz/e1971122cf5db90c1e0b2bc98402ddcc9aa97e23:
     dependencies:
       '@inrixia/helpers': 3.21.2
       '@types/clean-css': 4.2.11
@@ -1992,7 +1992,7 @@ snapshots:
     dependencies:
       iconv-lite: 0.6.3
 
-  win10ml@https://codeload.github.com/Kisakay/winml/tar.gz/d4bf8348465bf2cf1aa924275d50718a5eafe4dd: {}
+  win10ml@https://codeload.github.com/Kisakay/winml/tar.gz/e2a74ed3bcfb2dfeab74c6a693649071f89083fc: {}
 
   wrap-ansi@7.0.0:
     dependencies:

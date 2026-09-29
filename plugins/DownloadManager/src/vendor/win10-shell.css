@@ -37,6 +37,7 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
+	margin-right: 4px;
 }
 
 .w10-taskbar .w10-app:hover {
@@ -72,12 +73,22 @@
 	-webkit-user-select: none;
 }
 
-/* Accent underline while the app is running */
+/* Closed app: small square icon only (label only while open), like Win10 */
+.w10-taskbar .w10-app-wide:not(.w10-open) {
+	padding: 0;
+	gap: 0;
+}
+
+.w10-taskbar .w10-app-wide:not(.w10-open) .w10-app-label {
+	display: none;
+}
+
+/* Accent underline while the app is running (full button width, like Win10) */
 .w10-taskbar .w10-app::after {
 	content: "";
 	position: absolute;
-	left: 5px;
-	right: 5px;
+	left: 0;
+	right: 0;
 	bottom: 0;
 	height: 2px;
 	background: var(--w10-accent, #0078d7);
@@ -304,6 +315,12 @@
 	text-align: center;
 	font-size: 13px;
 	color: var(--w10-accent, #0078d7);
+}
+
+/* Inline SVG glyphs (e.g. GLOBE_ICON): centered in the glyph slot */
+.w10-win .w10-navglyph svg {
+	display: block;
+	margin: 0 auto;
 }
 
 .w10-win .w10-body {

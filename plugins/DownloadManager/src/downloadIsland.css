@@ -600,34 +600,13 @@ button[data-luna-downloadmanager="tracks-download-all"].sd-busy {
 	margin: 12px 0 4px;
 }
 /* ============ Compléments winml spécifiques au plugin ============ */
-/* Taskbar façon Win10 : app fermée = petite icône carrée, app ouverte = bouton large + label */
-#luna-downloadmanager-taskbar.w10-taskbar .w10-app-wide:not(.w10-open) {
-	padding: 0;
-	gap: 0;
-}
-#luna-downloadmanager-taskbar.w10-taskbar .w10-app-wide:not(.w10-open) .w10-app-label {
-	display: none;
-}
-
-/* Taskbar : espace entre les apps + barre accent pleine largeur */
-#luna-downloadmanager-taskbar.w10-taskbar .w10-app {
-	margin-right: 4px;
-}
-#luna-downloadmanager-taskbar.w10-taskbar .w10-app::after {
-	left: 0;
-	right: 0;
-}
+/* (politique taskbar pin/visibilité/espacement : gérée par le framework win10ml@0.4.0+,
+   synchronisé dans src/vendor/win10-shell.css via le prebuild) */
 
 /* Bouton toggle thème injecté dans le pied du menu Démarrer */
 .w10-startmenu .w10-sm-footbtn[data-theme-toggle] .w10-sm-footicon {
 	font-size: 18px;
 	line-height: 1;
-}
-
-/* Icône SVG dans la nav (globe Languages) : centrée, teintée accent */
-.w10-win .w10-navglyph svg {
-	display: block;
-	margin: 0 auto;
 }
 
 /* Lignes de tracks dans le menu job : indentées façon Win10 */
