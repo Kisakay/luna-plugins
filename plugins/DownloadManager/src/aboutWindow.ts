@@ -58,6 +58,11 @@ export function isAboutOpen(): boolean {
 	return visible && !minimized && aboutWin?.shown === true;
 }
 
+/** La fenêtre existe (ouverte ou minimisée) vs fermée via X. */
+export function isAboutAlive(): boolean {
+	return visible || minimized;
+}
+
 function currentAccent(): string {
 	return isValidAccent(settings.accent) ? settings.accent : DEFAULT_ACCENT;
 }

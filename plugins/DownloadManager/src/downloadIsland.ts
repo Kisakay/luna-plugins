@@ -17,7 +17,7 @@ import {
 import { getDownloadFolder } from "./helpers";
 import { unloads } from "./index.safe";
 import { DEFAULT_ACCENT, isValidAccent, settings } from "./Settings";
-import { ABOUT_ID, closeAbout, isAboutOpen, mountAboutWindow, onAboutChange, refreshAboutTheme, toggleAbout } from "./aboutWindow";
+import { ABOUT_ID, closeAbout, isAboutAlive, isAboutOpen, mountAboutWindow, onAboutChange, refreshAboutTheme, toggleAbout } from "./aboutWindow";
 import { dateLocaleTag, LOCALES, LOCALE_NAMES, onLanguageChange, setLocaleOverride, t, type LangSetting } from "./i18n";
 import {
 	DOWNLOAD_ICON,
@@ -1278,15 +1278,17 @@ function removeAppButton(id: string): void {
 	taskbarApps.delete(id);
 }
 
-/** Épinglée = le carré reste même fermée ; désépinglée + inactive = retirée (comme Win10). */
+/** Épinglée = le carré reste même fermée ; minimisée = reste aussi (clic = restaurer, comme Win10).
+ * Seule une fenêtre fermée (X) et désépinglée, sans activité, est retirée. */
 function syncTaskbarApps(): void {
 	if (!taskbar) return;
 	const jobs = getJobs();
 	const open = isWinShown();
 	const running = jobs.length > 0 || open || autoStatus !== null;
-	if (isPinned(APP_ID) || running || open) ensureAppButton(PINNABLE_APPS[0]);
+	// expanded reste vrai quand minimisée (minimized=true) : le bouton doit rester.
+	if (isPinned(APP_ID) || expanded || running || open) ensureAppButton(PINNABLE_APPS[0]);
 	else removeAppButton(APP_ID);
-	if (isPinned(ABOUT_ID) || isAboutOpen()) ensureAppButton(PINNABLE_APPS[1]);
+	if (isPinned(ABOUT_ID) || isAboutAlive()) ensureAppButton(PINNABLE_APPS[1]);
 	else removeAppButton(ABOUT_ID);
 }
 // #endregion
