@@ -71,12 +71,12 @@ body {
 	border-color: #000;
 	box-shadow: inset 0 0 0 2px #fff;
 }
-.w10-win.sd-win-dark .sd-win-modebtn {
+.w10-win.w10-dark .sd-win-modebtn {
 	color: #fff;
 	background: #2b2b2b;
 	border-color: #8a8a8a;
 }
-.w10-win.sd-win-dark .sd-win-swatch-active {
+.w10-win.w10-dark .sd-win-swatch-active {
 	border-color: #fff;
 	box-shadow: inset 0 0 0 2px #000;
 }
@@ -132,14 +132,14 @@ body {
 	width: 0;
 	height: 0;
 }
-.w10-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
+.w10-win.w10-dark .sd-win-body::-webkit-scrollbar-thumb {
 	background: #4d4d4d;
 	border-radius: 0 !important;
 }
-.w10-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb:hover {
+.w10-win.w10-dark .sd-win-body::-webkit-scrollbar-thumb:hover {
 	background: #767676;
 }
-.w10-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb:active {
+.w10-win.w10-dark .sd-win-body::-webkit-scrollbar-thumb:active {
 	background: #a6a6a6;
 }
 .w10-win .sd-win-searchrow {
@@ -166,7 +166,7 @@ body {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
-.w10-win.sd-win-dark .sd-win-outrow {
+.w10-win.w10-dark .sd-win-outrow {
 	background: #191919;
 	border-color: #2c2c2c;
 }
@@ -359,47 +359,47 @@ body {
 	font-style: italic;
 	padding: 4px 8px;
 }
-.w10-win.sd-win-dark .sd-island-track {
+.w10-win.w10-dark .sd-island-track {
 	background: rgba(255, 255, 255, 0.04);
 }
-.w10-win.sd-win-dark .sd-island-thumb {
+.w10-win.w10-dark .sd-island-thumb {
 	background: #3a3a3a;
 }
-.w10-win.sd-win-dark .sd-island-tracksub {
+.w10-win.w10-dark .sd-island-tracksub {
 	color: #a19f9d;
 }
-.w10-win.sd-win-dark .sd-island-trackbar {
+.w10-win.w10-dark .sd-island-trackbar {
 	background: #3a3a3a;
 }
-.w10-win.sd-win-dark .sd-island-exp {
+.w10-win.w10-dark .sd-island-exp {
 	color: #a19f9d;
 }
-.w10-win.sd-win-dark .sd-win-body::-webkit-scrollbar-thumb {
+.w10-win.w10-dark .sd-win-body::-webkit-scrollbar-thumb {
 	background: #4d4d4d;
 	border: none;
 }
-.w10-win.sd-win-dark .sd-island-sub {
+.w10-win.w10-dark .sd-island-sub {
 	color: #a19f9d;
 }
-.w10-win.sd-win-dark .sd-win-searchrow {
+.w10-win.w10-dark .sd-win-searchrow {
 	background: #202020;
 }
-.w10-win.sd-win-dark .sd-island-row {
+.w10-win.w10-dark .sd-island-row {
 	background: #202020;
 }
-.w10-win.sd-win-dark .sd-island-row:hover {
+.w10-win.w10-dark .sd-island-row:hover {
 	background: #2d2d2d;
 }
-.w10-win.sd-win-dark .sd-island-row.sd-island-active {
+.w10-win.w10-dark .sd-island-row.sd-island-active {
 	background: rgba(0, 120, 215, 0.25);
 }
-.w10-win.sd-win-dark .sd-island-bar {
+.w10-win.w10-dark .sd-island-bar {
 	background: #3a3a3a;
 }
-.w10-win.sd-win-dark .sd-island-action {
+.w10-win.w10-dark .sd-island-action {
 	color: #a19f9d;
 }
-.w10-win.sd-win-dark .sd-island-action:hover {
+.w10-win.w10-dark .sd-island-action:hover {
 	background: #e81123;
 	color: #fff;
 }
@@ -418,6 +418,22 @@ button[data-luna-downloadmanager="tracks-download-all"].sd-busy {
 		opacity: 1;
 		transform: translateX(0);
 	}
+}
+/* Conteneur calendrier (clic horloge taskbar) : panneau fixe au-dessus de l'horloge */
+#luna-downloadmanager-cal {
+	position: fixed;
+	right: 8px;
+	bottom: 48px;
+	z-index: 99996;
+	width: 300px;
+	box-sizing: border-box;
+	font-family: "Segoe UI", system-ui, sans-serif;
+	color: #000;
+	background: #fff;
+	border: 1px solid #767676;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+	padding: 12px 14px 10px;
+	animation: sd-cal-in 0.12s ease-out;
 }
 #luna-downloadmanager-cal .sd-cal-head {
 	display: flex;
@@ -540,7 +556,7 @@ button[data-luna-downloadmanager="tracks-download-all"].sd-busy {
 	border: 1px solid #e1e1e1;
 	background: #f3f3f3;
 }
-.sd-win-dark .sd-about-avatar {
+.w10-dark .sd-about-avatar {
 	border-color: #444;
 	background: #191919;
 }
@@ -554,7 +570,7 @@ button[data-luna-downloadmanager="tracks-download-all"].sd-busy {
 	color: #605e5c;
 	margin-top: 2px;
 }
-.sd-win-dark .sd-about-sub {
+.w10-dark .sd-about-sub {
 	color: #a19f9d;
 }
 .sd-about-badges {
@@ -572,7 +588,7 @@ button[data-luna-downloadmanager="tracks-download-all"].sd-busy {
 	user-select: none;
 	-webkit-user-select: none;
 }
-.sd-win-dark .sd-about-badge {
+.w10-dark .sd-about-badge {
 	background: #191919;
 	border-color: #333;
 	color: #d2d0ce;
