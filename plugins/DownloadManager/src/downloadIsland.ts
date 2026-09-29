@@ -421,7 +421,40 @@ function sleepAll(): void {
 
 export function toggleStartMenu(): void {
 	closeCalendar();
-	ensureStartMenu().toggle();
+	const menu = ensureStartMenu();
+	menu.toggle();
+	// Le framework ne prévoit que user/settings/power : on ajoute le toggle thème ici.
+	if (menu.isOpen()) injectThemeFootBtn();
+}
+
+/** Bouton toggle light/dark injecté dans le pied du menu Démarrer (entre Settings et Power). */
+function paintThemeFootBtn(btn: HTMLButtonElement): void {
+	const dark = settings.winTheme === "dark";
+	btn.title = dark ? t("th.light") : t("th.dark");
+	const icon = btn.querySelector(".w10-sm-footicon");
+	if (icon) icon.textContent = dark ? "☀" : "☾";
+}
+
+function injectThemeFootBtn(): void {
+	const foot = document.querySelector(".w10-startmenu .w10-sm-foot");
+	if (!foot || foot.querySelector("[data-theme-toggle]")) return;
+	const btn = document.createElement("button");
+	btn.type = "button";
+	btn.className = "w10-sm-footbtn";
+	btn.dataset.themeToggle = "true";
+	const icon = document.createElement("span");
+	icon.className = "w10-sm-footicon";
+	btn.appendChild(icon);
+	paintThemeFootBtn(btn);
+	btn.onclick = () => {
+		settings.winTheme = settings.winTheme === "dark" ? "light" : "dark";
+		applyTheme();
+		paintThemeFootBtn(btn);
+	};
+	// Ordre : user, settings, [thème], power.
+	const power = foot.querySelector(".w10-sm-footbtn:last-child");
+	if (power) foot.insertBefore(btn, power);
+	else foot.appendChild(btn);
 }
 // #endregion
 

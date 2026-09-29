@@ -609,6 +609,12 @@ button[data-luna-downloadmanager="tracks-download-all"].sd-busy {
 	right: 0;
 }
 
+/* Bouton toggle thème injecté dans le pied du menu Démarrer */
+.w10-startmenu .w10-sm-footbtn[data-theme-toggle] .w10-sm-footicon {
+	font-size: 18px;
+	line-height: 1;
+}
+
 /* Icône SVG dans la nav (globe Languages) : centrée, teintée accent */
 .w10-win .w10-navglyph svg {
 	display: block;
