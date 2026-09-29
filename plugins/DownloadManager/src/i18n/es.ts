@@ -92,6 +92,8 @@ export const es: EnDict = {
 	"sm.start": "Inicio",
 	"sm.search": "Escribe aquí para buscar",
 	"sm.sleep": "Suspender (ocultar todas las ventanas)",
+	"tb.pin": "Fijar a la barra de tareas",
+	"tb.unpin": "Quitar de la barra de tareas",
 	"lg.group": "Idioma",
 	"lg.desc": "Se aplica al instante a las ventanas, la barra de tareas y los menús.",
 	"lg.auto": "Automático (idioma del sistema)",

@@ -92,6 +92,8 @@ export const zh: EnDict = {
 	"sm.start": "开始",
 	"sm.search": "在此键入进行搜索",
 	"sm.sleep": "睡眠（隐藏所有窗口）",
+	"tb.pin": "固定到任务栏",
+	"tb.unpin": "从任务栏取消固定",
 	"lg.group": "语言",
 	"lg.desc": "立即应用于窗口、任务栏和菜单。",
 	"lg.auto": "自动（系统语言）",

@@ -91,6 +91,8 @@ export const en = {
 	"sm.start": "Start",
 	"sm.search": "Type here to search",
 	"sm.sleep": "Sleep (hide all windows)",
+	"tb.pin": "Pin to taskbar",
+	"tb.unpin": "Unpin from taskbar",
 	"lg.group": "Language",
 	"lg.desc": "Applies instantly to the windows, the taskbar and the menus.",
 	"lg.auto": "Automatic (system language)",

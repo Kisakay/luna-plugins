@@ -28,6 +28,8 @@ type Settings = {
 	winTheme: "light" | "dark";
 	accent: string;
 	language: LangSetting;
+	/** IDs des apps épinglées à la taskbar (visibles même fermées). */
+	pinnedApps: string[];
 	/** Queue persistée (jobs en attente/actifs) pour restore au restart. */
 	savedQueue?: SavedJob[];
 };
@@ -51,6 +53,7 @@ export const settings = await ReactiveStore.getPluginStorage<Settings>("SongDown
 	winTheme: "light",
 	accent: DEFAULT_ACCENT,
 	language: "auto",
+	pinnedApps: ["downloader", "luna-downloadmanager-about"],
 });
 
 // L'i18n suit le réglage persisté (et notifie fenêtres/taskbar/menus)
@@ -58,6 +61,8 @@ setLocaleOverride(settings.language);
 
 // Sanitize accent (hex) + download quality
 if (!isValidAccent(settings.accent)) settings.accent = DEFAULT_ACCENT;
+// Anciennes installs : la liste des apps épinglées n'existe pas encore
+if (!Array.isArray(settings.pinnedApps)) settings.pinnedApps = ["downloader", "luna-downloadmanager-about"];
 
 // Sanitize download quality
 if (Quality.fromAudioQuality(settings.downloadQuality) === undefined) settings.downloadQuality = Quality.Max.audioQuality;

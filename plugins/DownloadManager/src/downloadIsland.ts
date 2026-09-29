@@ -47,6 +47,7 @@ const TASKBAR_ID = "luna-downloadmanager-taskbar";
 const WIN_ID = "luna-downloadmanager-win";
 const CAL_ID = "luna-downloadmanager-cal";
 const JOBMENU_ID = "luna-downloadmanager-jobmenu";
+const APPMENU_ID = "luna-downloadmanager-appmenu";
 const APP_ID = "downloader";
 
 type Section = "downloads" | "history" | "settings" | "theme" | "languages";
@@ -299,6 +300,7 @@ function statusEtaExtra(jobs: QueueJob[]): string {
 
 function paintTaskbar() {
 	if (!taskbar) return;
+	syncTaskbarApps();
 	const jobs = getJobs();
 	const open = isWinShown();
 	// Comme le vrai Win10 : la barre accent est là dès que l'app est
@@ -1210,6 +1212,85 @@ function navLabel(id: Section): string {
 	return t(`nav.${id}`);
 }
 
+// #region Pin taskbar façon Win10 (clic droit sur l'icône : épingler / désépingler)
+interface PinnableApp {
+	id: string;
+	iconHTML: string;
+	label: string;
+	title: string;
+	onClick: () => void;
+}
+
+const PINNABLE_APPS: PinnableApp[] = [
+	{ id: APP_ID, iconHTML: DOWNLOAD_ICON, label: "Downloader Manager", title: "Downloader Manager", onClick: () => toggleManager() },
+	{ id: ABOUT_ID, iconHTML: INFO_ICON, label: "About", title: "About — DownloadManager", onClick: () => toggleAbout() },
+];
+
+/** Boutons réellement présents dans la taskbar (addApp du framework ne déduplique pas). */
+const taskbarApps = new Set<string>();
+
+function isPinned(id: string): boolean {
+	return (settings.pinnedApps ?? []).includes(id);
+}
+
+function setPinned(id: string, pinned: boolean): void {
+	const arr = settings.pinnedApps ?? [];
+	if (pinned && !arr.includes(id)) settings.pinnedApps = [...arr, id];
+	else if (!pinned) settings.pinnedApps = arr.filter((x) => x !== id);
+	syncTaskbarApps();
+}
+
+/** Clic droit sur une icône : menu contextuel Win10 avec Pin/Unpin (via le framework). */
+function showAppMenu(app: PinnableApp, x: number, y: number) {
+	showWin10Menu({
+		id: APPMENU_ID,
+		x,
+		y,
+		dark: settings.winTheme === "dark",
+		accent: currentAccent(),
+		build: (menu) => {
+			menu.appendChild(w10MenuHeader(app.label));
+			const pinBtn = w10MenuItem(isPinned(app.id) ? t("tb.unpin") : t("tb.pin"));
+			pinBtn.onclick = (e) => {
+				e.stopPropagation();
+				document.getElementById(APPMENU_ID)?.remove();
+				setPinned(app.id, !isPinned(app.id));
+			};
+			menu.appendChild(pinBtn);
+		},
+	});
+}
+
+function ensureAppButton(app: PinnableApp): void {
+	if (!taskbar || taskbarApps.has(app.id)) return;
+	const btn = taskbar.addApp(app);
+	taskbarApps.add(app.id);
+	btn.addEventListener("contextmenu", (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		showAppMenu(app, (e as MouseEvent).clientX, (e as MouseEvent).clientY);
+	});
+}
+
+function removeAppButton(id: string): void {
+	if (!taskbar || !taskbarApps.has(id)) return;
+	taskbar.removeApp(id);
+	taskbarApps.delete(id);
+}
+
+/** Épinglée = le carré reste même fermée ; désépinglée + inactive = retirée (comme Win10). */
+function syncTaskbarApps(): void {
+	if (!taskbar) return;
+	const jobs = getJobs();
+	const open = isWinShown();
+	const running = jobs.length > 0 || open || autoStatus !== null;
+	if (isPinned(APP_ID) || running || open) ensureAppButton(PINNABLE_APPS[0]);
+	else removeAppButton(APP_ID);
+	if (isPinned(ABOUT_ID) || isAboutOpen()) ensureAppButton(PINNABLE_APPS[1]);
+	else removeAppButton(ABOUT_ID);
+}
+// #endregion
+
 export function mountIsland() {
 	if (document.getElementById(TASKBAR_ID)) return;
 
@@ -1217,27 +1298,13 @@ export function mountIsland() {
 	registerStartApp({ id: APP_ID, label: "Downloader Manager", iconHTML: DOWNLOAD_ICON, onOpen: () => openManager() });
 	registerStartApp({ id: ABOUT_ID, label: "About", iconHTML: INFO_ICON, onOpen: () => toggleAbout() });
 
-	// Taskbar Win10 : [Démarrer] [Downloader Manager] ……… status horloge
+	// Taskbar Win10 : [Démarrer] [apps épinglées/ouvertes] ……… status horloge
+	// (les boutons sont posés par syncTaskbarApps via paintTaskbar : épinglée = reste même fermée)
 	taskbar = new Win10Taskbar(TASKBAR_ID);
 	taskbar.addStartButton({
 		iconHTML: WIN10_LOGO,
 		title: t("sm.start"),
 		onClick: () => toggleStartMenu(),
-	});
-	taskbar.addApp({
-		id: APP_ID,
-		iconHTML: DOWNLOAD_ICON,
-		label: "Downloader Manager",
-		title: "Downloader Manager",
-		onClick: () => toggleManager(),
-	});
-	// About épinglé aussi dans la taskbar (icône info officielle)
-	taskbar.addApp({
-		id: ABOUT_ID,
-		iconHTML: INFO_ICON,
-		label: "About",
-		title: "About — DownloadManager",
-		onClick: () => toggleAbout(),
 	});
 	taskbar.onClockClick(() => {
 		if (document.getElementById(CAL_ID)) closeCalendar();
@@ -1313,6 +1380,8 @@ export function mountIsland() {
 		taskbar?.destroy();
 		managerWin?.destroy();
 		closeCalendar();
+		document.getElementById(APPMENU_ID)?.remove();
+		taskbarApps.clear();
 		taskbar = managerWin = null;
 		navSync = null;
 	});
