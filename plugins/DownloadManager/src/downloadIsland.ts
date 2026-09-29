@@ -1263,6 +1263,13 @@ export function mountIsland() {
 			render();
 		},
 	);
+	// win10ml@0.3.0 rend le glyph via textContent : un SVG (GLOBE_ICON)
+	// s'affiche en texte brut au lieu d'être parsé. On réinjecte en HTML.
+	for (const n of NAV) {
+		if (!n.glyph.startsWith("<")) continue;
+		const glyphEl = nav.nav.querySelector(`[data-section="${n.id}"] .w10-navglyph`);
+		if (glyphEl) glyphEl.innerHTML = n.glyph;
+	}
 	navSync = nav.sync;
 	document.body.appendChild(managerWin.el);
 

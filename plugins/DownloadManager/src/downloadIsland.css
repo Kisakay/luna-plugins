@@ -584,6 +584,15 @@ button[data-luna-downloadmanager="tracks-download-all"].sd-busy {
 	margin: 12px 0 4px;
 }
 /* ============ Compléments winml spécifiques au plugin ============ */
+/* Taskbar : espace entre les apps + barre accent pleine largeur */
+#luna-downloadmanager-taskbar.w10-taskbar .w10-app {
+	margin-right: 4px;
+}
+#luna-downloadmanager-taskbar.w10-taskbar .w10-app::after {
+	left: 0;
+	right: 0;
+}
+
 /* Icône SVG dans la nav (globe Languages) : centrée, teintée accent */
 .w10-win .w10-navglyph svg {
 	display: block;
