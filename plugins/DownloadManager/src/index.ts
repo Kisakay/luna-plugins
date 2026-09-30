@@ -7,6 +7,7 @@ import { downloadMediaCollection } from "./downloadCollection";
 import { mountIsland } from "./downloadIsland";
 import { getFavoritesQueueInfo, onQueueChange, restoreSavedQueue, toggleFavorites } from "./downloadQueue";
 import { FavoriteTracks } from "./favoriteTracks";
+import { MixCollection, currentMixIdFromUrl } from "./mixCollection";
 import { watchPlayedTracks } from "./autoDownload";
 import { unloads } from "./index.safe";
 import { settings } from "./Settings";
@@ -32,15 +33,17 @@ mountBottomOffset();
 // Recharge la queue sauvegardée (restart client) : les jobs repartent en queued
 void restoreSavedQueue();
 
-// Nettoyage : retire le quickmenu + les boutons Tracks injectés
+// Nettoyage : retire le quickmenu + les boutons Tracks/Mix injectés
 unloads.add(() => {
 	document.getElementById("luna-downloadmanager-quickmenu")?.remove();
 	document.querySelectorAll('[data-luna-downloadmanager="tracks-download-all"]').forEach((b) => b.remove());
+	document.querySelectorAll('[data-luna-downloadmanager="mix-download-all"]').forEach((b) => b.remove());
 	document.getElementById("luna-downloadmanager-quickmenu")?.remove();
 });
 
 const downloadButton = ContextMenu.addButton(unloads);
 const tracksDownloadButton = ContextMenu.addButton(unloads);
+const mixDownloadButton = ContextMenu.addButton(unloads);
 
 // Helper partagé : toggle les Tracks likés dans la queue.
 // (absent -> queue, déjà en file/active -> retire/annule)
@@ -101,6 +104,30 @@ ContextMenu.onMediaItem(unloads, async ({ mediaCollection, contextMenu }) => {
 	await downloadButton.show(contextMenu);
 });
 
+// 1b) Mix Tidal (My Mix 1-8, Daily Discovery, New Arrivals...) :
+// clic droit sur une carte mix (shelf DAILY_MIXES, page Mixes & Radio...)
+// émet un event MIX via contextMenu/OPEN (non couvert par onMediaItem
+// qui ne gère que ALBUM/PLAYLIST + items).
+ContextMenu.onOpen(unloads, async ({ event, contextMenu }) => {
+	if (event.type !== "MIX") return;
+	const mixId = (event as { id?: string | number }).id;
+	if (mixId === undefined || mixId === null) return;
+	const mix = await MixCollection.fromId(mixId);
+	if (!mix) return;
+	// Affiche tout de suite (le chargement du mix peut prendre 1-10s) :
+	// le label précis arrive en fond, le download résout les tracks au clic.
+	mixDownloadButton.text = t("mix.all");
+	mixDownloadButton.onClick(() => downloadMediaCollection(mix, mixDownloadButton));
+	await mixDownloadButton.show(contextMenu);
+	void mix
+		.count()
+		.then((n) => {
+			if (!mixDownloadButton.elem?.isConnected) return;
+			mixDownloadButton.text = n > 0 ? t("ctx.tracks", { n }) : t("mix.empty");
+		})
+		.catch(() => {});
+});
+
 // 2) Page "Tracks" (musiques likées) : aucun event PLAYLIST/ALBUM,
 // donc on branche le context-menu générique quand on est sur cette page.
 // (onMediaItem gère déjà MEDIA_ITEM/MULTI_MEDIA_ITEM, on les ignore ici)
@@ -108,6 +135,8 @@ ContextMenu.onOpen(unloads, async ({ event, contextMenu }) => {
 	if (event.type === "MEDIA_ITEM" || event.type === "MULTI_MEDIA_ITEM") return;
 	// ALBUM / PLAYLIST sont déjà gérés par onMediaItem ci-dessus, on évite le doublon
 	if (event.type === "ALBUM" || event.type === "PLAYLIST") return;
+	// MIX / MIX_SHARE : géré par le handler dédié ci-dessous, on évite le doublon
+	if (event.type === "MIX" || (event as { type?: string }).type === "MIX_SHARE") return;
 	// Le menu sidebar Sort/Filter est géré par l'observer DOM ci-dessous
 	if (contextMenu.closest('[data-test="folders-playlists-sort-menu"]') !== null) return;
 	if (!FavoriteTracks.isTracksPage()) return;
@@ -262,3 +291,77 @@ const attachTracksNavMenu = (navItem: Element) => {
 };
 
 observe(unloads, '[data-test="sidebar-collection-tracks"]', attachTracksNavMenu);
+
+// 6) Page Mix (/mix/<id>) : bouton "Download all" injecté dans le header
+// (à côté de Play / Shuffle), car le clic droit sur la page ne propose pas
+// toujours le menu MIX et il n'y a pas d'autre menu collection à ouvrir.
+const injectMixHeaderButton = (playBtn: HTMLButtonElement) => {
+	const mixId = currentMixIdFromUrl();
+	if (!mixId) return;
+	if (FavoriteTracks.isTracksPage()) return;
+	const container = playBtn.parentElement;
+	if (!container) return;
+	// Navigation SPA : le header peut être réutilisé entre deux mix,
+	// le bouton existant d'un autre mix est recréé (closure mixId).
+	const existing = container.querySelector<HTMLButtonElement>('[data-luna-downloadmanager="mix-download-all"]');
+	if (existing) {
+		if (existing.dataset.mixId === mixId) return;
+		existing.remove();
+	}
+
+	const refBtn = (container.querySelector('[data-test="shuffle-all"]') ?? playBtn) as HTMLButtonElement;
+	const labelClass = refBtn.querySelector("span:last-child")?.className ?? "";
+
+	const dlBtn = document.createElement("button");
+	dlBtn.type = "button";
+	dlBtn.className = refBtn.className;
+	dlBtn.setAttribute("data-luna-downloadmanager", "mix-download-all");
+	dlBtn.dataset.mixId = mixId;
+	dlBtn.title = t("mix.title");
+
+	const paintLabel = (n: number | null) => {
+		const labelSpan = dlBtn.querySelector("span:last-child");
+		const text = n === null ? t("mix.all") : t("mix.allN", { n });
+		if (labelSpan) labelSpan.textContent = text;
+		else dlBtn.textContent = text;
+	};
+
+	dlBtn.innerHTML = `<span aria-hidden="true" style="display:inline-flex;margin-right:6px"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16"/></svg></span><span class="${labelClass}">${t("mix.all")}</span>`;
+
+	dlBtn.onclick = async (e) => {
+		e.preventDefault();
+		dlBtn.setAttribute("disabled", "true");
+		try {
+			const mix = await MixCollection.fromId(mixId);
+			if (!mix) return;
+			await downloadMediaCollection(mix);
+		} finally {
+			dlBtn.removeAttribute("disabled");
+		}
+	};
+
+	container.appendChild(dlBtn);
+
+	// Résout le compteur en fond (le chargement du mix peut prendre 1-10s)
+	void (async () => {
+		try {
+			const mix = await MixCollection.fromId(mixId);
+			if (!mix) return;
+			if (!document.body.contains(dlBtn)) return;
+			// Re-vérifie qu'on est toujours sur le même mix (SPA)
+			if (currentMixIdFromUrl() !== mixId) return;
+			paintLabel(await mix.count());
+		} catch {
+			// Le label générique reste affiché
+		}
+	})();
+	unloads.add(() => dlBtn.remove());
+};
+
+// Le header mix contient un play-all : on s'y accroche uniquement sur /mix/*
+// (même data-test sur albums/playlists/tracks, d'où le filtre URL).
+observe(unloads, '[data-test="play-all"]', (el) => {
+	if (currentMixIdFromUrl() === null) return;
+	if (FavoriteTracks.isTracksPage()) return;
+	injectMixHeaderButton(el as HTMLButtonElement);
+});

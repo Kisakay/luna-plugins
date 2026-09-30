@@ -9,6 +9,7 @@ import { saveMetaForTrack } from "./trackMeta";
 import { unloads } from "./index.safe";
 import { settings } from "./Settings";
 import { FavoriteTracks } from "./favoriteTracks";
+import { MixCollection } from "./mixCollection";
 import { saveLyricsForTrack } from "./trackLyrics";
 import {
 	downloadState,
@@ -82,6 +83,9 @@ async function rawRefs(collection: MediaCollection): Promise<RawRef[] | null> {
 		if (collection instanceof FavoriteTracks) {
 			return FavoriteTracks.ids().map((id) => ({ id, type: "track" as const }));
 		}
+		if (collection instanceof MixCollection) {
+			return await collection.rawRefs();
+		}
 		const maybe = collection as unknown as {
 			tMediaItems?: () => Promise<Array<{ item?: { id?: RawRef["id"] }; type?: RawRef["type"] } | undefined> | undefined>;
 		};
@@ -154,7 +158,7 @@ function notify() {
 }
 
 // #region Persistance de la queue (DB settings -> restore au restart)
-export type SavedSource = { type: "favorites" } | { type: "album"; id: number | string } | { type: "playlist"; id: number | string } | { type: "unknown" };
+export type SavedSource = { type: "favorites" } | { type: "album"; id: number | string } | { type: "playlist"; id: number | string } | { type: "mix"; id: number | string } | { type: "unknown" };
 
 export type SavedJob = {
 	kind: JobKind;
@@ -170,6 +174,7 @@ function describeCollection(collection: MediaCollection): SavedSource {
 		if (collection instanceof FavoriteTracks) return { type: "favorites" };
 		if (collection instanceof Album) return { type: "album", id: collection.id };
 		if (collection instanceof Playlist) return { type: "playlist", id: collection.uuid };
+		if (collection instanceof MixCollection) return { type: "mix", id: collection.mixId };
 	} catch {
 		// instanceof inter-version : repli unknown
 	}
@@ -185,6 +190,8 @@ async function materializeSource(source: SavedSource): Promise<MediaCollection |
 				return (await Album.fromId(source.id)) ?? null;
 			case "playlist":
 				return (await Playlist.fromId(source.id)) ?? null;
+			case "mix":
+				return (await MixCollection.fromId(source.id)) ?? null;
 			default:
 				return null;
 		}
